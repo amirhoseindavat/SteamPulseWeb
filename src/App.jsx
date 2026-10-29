@@ -6,15 +6,15 @@ import {
 } from "lucide-react";
 
 const REGIONS = [
-  { code: "US", label: "United States", currency: "USD" },
-  { code: "GB", label: "United Kingdom", currency: "GBP" },
-  { code: "DE", label: "Germany", currency: "EUR" },
-  { code: "TR", label: "Türkiye", currency: "TRY" },
-  { code: "AR", label: "Argentina", currency: "ARS" },
-  { code: "PL", label: "Poland", currency: "PLN" },
-  { code: "UA", label: "Ukraine", currency: "UAH" },
-  { code: "IN", label: "India", currency: "INR" },
-  { code: "BR", label: "Brazil", currency: "BRL" }
+  { code: "US", label: "United States", currency: "USD", usdRate: 1 },
+  { code: "GB", label: "United Kingdom", currency: "GBP", usdRate: 0.79 },
+  { code: "DE", label: "Germany", currency: "EUR", usdRate: 0.92 },
+  { code: "TR", label: "Türkiye", currency: "TRY", usdRate: 42 },
+  { code: "AR", label: "Argentina", currency: "ARS", usdRate: 1450 },
+  { code: "PL", label: "Poland", currency: "PLN", usdRate: 3.7 },
+  { code: "UA", label: "Ukraine", currency: "UAH", usdRate: 41.5 },
+  { code: "IN", label: "India", currency: "INR", usdRate: 88 },
+  { code: "BR", label: "Brazil", currency: "BRL", usdRate: 5.4 }
 ];
 
 function money(price) {
@@ -44,7 +44,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [usdPriceInput, setUsdPriceInput] = useState("");
+  const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
@@ -73,8 +73,7 @@ export default function App() {
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
-      const usdPrice = data.us_price_overview || (data.price_overview?.currency === "USD" ? data.price_overview : null);
-      setUsdPriceInput(usdPrice?.final != null ? (usdPrice.final / 100).toFixed(2) : "");
+      setRegionalPriceInput(data.price_overview?.final != null ? (data.price_overview.final / 100).toFixed(2) : "");
       setAppid(String(id));
       setInputId(String(id));
       setQuery(data.name);
@@ -143,8 +142,10 @@ export default function App() {
 
   const hero = game?.library_hero || game?.header_image;
   const price = money(game?.price_overview);
-  const numericUsdPrice = Number(usdPriceInput);
-  const keyCount = usdPriceInput.trim() !== "" && Number.isFinite(numericUsdPrice) && numericUsdPrice > 0 ? Math.ceil(numericUsdPrice / 1.85) : 0;
+  const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
+  const numericRegionalPrice = Number(regionalPriceInput);
+  const regionalKeyPrice = 1.85 * selectedRegion.usdRate;
+  const keyCount = regionalPriceInput.trim() !== "" && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPrice) : 0;
   const totalToman = keyCount * 480000;
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
   const tabNames = ["overview", "screenshots", "requirements"];
@@ -232,13 +233,17 @@ export default function App() {
           </section>
 
           <section className="key-calculator detail-card">
-            <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Required keys &amp; estimated cost</h2><p>Based on $1.85 per key and 480,000 toman per key. Enter a different USD price for a bundle if needed.</p></div><div className="calculator-icon"><Tag size={21} /></div></div>
+            <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Required keys &amp; estimated cost</h2><p>Uses the selected region\u2019s Steam price and an estimated local equivalent of $1.85 per key. You can edit the price manually.</p></div><div className="calculator-icon"><Tag size={21} /></div></div>
             <div className="calculator-content">
-              <label className="usd-price-field"><span>Steam price (USD)</span><div><span>$</span><input type="number" min="0" step="0.01" value={usdPriceInput} onChange={(e) => setUsdPriceInput(e.target.value)} placeholder="48.00" aria-label="Steam price in US dollars" /></div></label>
+              <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
               <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
               <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount ? `${keyCount} × 480,000 toman` : "Enter a USD price to calculate"}</p></div>
             </div>
           </section>
+
+          {(game.editions || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Editions &amp; packages</h2></div><span className="section-count">{game.editions.length} OPTIONS</span></div><div className="editions-grid">{game.editions.map((edition, i) => <article className="edition-card" key={`${edition.name}-${i}`}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">{edition.kind || "EDITION"}</span></div><h3>{edition.name}</h3><p>{edition.description || "Steam purchase option"}</p><div className="edition-bottom"><strong>{edition.price || "Price unavailable"}</strong>{edition.savings && <span>{edition.savings} OFF</span>}</div>{edition.url && <a href={edition.url} target="_blank" rel="noreferrer">View option <ExternalLink size={13} /></a>}</article>)}</div></section>}
+
+          {(game.dlc || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <a className="dlc-card" href={item.url} target="_blank" rel="noreferrer" key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><strong>{item.name}</strong><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span></div><ExternalLink size={15} className="dlc-link-icon" /></a>)}</div>{game.dlc_total > game.dlc.length && <p className="dlc-note">Showing {game.dlc.length} DLC items to keep loading fast.</p>}</section>}
 
           <section className="detail-section">
             <div className="detail-header"><div><span className="section-kicker">GAME INTEL</span><h2>Inside the game</h2></div><div className="tabs">{tabNames.map((tab) => <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div></div>
