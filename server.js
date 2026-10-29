@@ -695,9 +695,12 @@ app.get("/api/steam-profile", async (req, res) => {
       visibility: visibility === 3 ? "Public" : visibility === 2 ? "Friends only" : visibility === 1 ? "Private" : "Unknown"
     };
     const friends = friendsResult.status === "fulfilled" && Array.isArray(friendsResult.value?.friendslist?.friends) ? friendsResult.value.friendslist.friends.length : null;
-    const totalBadges = badges && Array.isArray(badges.badges) ? badges.badges.length : null;
+    const badgeList = badges && Array.isArray(badges.badges) ? badges.badges : [];
+    const totalBadges = badges ? badgeList.length : null;
+    const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
     res.json({
       profile,
+      yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://steamcommunity.com/public/images/badges/1_" + (Number(yearOfService.level) || 1) + ".png", xp: Number(yearOfService.xp) || 0 } : null,
       stats: {
         games: games ? games.length : null,
         hours: hours,
