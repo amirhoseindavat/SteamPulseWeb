@@ -318,3 +318,10 @@
 .profile-account dd{margin:0;text-align:right;font-size:11px;color:#dfe6f7;overflow-wrap:anywhere}
 .profile-full-link{display:flex;align-items:center;gap:7px;margin-top:14px;color:#b8a8ff;font-size:11px;text-decoration:none}
 @media(max-width:760px){.profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-content-grid{grid-template-columns:1fr}.steam-profile-identity{align-items:flex-start;flex-wrap:wrap;gap:14px;padding:78px 18px 0}.steam-profile-avatar{width:82px;height:82px}.steam-profile-name{padding:0;min-width:calc(100% - 100px)}.profile-steam-link{margin:0 0 8px}.steam-profile-summary{margin:18px}.profile-stat{padding:16px}}
+
+.api-key-settings{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+.api-key-guide{padding:16px;border:1px solid var(--line);border-radius:10px;background:#ffffff03}
+.api-key-guide strong{font-size:13px;color:#e8ecfa}
+.api-key-guide ol{margin:12px 0 14px;padding-left:20px;color:#929fba;font-size:12px;line-height:1.9}
+.api-key-guide a{display:inline-flex;align-items:center;gap:7px;color:#b9a8ff;font-size:12px;text-decoration:none}
+.api-key-guide a:hover{text-decoration:underline}
