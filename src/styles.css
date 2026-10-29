@@ -904,5 +904,8 @@
 .steam-profile-page{padding:18px;border-radius:18px;background-color:var(--panel,#0b1020);background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed}
 .steam-profile-page>.detail-card{backdrop-filter:blur(3px)}
 .steam-profile-cover{background-color:rgba(8,12,24,.18)}
-.steam-profile-cover.has-steam-background{background-size:cover;background-position:center 35%;opacity:.32}
+.steam-profile-cover.has-steam-background{background-size:cover;background-position:center 35%;opacity:.72;filter:saturate(1.08)}
+.steam-profile-page[style*="background-image"]{background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed}
+.steam-profile-page[style*="background-image"]>.steam-profile-hero{background:rgba(10,14,28,.48)}
+.steam-profile-page[style*="background-image"] .steam-profile-cover.has-steam-background{opacity:.58}
 @media(max-width:620px){.steam-profile-page{padding:10px;background-attachment:scroll;border-radius:12px}}
