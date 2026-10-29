@@ -168,7 +168,7 @@ export default function App() {
   const tabNames = ["overview", "screenshots", "requirements"];
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={game?.background ? { backgroundImage: `linear-gradient(180deg, rgba(8,13,27,.84) 0%, rgba(8,13,27,.94) 34rem, #080d1b 85%), url("${game.background}")` } : undefined}>
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
