@@ -700,7 +700,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
     res.json({
       profile,
-      yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://steamcommunity.com/public/images/badges/1_" + (Number(yearOfService.level) || 1) + ".png", xp: Number(yearOfService.xp) || 0 } : null,
+      yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
       stats: {
         games: games ? games.length : null,
         hours: hours,
