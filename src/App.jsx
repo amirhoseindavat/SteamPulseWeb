@@ -180,7 +180,7 @@ export default function App() {
     if (game) loadGame(appid, region);
   }, [region]);
 
-  const hero = game?.library_hero || game?.header_image;
+  const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
   const numericRegionalPrice = Number(regionalPriceInput);
