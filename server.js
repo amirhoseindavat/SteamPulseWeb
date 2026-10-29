@@ -136,6 +136,31 @@ app.get("/api/game/:appid", async (req, res) => {
       // This undocumented endpoint may not return data for every title.
     }
 
+    const packageGroups = Array.isArray(d.package_groups) ? d.package_groups : [];
+    const editions = packageGroups.flatMap((group) => (group.subs || []).map((sub) => ({
+      name: sub.option_text || sub.name || group.title || group.name || "Steam edition",
+      description: sub.option_description || group.description || "",
+      kind: group.name || group.title || "EDITION",
+      price: sub.price_in_cents_with_discount != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents_with_discount) / 100) : (sub.price_in_cents != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents) / 100) : null),
+      savings: sub.percent_savings_text ? String(sub.percent_savings_text).replace(/[^0-9]/g, "") : "",
+      url: `https://store.steampowered.com/sub/${sub.packageid || sub.id || ""}/`
+    })));
+
+    const dlcIds = Array.isArray(d.dlc) ? d.dlc.map(Number).filter(Number.isFinite) : [];
+    const dlcIdsToFetch = dlcIds.slice(0, 24);
+    const dlcResults = await Promise.allSettled(dlcIdsToFetch.map(async (dlcId) => {
+      const dlcUrl = new URL("https://store.steampowered.com/api/appdetails");
+      dlcUrl.searchParams.set("appids", String(dlcId));
+      dlcUrl.searchParams.set("cc", cc);
+      dlcUrl.searchParams.set("l", "english");
+      const response = await fetchJson(dlcUrl);
+      const envelope = response?.[dlcId];
+      if (!envelope?.success || !envelope.data) return null;
+      const item = envelope.data;
+      return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: item.header_image || "", price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
+    }));
+    const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
+
     const result = {
       appid: Number(appid),
       name: d.name || "Unknown game",
@@ -154,6 +179,9 @@ app.get("/api/game/:appid", async (req, res) => {
       platforms: d.platforms || {},
       price_overview: d.price_overview || null,
       us_price_overview: usPriceOverview,
+      editions,
+      dlc,
+      dlc_total: dlcIds.length,
       metacritic: d.metacritic || null,
       recommendations: d.recommendations?.total ?? null,
       screenshots: (d.screenshots || []).map((s) => s.path_full).filter(Boolean),
