@@ -383,3 +383,31 @@
 .title-extra-meta .tag{font-size:11px;padding:5px 8px}
 .title-developer,.title-recommendations{font-size:11px;color:var(--muted);padding:4px 2px}
 @media(max-width:700px){.title-extra-meta{gap:6px}.title-developer,.title-recommendations{font-size:10px}}
+
+
+/* Fix single About card sizing after removing the secondary profile card */
+.overview-grid:has(.about-card){grid-template-columns:minmax(0,1fr)}
+.about-card{width:100%;min-width:0;align-self:stretch}
+.about-copy{color:#d6dced;line-height:1.8}
+.about-card .card-title h3{color:#f2f5ff}
+.people-grid strong{color:#e4e9f6;overflow-wrap:anywhere}
+.hero-content h2{color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.45)}
+.hero-description{color:#e2e8f5;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.hero-meta{color:#d6def0}
+.title-ownership-status{color:#e9edfa}
+.title-extra-meta .tag{color:#e2d9ff;background:rgba(101,31,255,.17);border-color:rgba(161,130,255,.28)}
+.title-developer,.title-recommendations{color:#c2cce0}
+.edition-image{height:140px;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(135deg,#171c2d,#101421);border:1px solid rgba(255,255,255,.07);border-radius:10px;margin-bottom:14px;color:#8490a9;font-size:11px;font-weight:700;letter-spacing:.12em}
+.edition-image img{display:block;width:100%;height:100%;object-fit:cover}
+.edition-image-empty{background:repeating-linear-gradient(135deg,#151a29,#151a29 12px,#191f30 12px,#191f30 24px)}
+.edition-select{display:block}
+.edition-select h3{color:#f1f4ff;line-height:1.35;overflow-wrap:anywhere}
+.edition-select p{color:#b8c3da;line-height:1.6}
+.edition-bottom strong{color:#fff}
+@media(max-width:700px){
+ .overview-grid:has(.about-card){grid-template-columns:minmax(0,1fr)}
+ .about-card{width:auto}
+ .edition-image{height:clamp(120px,38vw,190px)}
+ .hero-content h2{color:#fff}
+ .hero-description{color:#e9eefb}
+}
