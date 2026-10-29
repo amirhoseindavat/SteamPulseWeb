@@ -234,7 +234,7 @@ app.get("/api/game/:appid", async (req, res) => {
       const envelope = response?.[dlcId];
       if (!envelope?.success || !envelope.data) return null;
       const item = envelope.data;
-      return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: (item.header_image || "").replace(/\/header\.jpg(?=\?|$)/, "/header_2x.jpg"), price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
+      return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: item.header_image || "", price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
     }));
     const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
     const bundles = bundlesResult.status === "fulfilled" ? bundlesResult.value : [];
@@ -290,7 +290,7 @@ app.get("/api/game/:appid", async (req, res) => {
 
 app.get("/api/game/:appid/dlc", async (req, res) => {
   const appid = String(req.params.appid);
-  if (!/^\\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
+  if (!/^\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
 
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
   const offset = Math.max(0, Number.parseInt(req.query.offset || "0", 10) || 0);
