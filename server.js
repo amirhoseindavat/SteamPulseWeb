@@ -682,12 +682,15 @@ app.get("/api/steam-profile", async (req, res) => {
     const equippedItems = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response?.profile_items : null;
     const equippedList = Array.isArray(equippedItems?.profile_items) ? equippedItems.profile_items : (Array.isArray(equippedItems) ? equippedItems : []);
     const findEquippedImage = (kind) => {
-      const item = equippedList.find((entry) => String(entry?.community_item_type || entry?.item_type || entry?.type || "").toLowerCase().includes(kind));
+      const item = equippedList.find((entry) => {
+        const type = String(entry?.community_item_type || entry?.item_type || entry?.type || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        return type.includes(kind);
+      });
       const raw = item?.image_large || item?.image || item?.image_small || "";
       return normalizeSteamAssetUrl(raw);
     };
-    const avatarAnimated = findEquippedImage("animated_avatar");
-    const avatarFrame = findEquippedImage("avatar_frame");
+    const avatarAnimated = findEquippedImage("animatedavatar");
+    const avatarFrame = findEquippedImage("avatarframe");
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
     const normalizeSteamAssetUrl = (value) => {
       if (typeof value !== "string" || !value.trim()) return "";
