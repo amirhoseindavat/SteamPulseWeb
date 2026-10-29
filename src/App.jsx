@@ -375,19 +375,19 @@ export default function App() {
     let timer;
     const loadRegionalKeyPrice = async () => {
       try {
-        const response = await fetch(`/api/key-price?region=${encodeURIComponent(selectedRegion.code)}`);
+        const response = await fetch(`/api/key-price?region=${encodeURIComponent(region)}`);
         const data = await readApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Could not load this region's Steam key price.");
         if (!cancelled) setRegionalKeyPrice(data);
       } catch (error) {
-        if (!cancelled) setRegionalKeyPrice({ region: selectedRegion.code, error: error.message || "Steam key price unavailable." });
+        if (!cancelled) setRegionalKeyPrice({ region, error: error.message || "Steam key price unavailable." });
       }
     };
     setRegionalKeyPrice(null);
     loadRegionalKeyPrice();
     timer = setInterval(loadRegionalKeyPrice, 60000);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [selectedRegion.code]);
+  }, [region]);
 
   useEffect(() => {
     if (currentPage !== "market") return;
