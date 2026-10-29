@@ -107,6 +107,22 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+function cleanEditionName(value) {
+  return String(value || "")
+    .replace(/<span[^>]*discount_original_price[^>]*>[\\s\\S]*?<\\/span>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/\\s*[\\d][\\d\\s.,]*(?:₴|\\$|€|£|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*/gi, " ")
+    .replace(/\\s+/g, " ")
+    .replace(/[\\s–—-]+$/g, "")
+    .replace(/^\\s*[-–—:]+\\s*|\\s*[-–—:]+\\s*$/g, "")
+    .trim();
+}
+
 async function fetchSteamBundles(appid, cc) {
   const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "TR" ? "TRY" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "AR" ? "ARS" : "USD";
 
@@ -426,7 +442,8 @@ app.get("/api/game/:appid", async (req, res) => {
 
     const packageGroups = Array.isArray(d.package_groups) ? d.package_groups : [];
     const editions = packageGroups.flatMap((group) => (group.subs || []).map((sub) => ({
-      name: sub.option_text || sub.name || group.title || group.name || "Steam edition",
+      name: cleanEditionName(sub.option_text || sub.name || group.title || group.name || "Steam edition"),
+      image: sub.header_image || sub.image || sub.large_capsule || sub.small_capsule || "",
       description: sub.option_description || group.description || "",
       kind: group.name || group.title || "EDITION",
       priceValue: sub.price_in_cents_with_discount != null ? Number(sub.price_in_cents_with_discount) / 100 : (sub.price_in_cents != null ? Number(sub.price_in_cents) / 100 : null),
