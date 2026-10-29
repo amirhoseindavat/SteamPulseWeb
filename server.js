@@ -683,7 +683,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
     const equippedResponse = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response : null;
     const equippedItems = equippedResponse?.profile_items || equippedResponse || {};
-    const animatedAvatarData = animatedAvatarResult.status === "fulfilled" ? animatedAvatarResult.value?.response?.animated_avatar : null;
+    const animatedAvatarData = animatedAvatarResult.status === "fulfilled" ? (animatedAvatarResult.value?.response?.avatar || animatedAvatarResult.value?.response?.animated_avatar) : null;
     const avatarFrameData = avatarFrameResult.status === "fulfilled" ? avatarFrameResult.value?.response?.avatar_frame : null;
     const normalizeSteamAssetUrl = (value) => {
       if (typeof value !== "string" || !value.trim()) return "";
