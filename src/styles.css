@@ -888,3 +888,13 @@
 
 /* Make the Steam level number crisp and clearly white. */
 .profile-badge-stat .steam-level-frame>span{color:#fff!important;font-family:Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:900;letter-spacing:0;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.8);-webkit-font-smoothing:antialiased}
+
+
+/* Keep the profile grid compact and show Steam level inline with the account name. */
+@media(min-width:761px){.profile-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.steam-profile-title-row{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap}
+.steam-profile-title-row h1{min-width:0;margin:8px 0 4px}
+.steam-profile-level{width:42px;height:42px;flex:0 0 42px;overflow:hidden;isolation:isolate}
+.steam-profile-level.is-sprite{background-size:42px 420px!important;background-repeat:no-repeat;background-color:transparent;border:0;border-radius:0;box-shadow:none}
+.steam-profile-level>span{color:#fff!important;font-family:Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:900;letter-spacing:0;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.8);-webkit-font-smoothing:antialiased}
+@media(max-width:620px){.steam-profile-identity{gap:14px;padding-left:16px;padding-right:16px}.steam-profile-title-row{gap:9px}.steam-profile-level{width:36px;height:36px;flex-basis:36px}.steam-profile-level.is-sprite{background-size:36px 360px!important}.steam-profile-level.is-sprite{background-position-y:calc(var(--level-row,0) * -36px)}}
