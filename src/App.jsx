@@ -479,8 +479,8 @@ export default function App() {
             {regionalMarketError && <div className="market-error"><Info size={16} />{regionalMarketError}</div>}
             {regionalMarketLoading && !regionalMarketData.length ? <div className="market-loading"><LoaderCircle size={20} className="spin" /> Loading regional Steam Market orders…</div> : <>
               <div className="regional-order-summary">
-                <div className="regional-order-stat"><span>Sell orders · Steam market</span><strong>{formatNumber(Number(String(regionalMarketData.find((item) => item.code === "US")?.sellOrderCount ?? "").replace(/[，,\s]/g, "")) || 0)}</strong></div>
-                <div className="regional-order-stat"><span>Buy orders · Steam market</span><strong>{formatNumber(Number(String(regionalMarketData.find((item) => item.code === "US")?.buyOrderCount ?? "").replace(/[，,\s]/g, "")) || 0)}</strong></div>
+                <div className="regional-order-stat"><span>Sell orders · Steam market</span><strong>{(() => { const value = Number(String(regionalMarketData.find((item) => item.code === "US")?.sellOrderCount ?? "").replace(/[，,\s]/g, "")); return Number.isFinite(value) && value > 0 ? formatNumber(value) : "—"; })()}</strong></div>
+                <div className="regional-order-stat"><span>Buy orders · Steam market</span><strong>{(() => { const value = Number(String(regionalMarketData.find((item) => item.code === "US")?.buyOrderCount ?? "").replace(/[，,\s]/g, "")); return Number.isFinite(value) && value > 0 ? formatNumber(value) : "—"; })()}</strong></div>
               </div>
               <div className="regional-market-table-wrap">
                 <table className="regional-market-table">
