@@ -465,6 +465,7 @@ export default function App() {
 
       <main className="main-content">
         {currentPage === "profile" && <section className="steam-profile-page" style={steamProfileData?.profile?.background ? { backgroundImage: `linear-gradient(180deg, rgba(7,11,23,.58), rgba(7,11,23,.88)), url("${steamProfileData.profile.background}")` } : undefined}>
+          {steamProfileData?.profile?.backgroundVideo && <video className="steam-profile-background-video" autoPlay muted loop playsInline poster={steamProfileData.profile.background || undefined} aria-hidden="true"><source src={steamProfileData.profile.backgroundVideo} type="video/webm" /></video>}
           {steamProfileLoading && <div className="profile-loading detail-card"><LoaderCircle className="spin" size={22} /> Loading Steam profile…</div>}
           {steamProfileError && !steamProfileLoading && <div className="profile-error detail-card"><UserRound size={24} /><h2>Steam profile unavailable</h2><p>{steamProfileError}</p><button className="primary-button" onClick={() => navigateTo("settings")}><Settings size={15} /> Open Settings</button><button className="secondary-button" onClick={loadSteamProfile}><RefreshCw size={15} /> Try again</button></div>}
           {steamProfileData && !steamProfileLoading && <>
