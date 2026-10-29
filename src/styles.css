@@ -1034,6 +1034,10 @@
   backdrop-filter: blur(18px);
 }
 
-/* Steam status next to the animated header avatar */
-.header-steam-status{display:flex;flex-direction:column;justify-content:center;gap:5px;margin-left:9px;min-width:62px;font-size:10px;font-weight:650;line-height:1.15;color:var(--text-secondary,#a1a1aa)}.header-status-line{display:flex;align-items:center;gap:5px;white-space:nowrap}.header-status-line i{display:inline-block;width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#737373;box-shadow:0 0 0 2px rgba(115,115,115,.14)}.header-status-line.is-online i{background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.16)}.header-status-line.is-offline i{background:#737373;box-shadow:0 0 0 2px rgba(115,115,115,.14)}.header-status-line.is-ingame{color:#a3e635}.header-status-line.is-ingame i{background:#a3e635;box-shadow:0 0 0 2px rgba(163,230,53,.16)}
-@media(max-width:600px){.header-steam-status{margin-left:5px;min-width:auto;font-size:9px}.header-status-line{gap:4px}.header-status-line i{width:6px;height:6px;flex-basis:6px}}
+/* Compact Steam-style presence dot on the header avatar */
+.avatar-button{position:relative}
+.header-steam-status-dot{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;border:2px solid var(--panel,#101629);background:#737373;box-shadow:0 0 0 1px rgba(0,0,0,.12);pointer-events:none}
+.avatar-button.is-steam-online .header-steam-status-dot{background:#1a9fff}
+.avatar-button.has-steam-game .header-steam-status-dot{background:#5cba3c}
+.avatar-button.is-steam-offline .header-steam-status-dot{background:#737373}
+@media(max-width:600px){.header-steam-status-dot{width:10px;height:10px;right:-1px;bottom:-1px}}
