@@ -753,9 +753,8 @@
 .market-updated{margin-left:auto;color:#7786a4;font-size:10px}
 .market-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .market-product-card{min-width:0;padding:22px!important}
-.market-product-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
-.market-product-icon{width:43px;height:43px;display:grid;place-items:center;border:1px solid #8b6cff38;border-radius:12px;background:#8b6cff15;color:#b9a8ff}
-.market-product-icon.ticket{border-color:#39d6a033;background:#39d6a012;color:#6fe2bd}
+.market-product-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;min-height:64px}
+.market-product-image{display:block;width:76px;height:64px;object-fit:contain;object-position:left center;filter:drop-shadow(0 5px 10px rgba(0,0,0,.12))}
 .market-live-tag{padding:5px 8px;border:1px solid #39d6a033;border-radius:6px;background:#39d6a010;color:#5ddbb1;font:9px "DM Mono",monospace;letter-spacing:.7px}
 .market-product-label{display:block;margin-bottom:8px;color:#9aa7c2;font-size:12px}
 .market-price{display:block;color:#f0f3ff;font-size:clamp(25px,3vw,35px);letter-spacing:-.8px;overflow-wrap:anywhere}
