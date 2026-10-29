@@ -29,7 +29,11 @@ function formatNumber(value) {
   return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
 }
 
-function SteamDeckMark({ size = 18 }) {\n  return <svg className="steam-deck-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.777 4.302a5.698 5.698 0 1 1 0 11.396v3.19a8.889 8.889 0 1 0 0-17.777v3.191Zm0 9.587a3.889 3.889 0 1 0 0-7.778 3.889 3.889 0 0 0 0 7.778Z" /></svg>;\n}\n\nfunction DeckCompatibilityIcon({ status, size = 18 }) {
+function SteamDeckMark({ size = 18 }) {
+  return <svg className="steam-deck-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.777 4.302a5.698 5.698 0 1 1 0 11.396v3.19a8.889 8.889 0 1 0 0-17.777v3.191Zm0 9.587a3.889 3.889 0 1 0 0-7.778 3.889 3.889 0 0 0 0 7.778Z" /></svg>;
+}
+
+function DeckCompatibilityIcon({ status, size = 18 }) {
   const icons = {
     verified: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/verified_18.png",
     playable: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/playable_18.png",
