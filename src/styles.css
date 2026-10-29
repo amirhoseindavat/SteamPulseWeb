@@ -422,3 +422,26 @@
 .hero-content{max-width:62%}
 @media(max-width:900px){.hero-header-image{right:18px;width:31%}.hero-content{max-width:64%}}
 @media(max-width:620px){.game-hero{padding-top:120px}.hero-header-image{top:15px;right:16px;transform:none;width:min(54%,280px)}.hero-content{max-width:100%}}
+
+
+/* Refined game title metadata and aligned key-cost estimator */
+.hero-developer{margin:-4px 0 10px;color:#c0b4ff;font-size:12px;font-weight:600;letter-spacing:.01em}
+.hero-description{margin-top:0}
+.key-calculator{padding:26px; border-radius:16px; background:linear-gradient(135deg,rgba(20,29,49,.98),rgba(13,21,37,.96));}
+.calculator-heading{align-items:center;margin-bottom:20px}
+.calculator-heading h2{font-size:22px;line-height:1.25;margin:7px 0 8px}
+.calculator-icon{width:46px;height:46px;border-radius:13px}
+.calculator-region{margin:0 0 16px;padding:13px 15px;min-height:58px;align-items:center}
+.calculator-region>span{font-size:12px;font-weight:600}
+.calculator-region select{max-width:65%;min-height:38px}
+.calculator-content{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:0;align-items:stretch}
+.usd-price-field{gap:10px;padding:16px;border:1px solid var(--line);border-radius:12px;background:rgba(8,14,29,.55);font-size:11px;font-weight:600}
+.usd-price-field>div{height:54px;gap:10px;padding:0 12px;border-color:#394765;background:#0b1222}
+.usd-price-field input{font-size:17px}
+.calculator-result{min-height:118px;display:flex;flex-direction:column;justify-content:center;padding:17px;border-radius:12px;background:rgba(8,14,29,.7)}
+.calculator-result small{margin-bottom:12px;font-size:9px;letter-spacing:1.1px}
+.calculator-result strong{font-size:clamp(21px,2.2vw,29px);line-height:1.25;letter-spacing:-.6px}
+.calculator-result p{margin-top:9px;line-height:1.5;overflow-wrap:anywhere}
+.cost-result{border-color:rgba(120,227,213,.22);background:linear-gradient(145deg,rgba(28,73,76,.22),rgba(8,14,29,.72))}
+@media(max-width:760px){.calculator-content{grid-template-columns:1fr 1fr}.usd-price-field{grid-column:1/-1}.calculator-result{min-height:112px}}
+@media(max-width:620px){.key-calculator{padding:18px 14px}.calculator-heading{margin-bottom:17px}.calculator-heading h2{font-size:19px}.calculator-region{padding:12px;min-height:0}.calculator-content{grid-template-columns:1fr}.usd-price-field{grid-column:auto;padding:13px}.calculator-result{min-height:100px;padding:15px}.calculator-result strong{font-size:26px}.hero-developer{font-size:11px}}
