@@ -86,9 +86,15 @@ app.get("/api/game/:appid", async (req, res) => {
     storeUrl.searchParams.set("cc", cc);
     storeUrl.searchParams.set("l", "english");
 
-    const [storeResult, playersResult] = await Promise.allSettled([
+    const usStoreUrl = new URL("https://store.steampowered.com/api/appdetails");
+    usStoreUrl.searchParams.set("appids", appid);
+    usStoreUrl.searchParams.set("cc", "US");
+    usStoreUrl.searchParams.set("l", "english");
+
+    const [storeResult, playersResult, usStoreResult] = await Promise.allSettled([
       fetchJson(storeUrl),
-      fetchJson(`https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`)
+      fetchJson(`https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`),
+      cc === "US" ? Promise.resolve(null) : fetchJson(usStoreUrl)
     ]);
 
     const storeEnvelope = storeResult.status === "fulfilled"
@@ -104,6 +110,8 @@ app.get("/api/game/:appid", async (req, res) => {
     }
 
     const d = storeEnvelope.data;
+    const usEnvelope = cc === "US" ? storeEnvelope : (usStoreResult.status === "fulfilled" ? usStoreResult.value?.[appid] : null);
+    const usPriceOverview = usEnvelope?.success ? usEnvelope.data?.price_overview || null : null;
     const playerCount = playersResult.status === "fulfilled"
       ? playersResult.value?.response?.player_count ?? null
       : null;
@@ -145,6 +153,7 @@ app.get("/api/game/:appid", async (req, res) => {
       categories: (d.categories || []).map((c) => c.description),
       platforms: d.platforms || {},
       price_overview: d.price_overview || null,
+      us_price_overview: usPriceOverview,
       metacritic: d.metacritic || null,
       recommendations: d.recommendations?.total ?? null,
       screenshots: (d.screenshots || []).map((s) => s.path_full).filter(Boolean),
