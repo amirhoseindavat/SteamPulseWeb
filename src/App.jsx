@@ -477,21 +477,25 @@ export default function App() {
               <span className={regionalMarketError ? "regional-market-live is-error" : "regional-market-live"}><span />{regionalMarketError ? "Unavailable" : regionalMarketLoading && !regionalMarketData.length ? "Loading market…" : "LIVE"}</span>
             </div>
             {regionalMarketError && <div className="market-error"><Info size={16} />{regionalMarketError}</div>}
-            {regionalMarketLoading && !regionalMarketData.length ? <div className="market-loading"><LoaderCircle size={20} className="spin" /> Loading regional Steam Market orders…</div> : <div className="regional-market-table-wrap">
-              <table className="regional-market-table">
-                <thead><tr><th>Region</th><th>Lowest sell</th><th>Net estimate</th><th>Change</th><th>Sell orders</th><th>Buy orders</th></tr></thead>
-                <tbody>
-                  {regionalMarketData.map((item) => <tr key={item.code}>
-                    <td><span className="regional-name"><span className="regional-flag">{item.flag}</span><span><strong>{item.code}</strong><small>{item.label}</small></span></span></td>
-                    <td className="regional-price">{item.lowestSellFormatted || "—"}</td>
-                    <td className="regional-net">{item.netFormatted || "—"}</td>
-                    <td><span className={item.change == null ? "regional-change" : item.change > 0 ? "regional-change up" : item.change < 0 ? "regional-change down" : "regional-change"}>{item.change == null ? "—" : item.change > 0 ? `▲ ${item.changeFormatted}` : item.change < 0 ? `▼ ${item.changeFormatted}` : "—"}</span></td>
-                    <td>{item.sellOrderCount ?? "—"}</td><td>{item.buyOrderCount ?? "—"}</td>
-                  </tr>)}
-                  {shopData && <tr className="regional-iran-row"><td><span className="regional-name"><span className="regional-flag">🇮🇷</span><span><strong>IR</strong><small>Iran · AresGame</small></span></span></td><td className="regional-price">{formatNumber(Number(shopData.Key))} toman</td><td className="regional-net">{formatNumber(Number(shopData.KeyBuy))} toman</td><td><span className="regional-change">—</span></td><td>{shopData.KeyStock == null ? "—" : formatNumber(Number(shopData.KeyStock))}</td><td>—</td></tr>}
-                </tbody>
-              </table>
-            </div>}
+            {regionalMarketLoading && !regionalMarketData.length ? <div className="market-loading"><LoaderCircle size={20} className="spin" /> Loading regional Steam Market orders…</div> : <>
+              <div className="regional-order-summary">
+                <div className="regional-order-stat"><span>Sell orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(item.sellOrderCount) || 0), 0))}</strong></div>
+                <div className="regional-order-stat"><span>Buy orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(item.buyOrderCount) || 0), 0))}</strong></div>
+              </div>
+              <div className="regional-market-table-wrap">
+                <table className="regional-market-table">
+                  <thead><tr><th>Country / region</th><th>Lowest sell</th><th>Net estimate</th><th>Change</th></tr></thead>
+                  <tbody>
+                    {regionalMarketData.map((item) => <tr key={item.code}>
+                      <td><span className="regional-name"><span className="regional-flag">{item.flag}</span><span><strong>{item.label}</strong></span></span></td>
+                      <td className="regional-price">{item.lowestSellFormatted || "—"}</td>
+                      <td className="regional-net">{item.netFormatted || "—"}</td>
+                      <td><span className={item.change == null ? "regional-change" : item.change > 0 ? "regional-change up" : item.change < 0 ? "regional-change down" : "regional-change"}>{item.change == null ? "—" : item.change > 0 ? `▲ ${item.changeFormatted}` : item.change < 0 ? `▼ ${item.changeFormatted}` : "—"}</span></td>
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>
+            </>}
             <p className="market-footnote"><Info size={14} /> Prices come from Steam Community Market order histograms. Net estimate subtracts an estimated 13% marketplace fee; it is indicative, not a guaranteed payout. {regionalMarketUpdatedAt ? `Last fetched: ${regionalMarketUpdatedAt.toLocaleTimeString()}.` : ""}</p>
           </section>
           <div className="market-status"><span className={shopDataError ? "market-status-dot is-error" : "market-status-dot"} />{shopDataError ? "Live data unavailable" : shopDataLoading && !shopData ? "Connecting to shop API…" : "Live shop data"}<span className="market-updated">{shopData?.LastUpdateDate ? `Source updated: ${shopData.LastUpdateDate}` : shopDataUpdatedAt ? `Fetched: ${shopDataUpdatedAt.toLocaleTimeString()}` : "Waiting for first update"}</span></div>
