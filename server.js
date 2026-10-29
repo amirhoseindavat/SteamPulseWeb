@@ -91,10 +91,15 @@ app.get("/api/game/:appid", async (req, res) => {
     usStoreUrl.searchParams.set("cc", "US");
     usStoreUrl.searchParams.set("l", "english");
 
-    const [storeResult, playersResult, usStoreResult] = await Promise.allSettled([
+    const deckReportUrl = new URL("https://store.steampowered.com/saleaction/ajaxgetdeckappcompatibilityreport");
+    deckReportUrl.searchParams.set("nAppID", appid);
+    deckReportUrl.searchParams.set("l", "english");
+
+    const [storeResult, playersResult, usStoreResult, deckResult] = await Promise.allSettled([
       fetchJson(storeUrl),
       fetchJson(`https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`),
-      cc === "US" ? Promise.resolve(null) : fetchJson(usStoreUrl)
+      cc === "US" ? Promise.resolve(null) : fetchJson(usStoreUrl),
+      fetchJson(deckReportUrl)
     ]);
 
     const storeEnvelope = storeResult.status === "fulfilled"
@@ -115,6 +120,34 @@ app.get("/api/game/:appid", async (req, res) => {
     const playerCount = playersResult.status === "fulfilled"
       ? playersResult.value?.response?.player_count ?? null
       : null;
+
+    const deckData = deckResult.status === "fulfilled" && deckResult.value?.success === 1 ? deckResult.value.results : null;
+    const deckCategory = Number(deckData?.resolved_category || 0);
+    const deckStatusByCategory = {
+      0: { status: "unknown", label: "Unknown", summary: "Steam has not published a compatibility rating for this game." },
+      1: { status: "unsupported", label: "Unsupported", summary: "Steam reports that this game is not supported on Steam Deck." },
+      2: { status: "playable", label: "Playable", summary: "The game works on Steam Deck, but may require some manual configuration." },
+      3: { status: "verified", label: "Verified", summary: "The game meets Steam Deck compatibility requirements and should work out of the box." }
+    };
+    const deckCriteriaNames = {
+      SteamDeckVerified_TestResult_DefaultControllerConfigFullyFunctional: "Controller configuration works by default",
+      SteamDeckVerified_TestResult_ControllerGlyphsMatchDeckDevice: "Controller prompts match Steam Deck",
+      SteamDeckVerified_TestResult_InterfaceTextIsLegible: "Interface text is readable",
+      SteamDeckVerified_TestResult_DefaultConfigurationIsPerformant: "Default graphics settings perform well",
+      SteamDeckVerified_TestResult_SupportsDisplayResolution: "Supports Steam Deck display resolution",
+      SteamDeckVerified_TestResult_SupportsExternalControllers: "Supports external controllers",
+      SteamDeckVerified_TestResult_NoLauncher: "No additional launcher required",
+      SteamDeckVerified_TestResult_CloudSaves: "Cloud saves supported",
+      SteamDeckVerified_TestResult_CompatibleWithSteamOS: "Compatible with SteamOS"
+    };
+    const deckCriteria = (deckData?.resolved_items || []).map((item) => {
+      const token = String(item.loc_token || "").replace(/^#/, "");
+      const key = token.replace(/^SteamDeckVerified_TestResult_/, "");
+      const name = deckCriteriaNames[token] || key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+      const result = Number(item.display_type) === 4 ? "pass" : Number(item.display_type) === 5 ? "fail" : "info";
+      return { name, result };
+    });
+    const steamDeck = { ...(deckStatusByCategory[deckCategory] || deckStatusByCategory[0]), criteria: deckCriteria };
 
     let hero = d.header_image || "";
     let libraryHero = "";
@@ -194,6 +227,7 @@ app.get("/api/game/:appid", async (req, res) => {
       website: d.website || "",
       steam_url: `https://store.steampowered.com/app/${appid}/`,
       player_count: playerCount,
+      steam_deck: steamDeck,
       pc_requirements: d.pc_requirements || null
     };
 
