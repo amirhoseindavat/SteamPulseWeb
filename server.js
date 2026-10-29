@@ -764,7 +764,7 @@ app.get("/api/steam-profile", async (req, res) => {
         return {
           appid,
           name: item.name || ("App " + item.appid),
-          image: "https://cdn.akamai.steamstatic.com/steam/apps/" + appid + "/header.jpg",
+          image: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + appid + "/header.jpg",
           hours: Math.round(Number(item.playtime_forever || 0) / 60),
           hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
         };
