@@ -29,3 +29,9 @@
 .hero-deck-status.deck-status-unsupported{color:#ff8b97;border-color:#ff8b9733;background:#ff8b970c}
 .hero-deck-status.deck-status-unknown{color:#aab5cf}
 @media(max-width:620px){.hero-meta{align-items:flex-start;flex-direction:column}.hero-platforms{gap:12px}.hero-deck-status{white-space:normal}}
+
+
+/* Official Steam Deck compatibility badge assets */
+.steam-deck-rating-icon{display:inline-block;flex-shrink:0;object-fit:contain;vertical-align:middle}
+.hero-deck-status .steam-deck-rating-icon{width:18px;height:18px}
+.deck-badge .steam-deck-rating-icon{width:21px;height:21px}
