@@ -51,6 +51,8 @@ export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
   const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
+  const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
+  const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [ownership, setOwnership] = useState(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
@@ -249,6 +251,9 @@ export default function App() {
     const cleanProfile = steamProfileDraft.trim();
     setSteamProfile(cleanProfile);
     localStorage.setItem("steampulse-profile", cleanProfile);
+    const cleanApiKey = steamApiKeyDraft.trim();
+    setSteamApiKey(cleanApiKey);
+    localStorage.setItem("steampulse-api-key", cleanApiKey);
     localStorage.setItem("steampulse-region", region);
     setOwnership(null);
     setOwnershipError("");
@@ -263,7 +268,7 @@ export default function App() {
     setSteamProfileLoading(true);
     setSteamProfileError("");
     try {
-      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile)}`);
+      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile)}`, { headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {} });
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || "Could not load the Steam profile.");
       setSteamProfileData(data);
@@ -285,7 +290,7 @@ export default function App() {
       const appids = [...new Set([Number(game.appid), ...(game.dlc || []).map((item) => Number(item.appid))].filter(Number.isFinite))];
       const response = await fetch("/api/ownership-check", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {}) },
         body: JSON.stringify({ profile: steamProfile, appids })
       });
       const data = await readApiResponse(response);
@@ -395,7 +400,11 @@ export default function App() {
             <button className="primary-button" onClick={saveSettings}><Save size={16} /> Save settings</button>
             {steamProfile && <p className="settings-saved"><CheckCircle2 size={15} /> Steam profile saved in this browser.</p>}
           </div>
-          <div className="settings-note"><ShieldCheck size={18} /><div><strong>About ownership checks</strong><p>The server needs a Steam Web API key configured as <code>STEAM_API_KEY</code>. Steam may not expose every DLC as a separate owned app, so DLC results are best-effort, not a purchase receipt.</p></div></div>
+          <div className="settings-form api-key-settings">
+            <label><span><ShieldCheck size={16} /> Your Steam Web API Key</span><input type="password" autoComplete="off" value={steamApiKeyDraft} onChange={(e) => setSteamApiKeyDraft(e.target.value)} placeholder="Paste your Steam Web API key" /><small>Your key is saved only in this browser and sent to the SteamPulse server when you request Steam account data. Never share it with anyone.</small></label>
+            <div className="api-key-guide"><strong>How to get your key</strong><ol><li>Open the official Steam API key page and sign in to your Steam account.</li><li>Enter a domain name if Steam asks, then accept the terms and register.</li><li>Copy the key shown by Steam and paste it above.</li></ol><a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noreferrer"><ExternalLink size={14} /> Get your Steam Web API Key</a></div>
+          </div>
+          <div className="settings-note"><ShieldCheck size={18} /><div><strong>About ownership checks</strong><p>Your personal key is used for profile statistics and library checks. Steam may not expose every DLC as a separate owned app, so DLC results are best-effort, not a purchase receipt. You can remove the key from this field and save settings to clear it from this browser.</p></div></div>
         </section>}
 
         {(currentPage === "home" || currentPage === "games") && <>
