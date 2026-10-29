@@ -41,3 +41,21 @@
 .hero-deck-status .steam-deck-label{font-size:10px;font-weight:600;color:#c4cce0;padding-right:7px;border-right:1px solid #ffffff24}
 .deck-icon .steam-deck-mark{color:#a18aff}
 @media(max-width:620px){.hero-deck-status .steam-deck-label{font-size:10px}}
+
+
+/* Selectable Steam editions and bundles */
+.platform-logo{display:block;width:18px;height:18px;object-fit:contain;filter:grayscale(1) brightness(0) invert(1);opacity:.92}
+.platform-macos{width:17px;height:17px}
+.platform-linux{width:19px;height:19px}
+.purchase-hint{margin:7px 0 0;color:#8995b0;font-size:11px;line-height:1.6}
+.edition-card{padding:0;overflow:hidden}
+.edition-select{display:block;width:100%;padding:18px;text-align:left;border:0;background:transparent;color:inherit;cursor:pointer}
+.edition-select:disabled{cursor:not-allowed;opacity:.65}
+.edition-select h3{font-size:14px;margin:15px 0 7px;color:#e3e9fa}
+.edition-select>p{font-size:10px;color:#8491ad;line-height:1.6;min-height:32px;margin:0}
+.edition-select .edition-bottom{margin-top:18px}
+.edition-calculate{display:flex;align-items:center;gap:5px;margin-top:13px;color:#b7a6ff;font-size:10px;font-weight:700}
+.edition-external-link{display:inline-flex;align-items:center;gap:6px;margin:0 18px 16px;color:#8290ae;font-size:10px}
+.edition-card-selected{border-color:#8b6cffaa;box-shadow:0 0 0 1px #8b6cff44,0 8px 28px #0002}
+.edition-card-selected .edition-calculate{color:#78e3d5}
+.hero-deck-status .steam-deck-mark{color:#c4cce0}
