@@ -62,6 +62,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("overview");
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
+  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], topSellers: [] });
+  const [discoveryLoading, setDiscoveryLoading] = useState(true);
+  const [discoveryError, setDiscoveryError] = useState("");
+  const [discoveryTab, setDiscoveryTab] = useState("trending");
   const calculatorRef = useRef(null);
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
@@ -194,6 +198,30 @@ export default function App() {
     if (game) loadGame(appid, region);
   }, [region]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setDiscoveryLoading(true);
+    setDiscoveryError("");
+    fetch(`/api/discover?cc=${region}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load game discovery.");
+        return data;
+      })
+      .then((data) => {
+        if (!cancelled) setDiscovery({
+          newReleases: data.newReleases || [],
+          upcoming: data.upcoming || [],
+          topSellers: data.topSellers || []
+        });
+      })
+      .catch((e) => {
+        if (!cancelled) setDiscoveryError(e.message || "Game discovery is temporarily unavailable.");
+      })
+      .finally(() => { if (!cancelled) setDiscoveryLoading(false); });
+    return () => { cancelled = true; };
+  }, [region]);
+
   const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
@@ -259,6 +287,34 @@ export default function App() {
             <div className="app-id-box"><label htmlFor="appid">APP ID</label><input id="appid" value={inputId} onChange={(e) => setInputId(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadGame(inputId)} /><button onClick={() => loadGame(inputId)} aria-label="Load AppID"><ChevronRight size={18} /></button></div>
           </div>
           <div className="popular-line"><span>TRY A QUICK LOOK</span>{[{ name:"Cyberpunk 2077",id:"1091500"},{name:"Elden Ring",id:"1245620"},{name:"Baldur's Gate 3",id:"1086940"},{name:"Hades II",id:"1145350"}].map((g) => <button key={g.id} onClick={() => {setQuery(g.name);loadGame(g.id);}}>{g.name}</button>)}</div>
+        </section>
+
+        <section className="discovery-section">
+          <div className="discovery-heading">
+            <div><span className="section-kicker"><Sparkles size={13} /> STEAM RADAR</span><h2>What’s hot right now</h2><p>Fresh releases, upcoming launches, and games players are buying.</p></div>
+            <button className="discovery-refresh" onClick={() => {
+              setDiscoveryLoading(true); setDiscoveryError("");
+              fetch(`/api/discover?cc=${region}&refresh=1`)
+                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+                .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], topSellers: data.topSellers || [] }))
+                .catch((e) => setDiscoveryError(e.message || "Refresh failed."))
+                .finally(() => setDiscoveryLoading(false));
+            }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>
+          </div>
+          <div className="discovery-tabs">
+            {[["trending","Trending"],["new","New releases"],["upcoming","Coming soon"]].map(([key,label]) => <button key={key} className={discoveryTab === key ? "active" : ""} onClick={() => setDiscoveryTab(key)}>{label}</button>)}
+          </div>
+          {discoveryError && <div className="discovery-message"><Info size={15} />{discoveryError}</div>}
+          {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.topSellers.length
+            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Finding games worth your attention…</div>
+            : <div className="discovery-grid">
+              {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).slice(0, 8).map((item) => <button className="discovery-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
+                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{item.price ? <b>{item.price}</b> : null}</span></span>
+              </button>)}
+            </div>}
+          {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
+          <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
         </section>
 
         {error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
