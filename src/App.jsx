@@ -88,6 +88,10 @@ export default function App() {
   const [shopDataLoading, setShopDataLoading] = useState(false);
   const [shopDataError, setShopDataError] = useState("");
   const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
+  const [regionalMarketData, setRegionalMarketData] = useState([]);
+  const [regionalMarketLoading, setRegionalMarketLoading] = useState(false);
+  const [regionalMarketError, setRegionalMarketError] = useState("");
+  const [regionalMarketUpdatedAt, setRegionalMarketUpdatedAt] = useState(null);
   const calculatorRef = useRef(null);
   const searchRef = useRef(null);
   const headerSearchRef = useRef(null);
@@ -367,6 +371,31 @@ export default function App() {
   }, [currentPage]);
 
   useEffect(() => {
+    if (currentPage !== "market") return;
+    let cancelled = false;
+    const loadRegionalMarket = async () => {
+      setRegionalMarketLoading(true);
+      setRegionalMarketError("");
+      try {
+        const response = await fetch("/api/market-regions");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Could not load Steam Market regional prices.");
+        if (!cancelled) {
+          setRegionalMarketData(Array.isArray(data.regions) ? data.regions : []);
+          setRegionalMarketUpdatedAt(new Date());
+        }
+      } catch (error) {
+        if (!cancelled) setRegionalMarketError(error.message || "Steam Market data is temporarily unavailable.");
+      } finally {
+        if (!cancelled) setRegionalMarketLoading(false);
+      }
+    };
+    loadRegionalMarket();
+    const timer = setInterval(loadRegionalMarket, 60000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [currentPage]);
+
+  useEffect(() => {
     let cancelled = false;
     setFreeGamesLoading(true);
     setFreeGamesError("");
@@ -442,6 +471,29 @@ export default function App() {
 
         {currentPage === "market" && <section className="market-page">
           <div className="market-heading"><div><span className="section-kicker"><Tag size={13} /> STEAMPULSE MARKET</span><h1>Steam key market</h1><p>Live Iranian shop prices, stock and purchase links.</p></div><button className="market-refresh" onClick={() => { setShopDataLoading(true); setShopDataError(""); fetch("/api/shop-data").then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || "Could not load live key prices."); return data; }).then((data) => { setShopData(data); setShopDataUpdatedAt(new Date()); }).catch((error) => setShopDataError(error.message || "Refresh failed.")).finally(() => setShopDataLoading(false)); }} disabled={shopDataLoading}><RefreshCw size={14} className={shopDataLoading ? "spin" : ""} /> Refresh prices</button></div>
+          <section className="regional-market-section detail-card">
+            <div className="regional-market-heading">
+              <div><span className="section-kicker"><Globe2 size={13} /> STEAM COMMUNITY MARKET</span><h2>TF2 Key · Regional prices</h2><p>Live market sell orders and estimated proceeds from Steam's order histogram.</p></div>
+              <span className={regionalMarketError ? "regional-market-live is-error" : "regional-market-live"}><span />{regionalMarketError ? "Unavailable" : regionalMarketLoading && !regionalMarketData.length ? "Loading market…" : "LIVE"}</span>
+            </div>
+            {regionalMarketError && <div className="market-error"><Info size={16} />{regionalMarketError}</div>}
+            {regionalMarketLoading && !regionalMarketData.length ? <div className="market-loading"><LoaderCircle size={20} className="spin" /> Loading regional Steam Market orders…</div> : <div className="regional-market-table-wrap">
+              <table className="regional-market-table">
+                <thead><tr><th>Region</th><th>Lowest sell</th><th>Net estimate</th><th>Change</th><th>Sell orders</th><th>Buy orders</th></tr></thead>
+                <tbody>
+                  {regionalMarketData.map((item) => <tr key={item.code}>
+                    <td><span className="regional-name"><span className="regional-flag">{item.flag}</span><span><strong>{item.code}</strong><small>{item.label}</small></span></span></td>
+                    <td className="regional-price">{item.lowestSellFormatted || "—"}</td>
+                    <td className="regional-net">{item.netFormatted || "—"}</td>
+                    <td><span className={item.change == null ? "regional-change" : item.change > 0 ? "regional-change up" : item.change < 0 ? "regional-change down" : "regional-change"}>{item.change == null ? "—" : item.change > 0 ? `▲ ${item.changeFormatted}` : item.change < 0 ? `▼ ${item.changeFormatted}` : "—"}</span></td>
+                    <td>{item.sellOrderCount ?? "—"}</td><td>{item.buyOrderCount ?? "—"}</td>
+                  </tr>)}
+                  {shopData && <tr className="regional-iran-row"><td><span className="regional-name"><span className="regional-flag">🇮🇷</span><span><strong>IR</strong><small>Iran · AresGame</small></span></span></td><td className="regional-price">{formatNumber(Number(shopData.Key))} toman</td><td className="regional-net">{formatNumber(Number(shopData.KeyBuy))} toman</td><td><span className="regional-change">—</span></td><td>{shopData.KeyStock == null ? "—" : formatNumber(Number(shopData.KeyStock))}</td><td>—</td></tr>}
+                </tbody>
+              </table>
+            </div>}
+            <p className="market-footnote"><Info size={14} /> Prices come from Steam Community Market order histograms. Net estimate subtracts an estimated 13% marketplace fee; it is indicative, not a guaranteed payout. {regionalMarketUpdatedAt ? `Last fetched: ${regionalMarketUpdatedAt.toLocaleTimeString()}.` : ""}</p>
+          </section>
           <div className="market-status"><span className={shopDataError ? "market-status-dot is-error" : "market-status-dot"} />{shopDataError ? "Live data unavailable" : shopDataLoading && !shopData ? "Connecting to shop API…" : "Live shop data"}<span className="market-updated">{shopData?.LastUpdateDate ? `Source updated: ${shopData.LastUpdateDate}` : shopDataUpdatedAt ? `Fetched: ${shopDataUpdatedAt.toLocaleTimeString()}` : "Waiting for first update"}</span></div>
           {shopDataError && <div className="market-error"><Info size={16} />{shopDataError}</div>}
           {shopDataLoading && !shopData ? <div className="market-loading detail-card"><LoaderCircle size={22} className="spin" /> Loading live prices…</div> : shopData && <>
