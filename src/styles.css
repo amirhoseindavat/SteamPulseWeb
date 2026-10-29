@@ -1012,3 +1012,11 @@
 }
   .steam-profile-name h1{font-size:22px}
 }
+
+
+/* Keep the Steam profile hero transparent so the page artwork shows through. */
+.steam-profile-page > .steam-profile-hero.detail-card {
+  background: transparent !important;
+  backdrop-filter: none;
+  box-shadow: none;
+}
