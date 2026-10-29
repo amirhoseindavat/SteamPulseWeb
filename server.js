@@ -918,8 +918,36 @@ app.get("/api/shop-data", async (_req, res) => {
     if (!data || !Number.isFinite(Number(data.Key)) || !Number.isFinite(Number(data.KeyBuy))) {
       return res.status(502).json({ error: "Shop data API returned invalid key price data." });
     }
+
+    // Fetch the live USD price for Mann Co. Supply Crate Key from Steam Community Market.
+    let steamKeyPriceUsd = null;
+    let steamKeyPriceUpdatedAt = null;
+    try {
+      const steamPriceResponse = await fetch(
+        "https://steamcommunity.com/market/priceoverview/?appid=440&currency=1&market_hash_name=Mann%20Co.%20Supply%20Crate%20Key",
+        {
+          headers: { "Accept": "application/json", "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0" },
+          signal: AbortSignal.timeout(10000)
+        }
+      );
+      if (steamPriceResponse.ok) {
+        const steamPrice = await steamPriceResponse.json();
+        const parsedPrice = Number(String(steamPrice?.lowest_price || "").replace(/[^0-9.]/g, ""));
+        if (steamPrice?.success && Number.isFinite(parsedPrice) && parsedPrice > 0) {
+          steamKeyPriceUsd = parsedPrice;
+          steamKeyPriceUpdatedAt = new Date().toISOString();
+        }
+      }
+    } catch (steamPriceError) {
+      console.error("Steam key price overview request failed:", steamPriceError.message);
+    }
+
     res.set("Cache-Control", "no-store");
-    res.json(data);
+    res.json({
+      ...data,
+      steamKeyPriceUsd,
+      steamKeyPriceUpdatedAt
+    });
   } catch (error) {
     console.error("Shop data request failed:", error);
     res.status(502).json({ error: "Could not fetch live shop data.", detail: error.message });
