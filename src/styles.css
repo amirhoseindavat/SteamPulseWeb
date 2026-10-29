@@ -189,3 +189,32 @@
 .free-game-claim{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 12px 12px;padding:10px 12px;border:1px solid #75e0b14a;border-radius:7px;background:#75e0b110;color:#91e8c2;text-decoration:none;font-size:11px;font-weight:700;transition:background .2s,border-color .2s}
 .free-game-claim:hover{background:#75e0b120;border-color:#75e0b188;color:#c5ffe2}
 @media(max-width:620px){.free-games-section{padding:18px 13px}.free-games-section .discovery-heading h2{font-size:19px}.free-games-section .discovery-heading p{max-width:270px;font-size:11px}}
+
+
+/* SteamPulse multi-page navigation */
+.topbar{position:sticky;top:0;z-index:200;backdrop-filter:blur(22px);background:rgba(8,13,27,.86);border-bottom:1px solid #ffffff0d}
+.main-nav{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}
+.main-nav button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border:1px solid transparent;border-radius:9px;background:transparent;color:#8996b3;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;transition:color .18s,background .18s,border-color .18s}
+.main-nav button:hover{color:#e9edff;background:#ffffff08}
+.main-nav button.active{color:#d6ccff;background:linear-gradient(135deg,#8b6cff22,#8b6cff0c);border-color:#8b6cff4d;box-shadow:inset 0 1px #ffffff08}
+.main-nav button.active svg{color:#ad98ff}
+.main-content{max-width:1240px}
+.intro{padding-top:54px;padding-bottom:24px}
+.search-panel{margin-top:8px}
+.welcome-panel{margin-top:24px}
+.game-hero{margin-top:14px}
+@media(max-width:820px){
+  .topbar{gap:10px}
+  .topbar-center{display:none}
+  .main-nav{flex:1;order:3;width:100%;justify-content:flex-start;overflow-x:auto}
+  .main-nav button{padding:9px 11px;font-size:11px}
+  .topbar-right{margin-left:auto}
+}
+@media(max-width:520px){
+  .topbar{flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+  .brand{flex:1}
+  .main-nav{order:3;flex-basis:100%;justify-content:space-between}
+  .main-nav button{flex:1;padding:9px 7px}
+  .main-nav button svg{width:14px;height:14px}
+  .intro{padding-top:30px}
+}
