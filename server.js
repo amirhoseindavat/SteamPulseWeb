@@ -576,7 +576,7 @@ function resolveSteamProfileId(profile, apiKey) {
 }
 
 app.get("/api/steam-profile", async (req, res) => {
-  const apiKey = process.env.STEAM_API_KEY;
+  const apiKey = String(req.get("X-Steam-API-Key") || process.env.STEAM_API_KEY || "").trim();
   if (!apiKey) return res.status(503).json({ error: "Steam profile data needs STEAM_API_KEY configured on the server." });
   try {
     const steamId = await resolveSteamProfileId(req.query.profile, apiKey);
