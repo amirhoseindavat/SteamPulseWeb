@@ -737,3 +737,46 @@
  .dlc-parent-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
  .dlc-parent-actions .dlc-parent-action{width:100%;min-height:40px}
 }
+
+
+/* Live market page */
+.market-page{margin:8px 0 30px}
+.market-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:18px 0 16px}
+.market-heading h1{margin:8px 0 6px;font-size:clamp(25px,3vw,36px);letter-spacing:-1px;color:#edf1ff}
+.market-heading p{margin:0;color:#8b97b3;font-size:12px;line-height:1.7}
+.market-refresh{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:9px 13px;border:1px solid #ffffff20;border-radius:9px;background:#ffffff07;color:#c9baff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.market-refresh:hover{border-color:#8b6cff88;background:#8b6cff12}
+.market-refresh:disabled{opacity:.6;cursor:wait}
+.market-status{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:18px 0 14px;color:#91a0bd;font-size:11px}
+.market-status-dot{width:7px;height:7px;border-radius:50%;background:#39d6a0;box-shadow:0 0 10px #39d6a055}
+.market-status-dot.is-error{background:#f87171;box-shadow:0 0 10px #f8717155}
+.market-updated{margin-left:auto;color:#7786a4;font-size:10px}
+.market-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.market-product-card{min-width:0;padding:22px!important}
+.market-product-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.market-product-icon{width:43px;height:43px;display:grid;place-items:center;border:1px solid #8b6cff38;border-radius:12px;background:#8b6cff15;color:#b9a8ff}
+.market-product-icon.ticket{border-color:#39d6a033;background:#39d6a012;color:#6fe2bd}
+.market-live-tag{padding:5px 8px;border:1px solid #39d6a033;border-radius:6px;background:#39d6a010;color:#5ddbb1;font:9px "DM Mono",monospace;letter-spacing:.7px}
+.market-product-label{display:block;margin-bottom:8px;color:#9aa7c2;font-size:12px}
+.market-price{display:block;color:#f0f3ff;font-size:clamp(25px,3vw,35px);letter-spacing:-.8px;overflow-wrap:anywhere}
+.market-price small{font-size:12px;font-weight:600;letter-spacing:0;color:#8b97b3}
+.market-product-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:13px;border-top:1px solid var(--line);color:#8794b0;font-size:11px}
+.market-product-meta strong{color:#dfe5f7;font-size:11px;text-align:right}
+.market-buy-button{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:20px;padding:12px 14px;border:1px solid #8b6cff4d;border-radius:9px;background:linear-gradient(135deg,#7354d9,#5941b8);color:#fff;text-decoration:none;font-size:11px;font-weight:800;transition:transform .18s,filter .18s}
+.market-buy-button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.market-footnote{display:flex;align-items:flex-start;gap:8px;margin:16px 0 0;color:#7886a3;font-size:10px;line-height:1.7}
+.market-footnote svg{flex-shrink:0;margin-top:2px}
+.market-error{display:flex;align-items:center;gap:9px;margin:12px 0;padding:12px 14px;border:1px solid #f8717133;border-radius:9px;background:#f871710c;color:#dc7777;font-size:11px}
+.market-loading{display:flex;align-items:center;justify-content:center;gap:10px;min-height:140px;color:#8c99b4}
+.app-shell[data-theme="light"] .market-heading h1{color:#20283a}
+.app-shell[data-theme="light"] .market-heading p,.app-shell[data-theme="light"] .market-product-label{color:#68738a}
+.app-shell[data-theme="light"] .market-refresh{background:#fff;border-color:#d8deeb;color:#5d48b7}
+.app-shell[data-theme="light"] .market-status{color:#596781}
+.app-shell[data-theme="light"] .market-updated{color:#78839a}
+.app-shell[data-theme="light"] .market-product-card{background:rgba(255,255,255,.92);border-color:#dfe4ef;box-shadow:0 10px 32px rgba(29,42,73,.06)}
+.app-shell[data-theme="light"] .market-price{color:#20283a}
+.app-shell[data-theme="light"] .market-price small{color:#68738a}
+.app-shell[data-theme="light"] .market-product-meta{color:#68738a}
+.app-shell[data-theme="light"] .market-product-meta strong{color:#28334b}
+.app-shell[data-theme="light"] .market-footnote{color:#68738a}
+@media(max-width:620px){.market-heading{align-items:flex-start;flex-direction:column;gap:13px}.market-heading h1{font-size:27px}.market-refresh{width:100%}.market-product-grid{grid-template-columns:1fr;gap:12px}.market-product-card{padding:17px!important}.market-updated{width:100%;margin-left:16px}}
