@@ -137,7 +137,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (game && region !== "US") loadGame(appid, region);
+    if (game) loadGame(appid, region);
   }, [region]);
 
   const hero = game?.library_hero || game?.header_image;
