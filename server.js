@@ -39,6 +39,29 @@ async function fetchJsonWithOptions(url, options = {}) {
   return fetchJson(url, options);
 }
 
+async function fetchSteamDbLogo(appid) {
+  try {
+    const response = await fetch(`https://steamdb.info/app/${encodeURIComponent(appid)}/`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      signal: AbortSignal.timeout(7000)
+    });
+    if (!response.ok) return "";
+    const html = await response.text();
+
+    // SteamDB exposes the hashed filename for library logos even when
+    // StoreBrowse omits logo/library_logo from its assets response.
+    const match = html.match(new RegExp(`(?:steam/apps/${appid}/)?([a-f0-9]{40}/logo(?:_2x)?\\.png)`, "i"));
+    if (!match) return "";
+    return `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appid}/${match[1]}`;
+  } catch {
+    return "";
+  }
+}
+
 async function mapWithConcurrency(items, concurrency, mapper) {
   const results = new Array(items.length);
   let nextIndex = 0;
@@ -437,15 +460,19 @@ app.get("/api/game/:appid", async (req, res) => {
       );
 
       const logoAsset = itemAssets.logo || itemAssets.logo_2x || itemAssets.library_logo || itemAssets.library_logo_2x;
-      // StoreBrowse currently omits the logo field for Forza Horizon 6,
-      // even though its hashed logo asset exists on Steam's CDN.
-      const knownLogoFallbacks = {
-        "2483190": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2483190/b494309a99c0631f1be4b211c2c80bcaaa13d06a/logo.png"
-      };
-      gameLogo = resolveAssetUrl(
-        logoAsset,
-        knownLogoFallbacks[appid] || `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
-      );
+      if (logoAsset) {
+        gameLogo = resolveAssetUrl(
+          logoAsset,
+          `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
+        );
+      } else {
+        // StoreBrowse often omits logos for newer games. Ask SteamDB for the
+        // hashed logo path before falling back to the legacy AppID-only URL.
+        gameLogo = await fetchSteamDbLogo(appid)
+          || (appid === "2483190"
+            ? "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2483190/b494309a99c0631f1be4b211c2c80bcaaa13d06a/logo.png"
+            : `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`);
+      }
     } catch {
       // This undocumented endpoint may not return data for every title.
     }
