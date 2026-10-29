@@ -90,9 +90,10 @@ export default function App() {
       return;
     }
     setSearching(true);
+    setError("");
     try {
       const response = await fetch(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${region}`);
-      const data = await response.json();
+      const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || data.detail || "Search failed.");
       setResults(data.items || []);
       setSearchOpen(true);
