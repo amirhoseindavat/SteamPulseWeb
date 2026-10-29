@@ -816,45 +816,50 @@ const TF2_MARKET_REGIONS = [
 
 app.get("/api/market-regions", async (_req, res) => {
   try {
+    // Keep using Steam's classic histogram endpoint. Include norender=1 to request JSON.
+    const itemNameId = "1";
     const results = await mapWithConcurrency(TF2_MARKET_REGIONS, 2, async (region) => {
-      const url = new URL("https://steamcommunity.com/market/orderbook");
-      url.searchParams.set("q", "Load");
-      url.searchParams.set("cc", region.country);
-      url.searchParams.set("l", "english");
+      const url = new URL("https://steamcommunity.com/market/itemordershistogram");
+      url.searchParams.set("country", region.country);
+      url.searchParams.set("language", "english");
       url.searchParams.set("currency", String(region.currency));
-      url.searchParams.set("qp", JSON.stringify([440, "Mann Co. Supply Crate Key"]));
+      url.searchParams.set("item_nameid", itemNameId);
+      url.searchParams.set("two_factor", "0");
+      url.searchParams.set("norender", "1");
 
       const listingUrl = "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/";
-      const response = await fetchJson(url, {
+      const data = await fetchJson(url, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
           "Accept": "application/json, text/plain, */*",
           "Referer": listingUrl,
-          "Origin": "https://steamcommunity.com",
-          "x-valve-request-type": "queryAction"
+          "Origin": "https://steamcommunity.com"
         }
       });
 
-      const data = response?.data;
-      if (response?.success !== true || !data || Number(data.eCurrency) !== region.currency) {
-        throw new Error(`Invalid orderbook response for ${region.code} (success=${String(response?.success)}, currency=${String(data?.eCurrency ?? "missing")})`);
+      if (Number(data?.success) !== 1) {
+        throw new Error(`Steam histogram returned success=${String(data?.success ?? "missing")} for ${region.code}`);
       }
 
-      const sellCents = Number(data.amtMinSellOrder);
-      const buyCents = Number(data.amtMaxBuyOrder);
-      const price = Number.isFinite(sellCents) && sellCents > 0 ? sellCents / 100 : null;
-      const buyPrice = Number.isFinite(buyCents) && buyCents > 0 ? buyCents / 100 : null;
+      const lowest = Number(data.lowest_sell_order);
+      const highestBuy = Number(data.highest_buy_order);
+      const graphLowest = Array.isArray(data.sell_order_graph) && data.sell_order_graph.length
+        ? Number(data.sell_order_graph[0][0]) : NaN;
+      const graphHighestBuy = Array.isArray(data.buy_order_graph) && data.buy_order_graph.length
+        ? Number(data.buy_order_graph[0][0]) : NaN;
+      const price = Number.isFinite(lowest) && lowest > 0 ? lowest / 100 : (Number.isFinite(graphLowest) && graphLowest > 0 ? graphLowest : null);
+      const buyPrice = Number.isFinite(highestBuy) && highestBuy > 0 ? highestBuy / 100 : (Number.isFinite(graphHighestBuy) && graphHighestBuy > 0 ? graphHighestBuy : null);
       const net = price == null ? null : price * 0.87;
       const previous = previousRegionalSellPrices.get(region.code);
       const change = price == null || previous == null ? null : price - previous;
       if (price != null) previousRegionalSellPrices.set(region.code, price);
 
-      const fmt = (value) => value == null ? null : new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: region.currencyCode,
+      const prefix = String(data.price_prefix || "");
+      const suffix = String(data.price_suffix || "");
+      const fmt = (value) => value == null ? null : `${prefix}${new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-      }).format(value);
+      }).format(value)}${suffix}`;
 
       return {
         ...region,
@@ -865,25 +870,28 @@ app.get("/api/market-regions", async (_req, res) => {
         change: change == null ? null : Number(change.toFixed(2)),
         changeFormatted: change == null ? null : fmt(Math.abs(change)),
         highestBuy: buyPrice,
-        sellOrderCount: data.cSellOrders ?? null,
-        buyOrderCount: data.cBuyOrders ?? null
+        sellOrderCount: data.sell_order_count ?? null,
+        buyOrderCount: data.buy_order_count ?? null
       };
     });
 
     const regions = results.filter((item) => item.status === "fulfilled").map((item) => item.value);
     const failures = results
-      .filter((item) => item.status === "rejected")
-      .map((item, index) => ({ region: TF2_MARKET_REGIONS[index]?.code, reason: item.reason?.message || "Unknown Steam error" }));
+      .map((item, index) => item.status === "rejected"
+        ? { region: TF2_MARKET_REGIONS[index]?.code, reason: item.reason?.message || "Unknown Steam error" }
+        : null)
+      .filter(Boolean);
 
     if (!regions.length) {
-      console.error("Steam orderbook failed for all regions:", failures);
-      throw new Error("Steam returned no valid orderbook data for any region. " + failures.map((item) => `${item.region}: ${item.reason}`).join("; "));
+      console.error("Steam histogram failed for all regions:", failures);
+      throw new Error("Steam returned no valid histogram data. " + failures.map((item) => `${item.region}: ${item.reason}`).join("; "));
     }
 
     res.set("Cache-Control", "no-store");
     res.json({
       item: "Mann Co. Supply Crate Key",
-      source: "Steam Community Market orderbook",
+      itemNameId,
+      source: "Steam Community Market itemordershistogram",
       fetchedAt: new Date().toISOString(),
       regions,
       failedRegions: failures
