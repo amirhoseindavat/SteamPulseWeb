@@ -15,7 +15,6 @@ const REGIONS = [
   { code: "IN", label: "India", currency: "INR" },
   { code: "BR", label: "Brazil", currency: "BRL" }
 ];
-const INITIAL_APPID = "1091500";
 
 function money(price) {
   if (!price) return "Not available";
