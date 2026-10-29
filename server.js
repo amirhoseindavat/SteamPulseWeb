@@ -287,6 +287,50 @@ app.get("/api/game/:appid", async (req, res) => {
   }
 });
 
+app.get("/api/game/:appid/dlc", async (req, res) => {
+  const appid = String(req.params.appid);
+  if (!/^\\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
+
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const offset = Math.max(0, Number.parseInt(req.query.offset || "0", 10) || 0);
+  const limit = Math.min(24, Math.max(1, Number.parseInt(req.query.limit || "24", 10) || 24));
+
+  try {
+    const parentUrl = new URL("https://store.steampowered.com/api/appdetails");
+    parentUrl.searchParams.set("appids", appid);
+    parentUrl.searchParams.set("cc", cc);
+    parentUrl.searchParams.set("l", "english");
+    const parentResponse = await fetchJson(parentUrl);
+    const parent = parentResponse?.[appid];
+    if (!parent?.success || !parent.data) return res.status(404).json({ error: "Steam did not return details for this game." });
+
+    const allIds = Array.isArray(parent.data.dlc) ? [...new Set(parent.data.dlc.map(Number).filter(Number.isFinite))] : [];
+    const ids = allIds.slice(offset, offset + limit);
+    const results = await Promise.allSettled(ids.map(async (dlcId) => {
+      const url = new URL("https://store.steampowered.com/api/appdetails");
+      url.searchParams.set("appids", String(dlcId));
+      url.searchParams.set("cc", cc);
+      url.searchParams.set("l", "english");
+      const response = await fetchJson(url);
+      const envelope = response?.[dlcId];
+      if (!envelope?.success || !envelope.data) return null;
+      const item = envelope.data;
+      return {
+        appid: dlcId,
+        name: item.name || `DLC ${dlcId}`,
+        image: (item.header_image || "").replace(/\\/header\\.jpg(?=\\?|$)/, "/header_2x.jpg"),
+        price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)),
+        url: `https://store.steampowered.com/app/${dlcId}/`
+      };
+    }));
+    const items = results.filter((item) => item.status === "fulfilled" && item.value).map((item) => item.value);
+    res.json({ items, total: allIds.length, nextOffset: offset + ids.length, hasMore: offset + ids.length < allIds.length });
+  } catch (error) {
+    console.error(`Failed to load more DLC for AppID ${appid}:`, error);
+    res.status(502).json({ error: "Could not load more DLC from Steam.", detail: error.message });
+  }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
