@@ -109,17 +109,17 @@ app.get("/api/search", async (req, res) => {
 
 function cleanEditionName(value) {
   return String(value || "")
-    .replace(/<span[^>]*discount_original_price[^>]*>[\\s\\S]*?<\\/span>/gi, " ")
+    .replace(/<span[^>]*discount_original_price[^>]*>[\s\S]*?<\/span>/gi, " ")
     .replace(/<[^>]*>/g, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#39;|&apos;/gi, "'")
-    .replace(/\\s*[\\d][\\d\\s.,]*(?:₴|\\$|€|£|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*/gi, " ")
-    .replace(/\\s+/g, " ")
-    .replace(/[\\s–—-]+$/g, "")
-    .replace(/^\\s*[-–—:]+\\s*|\\s*[-–—:]+\\s*$/g, "")
+    .replace(/\s*[\d][\d\s.,]*(?:₴|\$|€|£|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*/gi, " ")
+    .replace(/\s+/g, " ")
+    .replace(/[\s–—-]+$/g, "")
+    .replace(/^\s*[-–—:]+\s*|\s*[-–—:]+\s*$/g, "")
     .trim();
 }
 
