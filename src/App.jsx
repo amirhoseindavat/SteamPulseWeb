@@ -57,6 +57,7 @@ export default function App() {
   const [inputId, setInputId] = useState("");
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMoreDlc, setLoadingMoreDlc] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
@@ -100,6 +101,27 @@ export default function App() {
       setError(e.message || "Something went wrong.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadMoreDlc() {
+    if (!game || loadingMoreDlc || game.dlc.length >= game.dlc_total) return;
+    setLoadingMoreDlc(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/game/${game.appid}/dlc?cc=${region}&offset=${game.dlc.length}&limit=24`);
+      const data = await readApiResponse(response);
+      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load more DLC.");
+      setGame((current) => {
+        if (!current || String(current.appid) !== String(game.appid)) return current;
+        const existing = new Set((current.dlc || []).map((item) => String(item.appid)));
+        const newItems = (data.items || []).filter((item) => !existing.has(String(item.appid)));
+        return { ...current, dlc: [...(current.dlc || []), ...newItems], dlc_total: data.total ?? current.dlc_total };
+      });
+    } catch (e) {
+      setError(e.message || "Could not load more DLC.");
+    } finally {
+      setLoadingMoreDlc(false);
     }
   }
 
@@ -284,7 +306,7 @@ export default function App() {
 
           {(game.bundles || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">STEAM STORE BUNDLES</span><h2>Bundles featuring this game</h2><p className="purchase-hint">Bundles listed on the Steam store page that include this game. Select one to estimate its key cost.</p></div><span className="section-count">{game.bundles.length} BUNDLES</span></div><div className="editions-grid">{game.bundles.map((bundle) => <article className={`edition-card ${selectedEditionName === bundle.name ? "edition-card-selected" : ""}`} key={bundle.id}><button className="edition-select" onClick={() => { if (bundle.priceValue != null) { setRegionalPriceInput(String(bundle.priceValue)); setSelectedEditionName(bundle.name); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={bundle.priceValue == null} title={bundle.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this bundle"}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">STEAM BUNDLE</span></div><h3>{bundle.name}</h3><p>{bundle.appCount ? `Includes ${bundle.appCount} games or items, including this title.` : "Steam bundle featuring this title."}</p><div className="edition-bottom"><strong>{bundle.price || "Price unavailable"}</strong>{bundle.savings && <span>{bundle.savings}% OFF</span>}</div><span className="edition-calculate">{bundle.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span></button><a className="edition-external-link" href={bundle.url} target="_blank" rel="noreferrer">View bundle on Steam <ExternalLink size={13} /></a></article>)}</div></section>}
 
-          {(game.dlc || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2><p className="purchase-hint">Open a DLC here or view its Steam store page.</p></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <article className="dlc-card" key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><strong>{item.name}</strong><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span><div className="dlc-actions"><button type="button" className="dlc-open-button" onClick={() => loadGame(item.appid, region)}><Gamepad2 size={13} /> Show details</button><a className="dlc-store-button" href={item.url} target="_blank" rel="noreferrer">Steam <ExternalLink size={12} /></a></div></div></article>)}</div>{game.dlc_total > game.dlc.length && <p className="dlc-note">Showing {game.dlc.length} DLC items to keep loading fast.</p>}</section>}
+          {(game.dlc || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2><p className="purchase-hint">Open a DLC here or view its Steam store page.</p></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <article className="dlc-card" key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><strong>{item.name}</strong><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span><div className="dlc-actions"><button type="button" className="dlc-open-button" onClick={() => loadGame(item.appid, region)}><Gamepad2 size={13} /> Show details</button><a className="dlc-store-button" href={item.url} target="_blank" rel="noreferrer">Steam <ExternalLink size={12} /></a></div></div></article>)}</div>{game.dlc.length < game.dlc_total && <div className="dlc-load-more"><p className="dlc-note">Showing {game.dlc.length} of {game.dlc_total} DLC items.</p><button type="button" className="secondary-button" onClick={loadMoreDlc} disabled={loadingMoreDlc}>{loadingMoreDlc ? <><LoaderCircle size={15} className="spin" /> Loading DLCs…</> : <><ChevronRight size={15} /> Load more DLCs</>}</button></div>}</section>}
 
           <section className="detail-section">
             <div className="detail-header"><div><span className="section-kicker">GAME INTEL</span><h2>Inside the game</h2></div><div className="tabs">{tabNames.map((tab) => <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div></div>
