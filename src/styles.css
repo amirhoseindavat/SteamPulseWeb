@@ -218,3 +218,16 @@
   .main-nav button svg{width:14px;height:14px}
   .intro{padding-top:30px}
 }
+
+
+.browse-games-section{margin-top:24px;padding:25px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(135deg,rgba(20,29,51,.96),rgba(11,18,34,.95))}
+.browse-games-section .discovery-heading{margin-bottom:18px}
+.browse-games-section .section-kicker{display:flex;align-items:center;gap:7px}
+.browse-games-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.browse-game-card{display:flex;align-items:center;gap:14px;min-width:0;padding:10px;border:1px solid #ffffff12;border-radius:11px;background:#080e1d80;color:inherit;text-align:left;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+.browse-game-card:hover{transform:translateY(-2px);border-color:#8b6cff77;background:#111a30}
+.browse-game-card>img{display:block;width:42%;max-width:190px;aspect-ratio:460/215;object-fit:cover;border-radius:7px;background:#202943}
+.browse-game-card>span{display:flex;flex:1;min-width:0;flex-direction:column;gap:12px}
+.browse-game-card strong{font-size:13px;line-height:1.5;color:#e8edff}
+.browse-game-card small{display:flex;align-items:center;gap:4px;font:9px "DM Mono",monospace;letter-spacing:.6px;color:#a999ff}
+@media(max-width:620px){.browse-games-section{padding:18px 13px}.browse-games-grid{grid-template-columns:1fr;gap:9px}.browse-game-card>img{width:40%}.browse-game-card strong{font-size:12px}.browse-game-card small{font-size:8px}}
