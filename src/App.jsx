@@ -88,8 +88,6 @@ export default function App() {
   const [shopDataLoading, setShopDataLoading] = useState(false);
   const [shopDataError, setShopDataError] = useState("");
   const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
-  const [keyPriceData, setKeyPriceData] = useState(null);
-  const [keyPriceError, setKeyPriceError] = useState("");
   const [regionalMarketData, setRegionalMarketData] = useState([]);
   const [regionalMarketLoading, setRegionalMarketLoading] = useState(false);
   const [regionalMarketError, setRegionalMarketError] = useState("");
@@ -349,28 +347,6 @@ export default function App() {
   }, [region]);
 
   useEffect(() => {
-    let cancelled = false;
-    let timer;
-    const loadKeyPrice = async () => {
-      try {
-        const response = await fetch("/api/key-price");
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load the live key price.");
-        if (!Number.isFinite(Number(data.key_price)) || Number(data.key_price) <= 0 ||
-            !Number.isFinite(Number(data.final_price)) || Number(data.final_price) <= 0) {
-          throw new Error("The key price API returned invalid data.");
-        }
-        if (!cancelled) { setKeyPriceData(data); setKeyPriceError(""); }
-      } catch (error) {
-        if (!cancelled) setKeyPriceError(error.message || "Live key price is temporarily unavailable.");
-      }
-    };
-    loadKeyPrice();
-    timer = setInterval(loadKeyPrice, 60000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, []);
-
-  useEffect(() => {
     if (currentPage !== "market") return;
     let cancelled = false;
     let timer;
@@ -439,10 +415,9 @@ export default function App() {
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
   const numericRegionalPrice = Number(regionalPriceInput);
-  const liveKeyPriceUsd = Number(keyPriceData?.key_price);
-  const regionalKeyPrice = Number.isFinite(liveKeyPriceUsd) && liveKeyPriceUsd > 0 ? liveKeyPriceUsd * selectedRegion.usdRate : 0;
-  const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPrice > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPrice) : 0;
-  const liveKeyPriceToman = Number(keyPriceData?.final_price);
+  const regionalKeyPrice = 1.85 * selectedRegion.usdRate;
+  const keyCount = regionalPriceInput.trim() !== "" && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPrice) : 0;
+  const liveKeyPriceToman = Number(shopData?.Key);
   const totalToman = keyCount * (Number.isFinite(liveKeyPriceToman) && liveKeyPriceToman > 0 ? liveKeyPriceToman : 0);
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
   const tabNames = ["overview", "screenshots", "requirements"];
@@ -716,7 +691,7 @@ export default function App() {
               <div className="calculator-content">
                 <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
                 <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
-                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : keyPriceError || (keyPriceData ? `Enter the price in ${selectedRegion.currency} to calculate` : "Loading live key price…")}</p></div>
+                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : shopDataError || (shopData ? `Enter the price in ${selectedRegion.currency} to calculate` : "Loading live key price…")}</p></div>
               </div>
             </section>
           </div>
