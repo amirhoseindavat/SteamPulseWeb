@@ -678,12 +678,26 @@ app.get("/api/steam-profile", async (req, res) => {
         badges: totalBadges,
         friends: friends
       },
-      recentGames: recent.map((item) => ({
-        appid: Number(item.appid),
-        name: item.name || ("App " + item.appid),
-        image: "https://cdn.akamai.steamstatic.com/steam/apps/" + Number(item.appid) + "/capsule_184x69.jpg",
-        hours: Math.round(Number(item.playtime_forever || 0) / 60),
-        hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
+      recentGames: await Promise.all(recent.slice(0, 5).map(async (item) => {
+        const appid = Number(item.appid);
+        let image = "";
+        try {
+          const detailsUrl = new URL("https://store.steampowered.com/api/appdetails");
+          detailsUrl.searchParams.set("appids", String(appid));
+          detailsUrl.searchParams.set("cc", "US");
+          detailsUrl.searchParams.set("l", "english");
+          const details = await fetchJson(detailsUrl);
+          image = details?.[appid]?.success ? (details[appid].data?.header_image || "") : "";
+        } catch {
+          // Keep the profile usable even if an individual game's image lookup fails.
+        }
+        return {
+          appid,
+          name: item.name || ("App " + item.appid),
+          image: image || ("https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + appid + "/header.jpg"),
+          hours: Math.round(Number(item.playtime_forever || 0) / 60),
+          hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
+        };
       }))
     });
   } catch (error) {
