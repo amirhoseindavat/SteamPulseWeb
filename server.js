@@ -688,9 +688,9 @@ app.get("/api/steam-profile", async (req, res) => {
     const normalizeSteamAssetUrl = (value) => {
       if (typeof value !== "string" || !value.trim()) return "";
       const asset = value.trim();
-      if (/^https?:\\/\\//i.test(asset)) return asset;
+      if (/^https?:\/\//i.test(asset)) return asset;
       if (asset.startsWith("//")) return "https:" + asset;
-      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\\/+/, "");
+      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\/+/, "");
     };
     const avatarAnimated = normalizeSteamAssetUrl(
       animatedAvatarData?.image_small ||
