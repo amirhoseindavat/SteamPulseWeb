@@ -318,8 +318,8 @@
 .profile-current-game{grid-column:1/-1;padding:20px 22px;min-width:0}
 .profile-current-game .card-title{display:flex;align-items:center;gap:9px;margin-bottom:14px}
 .profile-current-game .card-title h3{margin:0;font-size:15px}
-.current-game-live{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.7px;color:#6ee7a0}
-.current-game-live i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade8080}
+.current-game-live{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.7px;color:#5cba3c}
+.current-game-live i{width:7px;height:7px;border-radius:50%;background:#5cba3c;box-shadow:0 0 0 2px #5cba3c26}
 .current-game-content{display:flex;align-items:center;gap:14px;min-width:0}
 .current-game-art{display:block;flex:0 0 160px;overflow:hidden;border-radius:7px;background:#0b1020}
 .current-game-art img{display:block;width:100%;aspect-ratio:460/215;object-fit:cover}
