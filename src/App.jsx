@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2,
-  Sparkles, Image as ImageIcon, Info
+  Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX
 } from "lucide-react";
 
 const REGIONS = [
@@ -230,6 +230,16 @@ export default function App() {
             <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
             <Strip label="RECOMMENDATIONS" value={formatNumber(game.recommendations)} icon={Activity} />
             <div className="region-select"><Globe2 size={16} /><select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Price region">{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.code} · {r.currency}</option>)}</select></div>
+          </section>
+
+          <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
+            <div className="deck-main">
+              <div className="deck-icon"><Monitor size={25} /></div>
+              <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
+              <div className="deck-badge">{game.steam_deck?.status === "verified" ? <CheckCircle2 size={21} /> : game.steam_deck?.status === "playable" ? <AlertTriangle size={21} /> : game.steam_deck?.status === "unsupported" ? <CircleX size={21} /> : <CircleHelp size={21} />}<span>{game.steam_deck?.label || "Unknown"}</span></div>
+            </div>
+            {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
+            <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>
 
           <section className="key-calculator detail-card">
