@@ -226,6 +226,69 @@ app.get("/api/discover", async (req, res) => {
   }
 });
 
+app.get("/api/free-games", async (req, res) => {
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const key = `free-games:${cc}`;
+  if (req.query.refresh !== "1") {
+    const hit = cached(key);
+    if (hit) return res.json(hit);
+  }
+
+  try {
+    // SteamDB tracks both permanent free-to-keep promotions and temporary free weekends.
+    const response = await fetch("https://steamdb.info/upcoming/free/", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9"
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!response.ok) throw new Error(`SteamDB request failed (${response.status})`);
+    const html = await response.text();
+    const cleanText = (value) => String(value || "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code))).trim();
+
+    const offers = [];
+    const cardPattern = /<h4[^>]*>\s*<a[^>]*href=["']\/app\/(\d+)[^"']*["'][^>]*>([\s\S]*?)<\/a>[\s\S]{0,1600}?(Free to Keep|Play For Free)[\s\S]{0,500}?Expires:\s*([^<\n]+)/gi;
+    for (const match of html.matchAll(cardPattern)) {
+      const id = Number(match[1]);
+      const name = cleanText(match[2]);
+      const offerType = match[3] === "Free to Keep" ? "FREE TO KEEP" : "FREE WEEKEND";
+      const expires = cleanText(match[4]).replace(/\s+/g, " ");
+      if (id > 0 && name && !offers.some((offer) => offer.id === id)) {
+        offers.push({ id, name, offerType, expires });
+      }
+    }
+
+    const checked = await mapWithConcurrency(offers.slice(0, 20), 4, async (offer) => {
+      const detailUrl = new URL("https://store.steampowered.com/api/appdetails");
+      detailUrl.searchParams.set("appids", String(offer.id));
+      detailUrl.searchParams.set("cc", cc);
+      detailUrl.searchParams.set("l", "english");
+      const details = await fetchJson(detailUrl);
+      const envelope = details?.[offer.id];
+      if (!envelope?.success || String(envelope.data?.type || "").toLowerCase() !== "game") return null;
+      return {
+        ...offer,
+        name: envelope.data.name || offer.name,
+        image: envelope.data.header_image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${offer.id}/header.jpg`,
+        url: `https://store.steampowered.com/app/${offer.id}/`,
+        releaseDate: envelope.data.release_date?.date || ""
+      };
+    });
+    const items = checked.filter((entry) => entry.status === "fulfilled" && entry.value).map((entry) => entry.value);
+    const result = { items, source: "SteamDB", sourceUrl: "https://steamdb.info/upcoming/free/" };
+    res.json(saveCache(key, result));
+  } catch (error) {
+    console.error("Steam free promotions failed:", error);
+    res.status(502).json({ error: "Current free Steam promotions are temporarily unavailable.", detail: error.message });
+  }
+});
+
 app.get("/api/game/:appid", async (req, res) => {
   const appid = String(req.params.appid);
   if (!/^\d+$/.test(appid)) {
