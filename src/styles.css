@@ -712,3 +712,28 @@
 .app-shell[data-theme="light"] .dlc-parent-copy>a{background:#fff;color:#5946b5;border-color:#e0e4ef}
 .app-shell[data-theme="light"] .dlc-parent-copy>a small{color:#68738a}
 @media(max-width:560px){.dlc-parent-notice{align-items:flex-start;gap:12px;padding:15px}.dlc-parent-icon{width:38px;height:38px;flex-basis:38px}.dlc-parent-copy h3{font-size:14px}.dlc-parent-copy>a img{width:76px}}
+
+
+/* DLC parent-game card: artwork plus two consistently sized destination buttons. */
+.dlc-parent-game{display:flex;align-items:center;gap:14px;max-width:520px;margin-top:15px;padding:10px;border:1px solid rgba(199,213,232,.12);border-radius:12px;background:rgba(8,13,27,.32);box-sizing:border-box}
+.dlc-parent-game>img{display:block;width:156px;height:73px;flex:0 0 156px;object-fit:cover;border-radius:7px;background:#111827}
+.dlc-parent-game-info{display:flex;flex-direction:column;gap:5px;min-width:0}
+.dlc-parent-game-info strong{font-size:13px;line-height:1.45;color:#f0f3ff;overflow-wrap:anywhere}
+.dlc-parent-game-info small{font-size:10px;color:#a8b2ca}
+.dlc-parent-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.dlc-parent-actions .dlc-parent-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;box-sizing:border-box;margin:0;padding:9px 13px;border:1px solid rgba(199,213,232,.16);border-radius:9px;text-decoration:none;font-size:11px;font-weight:700;line-height:1.25;white-space:normal;transition:transform .18s,border-color .18s,background .18s;color:#e8e4ff}
+.dlc-parent-actions .dlc-parent-action:hover{transform:translateY(-1px);border-color:#9b85ff80}
+.dlc-parent-actions .dlc-parent-action svg{flex-shrink:0}
+.dlc-parent-actions .dlc-parent-steam{background:linear-gradient(135deg,#7354d9,#5941b8);border-color:#8b72ed;color:#fff}
+.dlc-parent-actions .dlc-parent-steam:hover{background:linear-gradient(135deg,#8265e7,#6449c8)}
+.dlc-parent-actions .dlc-parent-steampulse{background:rgba(139,108,255,.09);border-color:rgba(139,108,255,.35);color:#d9d0ff}
+.app-shell[data-theme="light"] .dlc-parent-game{background:#f8f9fd;border-color:#e0e4ef}
+.app-shell[data-theme="light"] .dlc-parent-game-info strong{color:#28314a}
+.app-shell[data-theme="light"] .dlc-parent-game-info small{color:#68738a}
+.app-shell[data-theme="light"] .dlc-parent-actions .dlc-parent-steampulse{background:#f2efff;color:#5946b5;border-color:#d8cef9}
+@media(max-width:560px){
+ .dlc-parent-game{gap:10px;padding:8px}
+ .dlc-parent-game>img{width:112px;height:57px;flex-basis:112px}
+ .dlc-parent-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+ .dlc-parent-actions .dlc-parent-action{width:100%;min-height:40px}
+}
