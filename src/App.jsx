@@ -60,6 +60,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
+  const [selectedEditionName, setSelectedEditionName] = useState("");
+  const calculatorRef = useRef(null);
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
@@ -237,11 +239,11 @@ export default function App() {
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
                 <div className="hero-platforms" aria-label="Supported platforms">
                   {systemNames.length ? systemNames.map((platform) => <span className="platform-icon" key={platform} title={platform} aria-label={platform}>
-                    {platform.toLowerCase() === "windows" ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.2 10.5 4v7.7H2V5.2Zm10-1.4L22 2v9.7H12V3.8ZM2 12.9h8.5v7.7L2 19.4v-6.5Zm10 0h10V22l-10-1.4v-7.7Z" fill="currentColor"/></svg> : platform.toLowerCase() === "mac" || platform.toLowerCase() === "macos" ? <Apple size={17} /> : platform.toLowerCase() === "linux" ? <span className="platform-letter platform-linux">🐧</span> : <Monitor size={15} />}
+                    {platform.toLowerCase() === "windows" ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.2 10.5 4v7.7H2V5.2Zm10-1.4L22 2v9.7H12V3.8ZM2 12.9h8.5v7.7L2 19.4v-6.5Zm10 0h10V22l-10-1.4v-7.7Z" fill="currentColor"/></svg> : platform.toLowerCase() === "mac" || platform.toLowerCase() === "macos" ? <img className="platform-logo platform-macos" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="" /> : platform.toLowerCase() === "linux" ? <img className="platform-logo platform-linux" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" alt="" /> : <Monitor size={15} />}
                   </span>) : <span className="platform-unavailable">Platform data unavailable</span>}
                 </div>
                 <span className={`hero-deck-status deck-status-${game.steam_deck?.status || "unknown"}`} title={game.steam_deck?.summary || "Steam Deck compatibility unknown"}>
-                  <DeckCompatibilityIcon status={game.steam_deck?.status} size={18} />
+                  <SteamDeckMark size={17} /><span className="steam-deck-label">Steam Deck</span><DeckCompatibilityIcon status={game.steam_deck?.status} size={18} />
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>
               </div>
@@ -268,7 +270,7 @@ export default function App() {
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>
 
-          <section className="key-calculator detail-card">
+          <section className="key-calculator detail-card" ref={calculatorRef}>
             <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Required keys &amp; estimated cost</h2><p>Uses the selected region\u2019s Steam price and an estimated local equivalent of $1.85 per key. You can edit the price manually.</p></div><div className="calculator-icon"><Tag size={21} /></div></div>
             <div className="calculator-content">
               <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
@@ -277,7 +279,7 @@ export default function App() {
             </div>
           </section>
 
-          {(game.editions || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Editions &amp; packages</h2></div><span className="section-count">{game.editions.length} OPTIONS</span></div><div className="editions-grid">{game.editions.map((edition, i) => <article className="edition-card" key={`${edition.name}-${i}`}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">{edition.kind || "EDITION"}</span></div><h3>{edition.name}</h3><p>{edition.description || "Steam purchase option"}</p><div className="edition-bottom"><strong>{edition.price || "Price unavailable"}</strong>{edition.savings && <span>{edition.savings} OFF</span>}</div>{edition.url && <a href={edition.url} target="_blank" rel="noreferrer">View option <ExternalLink size={13} /></a>}</article>)}</div></section>}
+          {(game.editions || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Editions &amp; bundles</h2><p className="purchase-hint">Select an edition or bundle to calculate its required keys and estimated cost.</p></div><span className="section-count">{game.editions.length} OPTIONS</span></div><div className="editions-grid">{game.editions.map((edition, i) => <article className={`edition-card ${selectedEditionName === edition.name ? "edition-card-selected" : ""}`} key={`${edition.name}-${i}`}><button className="edition-select" onClick={() => { if (edition.priceValue != null) { setRegionalPriceInput(String(edition.priceValue)); setSelectedEditionName(edition.name); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={edition.priceValue == null} title={edition.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this option"}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">{edition.kind || "BUNDLE / EDITION"}</span></div><h3>{edition.name}</h3><p>{edition.description || "Steam purchase option"}</p><div className="edition-bottom"><strong>{edition.price || "Price unavailable"}</strong>{edition.savings && <span>{edition.savings} OFF</span>}</div><span className="edition-calculate">{edition.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span></button>{edition.url && <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>}</article>)}</div></section>}
 
           {(game.dlc || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <a className="dlc-card" href={item.url} target="_blank" rel="noreferrer" key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><strong>{item.name}</strong><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span></div><ExternalLink size={15} className="dlc-link-icon" /></a>)}</div>{game.dlc_total > game.dlc.length && <p className="dlc-note">Showing {game.dlc.length} DLC items to keep loading fast.</p>}</section>}
 
