@@ -339,8 +339,17 @@ export default function App() {
           </div>
           <div className="popular-line"><span>TRY A QUICK LOOK</span>{[{ name:"Cyberpunk 2077",id:"1091500"},{name:"Elden Ring",id:"1245620"},{name:"Baldur's Gate 3",id:"1086940"},{name:"Hades II",id:"1145350"}].map((g) => <button key={g.id} onClick={() => {setQuery(g.name);loadGame(g.id);}}>{g.name}</button>)}</div>
         </section>
+        {currentPage === "games" && <section className="browse-games-section">
+          <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Browse games</h2><p>Jump into a popular title or search the full Steam catalog above.</p></div></div>
+          <div className="browse-games-grid">
+            {[{id:"1091500",name:"Cyberpunk 2077"},{id:"1245620",name:"Elden Ring"},{id:"1086940",name:"Baldur’s Gate 3"},{id:"1145350",name:"Hades II"}].map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(item.id); loadGame(item.id, region); }}>
+              <img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
+              <span><strong>{item.name}</strong><small>OPEN GAME PROFILE <ChevronRight size={12} /></small></span>
+            </button>)}
+          </div>
+        </section>}
         </>}
-
+        
         {currentPage === "trending" && <>
         <section className="discovery-section">
           <div className="discovery-heading">
