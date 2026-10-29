@@ -596,7 +596,7 @@ export default function App() {
             <div className="hero-art" style={{backgroundImage: game?.library_hero ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.library_hero}")` : hero ? `linear-gradient(90deg, rgba(8,13,27,.92) 0%, rgba(8,13,27,.82) 48%, rgba(8,13,27,.58) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
             <div className="hero-header-image"><img src={game.header_image || hero || ""} alt={`${game.name} header`} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></div>
             <div className="hero-content">
-              <div className="hero-topline"><span className="game-label"><Gamepad2 size={13} /> STEAM TITLE</span><span className="app-tag">APP/{game.appid}</span></div>
+              <div className="hero-topline game-hero-topline"></div>
               <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> YOUR LIBRARY</span>{ownershipLoading ? <strong>Checking…</strong> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamProfile && steamApiKey ? "Checking…" : "Add profile + API key in Settings"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
               <div className="hero-meta">
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
@@ -612,7 +612,7 @@ export default function App() {
               </div>
               <div className="hero-actions"><a className="primary-button" href={game.steam_url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={15} /></a><button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button></div>
             </div>
-            <div className="hero-corner">STEAMPULSE <span>01 / GAME PROFILE</span></div>
+            <div className="hero-corner">APP/{game.appid}</div>
           </section>
 
           {game.type !== "dlc" && <section className="stats-strip">
@@ -662,7 +662,7 @@ export default function App() {
             {activeTab === "screenshots" && <div className="screenshots-grid">{(game.screenshots || []).length ? game.screenshots.map((src, i) => <a href={src} target="_blank" rel="noreferrer" key={src} className="screenshot-card"><img src={src} loading="lazy" alt={`${game.name} screenshot ${i + 1}`} /><span><ImageIcon size={14} /> SCREENSHOT {String(i + 1).padStart(2,"0")} <ExternalLink size={13} /></span></a>) : <div className="empty-card">No screenshots are available for this title.</div>}</div>}
             {activeTab === "requirements" && <div className="detail-card requirements-card"><div className="card-title"><Monitor size={17} /><h3>PC system requirements</h3></div>{game.pc_requirements?.minimum ? <div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.minimum}} /> : <p>Steam has not provided minimum PC requirements for this title.</p>}{game.pc_requirements?.recommended && <><h4>Recommended</h4><div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.recommended}} /></>}</div>}
           </section>
-          <footer className="page-footer"><span>STEAMPULSE <b>·</b> GAME INTELLIGENCE</span><span>DATA PROVIDED BY STEAM STORE <span className="status-dot" /></span></footer>
+          <footer className="page-footer"><span>STEAMPULSE</span><span>APP/{game.appid}</span></footer>
         </>}
       </main>
     </div>
