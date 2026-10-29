@@ -49,6 +49,7 @@ function Strip({ label, value, icon: Icon }) {
 
 export default function App() {
   const [region, setRegion] = useState("US");
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -73,6 +74,14 @@ export default function App() {
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
+  function navigateTo(page) {
+    const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
+    if (window.location.hash !== nextHash) window.location.hash = nextHash;
+    setCurrentPage(page);
+    if (page !== "game") { setGame(null); setError(""); }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function readApiResponse(response) {
     const text = await response.text();
     if (!text.trim()) {
@@ -90,6 +99,8 @@ export default function App() {
       setError("Enter a valid numeric Steam AppID.");
       return;
     }
+    setCurrentPage("game");
+    if (window.location.hash !== `#/game/${id}`) window.location.hash = `#/game/${id}`;
     setLoading(true);
     setError("");
     setSearchOpen(false);
@@ -187,6 +198,26 @@ export default function App() {
   }
 
   useEffect(() => {
+    const syncPageFromHash = () => {
+      const hash = window.location.hash;
+      const gameMatch = hash.match(/^#\/game\/(\d+)/);
+      if (gameMatch) {
+        setCurrentPage("game");
+        const targetId = gameMatch[1];
+        if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
+        return;
+      }
+      const pageMatch = hash.match(/^#\/(home|games|trending)$/);
+      const nextPage = pageMatch?.[1] || "home";
+      setCurrentPage(nextPage);
+      if (nextPage !== "game") { setGame(null); setLoading(false); }
+    };
+    window.addEventListener("hashchange", syncPageFromHash);
+    if (window.location.hash) syncPageFromHash();
+    return () => window.removeEventListener("hashchange", syncPageFromHash);
+  }, []);
+
+  useEffect(() => {
     const close = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false);
     };
@@ -259,16 +290,17 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <div className="topbar-center"><span className="status-dot" /> STEAM STORE DATA <span className="topbar-divider">/</span> LIVE DASHBOARD</div>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : <Sparkles size={15} />}{label}</button>)}</nav>
         <div className="topbar-right"><span className="online-pill"><span className="status-dot" /> API READY</span><span className="avatar">SP</span></div>
       </header>
 
       <main className="main-content">
-        <section className="intro">
+        {(currentPage === "home" || currentPage === "games") && <>
+        {currentPage === "home" && <section className="intro">
           <div className="eyebrow"><Sparkles size={14} /> YOUR STEAM COMMAND CENTER</div>
           <h1>Every game.<br /><span>One pulse.</span></h1>
           <p>Explore game data, pricing, player activity and visual details from the Steam Store.</p>
-        </section>
+        </section>}
 
         <section className="search-panel">
           <div className="search-heading"><div><span className="section-kicker">DISCOVER</span><h2>Find your next game</h2></div><span className="search-hint">Search by title or use an AppID</span></div>
@@ -308,6 +340,7 @@ export default function App() {
           <div className="popular-line"><span>TRY A QUICK LOOK</span>{[{ name:"Cyberpunk 2077",id:"1091500"},{name:"Elden Ring",id:"1245620"},{name:"Baldur's Gate 3",id:"1086940"},{name:"Hades II",id:"1145350"}].map((g) => <button key={g.id} onClick={() => {setQuery(g.name);loadGame(g.id);}}>{g.name}</button>)}</div>
         </section>
 
+        {currentPage === "trending" && <>
         <section className="discovery-section">
           <div className="discovery-heading">
             <div><span className="section-kicker"><Sparkles size={13} /> STEAM RADAR</span><h2>What’s hot right now</h2><p>Fresh releases, upcoming launches, and games players are buying.</p></div>
@@ -367,12 +400,14 @@ export default function App() {
           <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
         </section>
 
-        {error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
+        </>}
+
+        {currentPage === "game" && error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
         {loading && <div className="loading-panel"><LoaderCircle className="spin" size={26} /><span>Syncing game data from Steam…</span></div>}
 
-        {!game && !loading && <section className="welcome-panel"><Gamepad2 size={36} /><h2>Ready when you are</h2><p>Search for a game above to pull its Steam Store details.</p></section>}
+        {currentPage === "game" && !game && !loading && <section className="welcome-panel"><Gamepad2 size={36} /><h2>Ready when you are</h2><p>Search for a game above to pull its Steam Store details.</p></section>}
 
-        {game && <>
+        {currentPage === "game" && game && <>
           <section className="game-hero">
             <div className="hero-art" style={{backgroundImage: game?.library_hero ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.library_hero}")` : hero ? `linear-gradient(90deg, rgba(8,13,27,.92) 0%, rgba(8,13,27,.82) 48%, rgba(8,13,27,.58) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
             {game?.game_logo && <div className="hero-game-logo"><img src={game.game_logo} alt={`${game.name} logo`} onError={(event) => { event.currentTarget.parentElement.style.display = "none"; }} /></div>}
