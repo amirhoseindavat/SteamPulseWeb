@@ -309,6 +309,9 @@
 .steam-online i{background:#1a9fff}
 .steam-in-game i{background:#5cba3c}
 .steam-offline i{background:#64708a}
+.steam-away{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#c3a6ff}
+.steam-away-zzz{display:inline-flex;align-items:baseline;font:700 10px/1 "DM Mono",monospace;letter-spacing:-1px;color:#c3a6ff}
+.steam-away-zzz sup{font-size:7px;position:relative;top:-3px}
 .profile-steam-link{display:inline-flex;align-items:center;gap:7px;margin-bottom:6px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:#dfe6fa;text-decoration:none;font-size:11px;white-space:nowrap}
 .steam-profile-summary{position:relative;margin:20px 26px 24px;color:#9aa7c2;font-size:13px;line-height:1.8;white-space:pre-wrap}
 .profile-stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
