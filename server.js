@@ -743,6 +743,10 @@ app.get("/api/steam-profile", async (req, res) => {
       summary: "",
       online: Number(player.personastate || 0) !== 0,
       status: ({ 0: "Offline", 1: "Online", 2: "Busy", 3: "Away", 4: "Snooze", 5: "Looking to trade", 6: "Looking to play" })[Number(player.personastate || 0)] || "Online",
+      currentGame: player.gameextrainfo ? {
+        name: String(player.gameextrainfo),
+        appid: /^\\d+$/.test(String(player.gameid || "")) ? Number(player.gameid) : null
+      } : null,
       created: player.timecreated ? new Date(Number(player.timecreated) * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "",
       lastLogoff: player.lastlogoff ? new Date(Number(player.lastlogoff) * 1000).toLocaleString("en-US") : "",
       visibility: visibility === 3 ? "Public" : visibility === 2 ? "Friends only" : visibility === 1 ? "Private" : "Unknown"
