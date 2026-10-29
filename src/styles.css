@@ -909,3 +909,11 @@
 .steam-profile-page[style*="background-image"]>.steam-profile-hero{background:rgba(10,14,28,.48)}
 .steam-profile-page[style*="background-image"] .steam-profile-cover.has-steam-background{opacity:.58}
 @media(max-width:620px){.steam-profile-page{padding:10px;background-attachment:scroll;border-radius:12px}}
+
+
+/* Animated Steam profile background video, kept behind profile content. */
+.steam-profile-page{position:relative;isolation:isolate;overflow:hidden}
+.steam-profile-background-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:-1;pointer-events:none;opacity:.42}
+.steam-profile-page[style*="background-image"]{background-image:linear-gradient(180deg,rgba(7,11,23,.35),rgba(7,11,23,.78))!important}
+.steam-profile-page>.steam-profile-hero,.steam-profile-page>.detail-card{position:relative}
+@media(prefers-reduced-motion:reduce){.steam-profile-background-video{display:none}}
