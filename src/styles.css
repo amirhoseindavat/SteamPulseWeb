@@ -13,3 +13,19 @@
 
 /* Steam Deck compatibility */
 .deck-compatibility{margin-top:16px;padding:22px 24px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(120deg,#151d34ee,#10182ce8)}.deck-main{display:flex;align-items:center;gap:15px}.deck-icon{width:48px;height:48px;display:grid;place-items:center;flex-shrink:0;border-radius:13px;background:#ffffff09;border:1px solid var(--line);color:#a18aff}.deck-title{min-width:0;flex:1}.deck-title h2{font-size:19px;letter-spacing:-.5px;margin:5px 0 6px;color:#eaf0ff}.deck-title p{font-size:11px;line-height:1.6;color:#8995b0;margin:0}.deck-badge{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:9px;border:1px solid var(--line);background:#ffffff05;color:#9aa6c1;font-size:11px;font-weight:800;white-space:nowrap}.deck-status-verified .deck-badge{color:#75e0b1;border-color:#75e0b133;background:#75e0b10c}.deck-status-playable .deck-badge{color:#f0ca78;border-color:#f0ca7833;background:#f0ca780c}.deck-status-unsupported .deck-badge{color:#ff8b97;border-color:#ff8b9733;background:#ff8b970c}.deck-criteria{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:19px}.deck-criterion{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:#080e1d70;color:#c5cee2;font-size:10px;min-width:0}.deck-criterion>span:nth-child(2){flex:1;line-height:1.5}.deck-criterion small{font:8px "DM Mono",monospace;color:#8390aa}.criterion-icon{display:flex;flex-shrink:0;color:#9aa6c1}.deck-criterion-pass .criterion-icon{color:#75e0b1}.deck-criterion-fail .criterion-icon{color:#ff8b97}.deck-report-link{display:inline-flex;align-items:center;gap:7px;margin-top:15px;color:#b6a6ff;font-size:10px}.deck-report-link:hover{color:#d2c7ff}@media(max-width:620px){.deck-compatibility{padding:17px 14px}.deck-main{align-items:flex-start;flex-wrap:wrap}.deck-title{flex-basis:calc(100% - 65px)}.deck-badge{margin-left:63px}.deck-criteria{grid-template-columns:1fr}.deck-title h2{font-size:17px}}
+
+
+/* Hero platform logos and compact Steam Deck rating */
+.hero-platforms{display:inline-flex;align-items:center;gap:10px;color:#c4cce0}
+.platform-icon{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;color:#d5dced;opacity:.92}
+.platform-icon svg{width:17px;height:17px}
+.platform-letter{font-size:16px;line-height:1}
+.platform-linux{font-size:15px;filter:grayscale(1)}
+.platform-unavailable{font-size:10px;color:#aab5cf}
+.hero-deck-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #ffffff20;border-radius:6px;background:#ffffff08;font-size:10px;white-space:nowrap}
+.hero-deck-status strong{font-size:10px;font-weight:700}
+.hero-deck-status.deck-status-verified{color:#75e0b1;border-color:#75e0b133;background:#75e0b10c}
+.hero-deck-status.deck-status-playable{color:#f0ca78;border-color:#f0ca7833;background:#f0ca780c}
+.hero-deck-status.deck-status-unsupported{color:#ff8b97;border-color:#ff8b9733;background:#ff8b970c}
+.hero-deck-status.deck-status-unknown{color:#aab5cf}
+@media(max-width:620px){.hero-meta{align-items:flex-start;flex-direction:column}.hero-platforms{gap:12px}.hero-deck-status{white-space:normal}}
