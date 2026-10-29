@@ -884,3 +884,7 @@
 .profile-badge-stat .steam-level-frame.is-sprite{width:42px;height:42px;flex:0 0 42px;background-size:42px 420px!important;background-repeat:no-repeat;background-color:transparent;border:0;border-radius:0;box-shadow:none}
 .profile-badge-stat .steam-level-frame>span{font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:12px;font-weight:800;letter-spacing:-.35px;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000,0 0 4px #000}
 .profile-badge-stat .profile-badge-art .profile-badge-image{display:block;width:54px;height:54px;object-fit:contain}
+
+
+/* Make the Steam level number crisp and clearly white. */
+.profile-badge-stat .steam-level-frame>span{color:#fff!important;font-family:Arial,"Segoe UI",sans-serif;font-size:13px;font-weight:900;letter-spacing:0;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.8);-webkit-font-smoothing:antialiased}
