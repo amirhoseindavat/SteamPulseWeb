@@ -774,7 +774,7 @@ app.get("/api/steam-profile", async (req, res) => {
         badges: totalBadges,
         friends: friends
       },
-      recentGames: await mapWithConcurrency(recent.slice(0, 10), 4, async (item) => {
+      recentGames: (await mapWithConcurrency(recent.slice(0, 10), 4, async (item) => {
         const appid = Number(item.appid);
         return {
           appid,
@@ -783,7 +783,7 @@ app.get("/api/steam-profile", async (req, res) => {
           hours: Math.round(Number(item.playtime_forever || 0) / 60),
           hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
         };
-      })
+      })).filter((entry) => entry.status === "fulfilled").map((entry) => entry.value)
     });
   } catch (error) {
     console.error("Steam profile fetch failed:", error);
