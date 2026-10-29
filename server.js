@@ -63,6 +63,21 @@ async function fetchSteamDbLogo(appid) {
   }
 }
 
+async function fetchSteamHeaderImage(appid) {
+  const fallback = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/header.jpg`;
+  try {
+    const data = await fetchJson(
+      `https://store.steampowered.com/api/appdetails?appids=${encodeURIComponent(appid)}&filters=basic`,
+      { headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "application/json" } }
+    );
+    const app = data?.[String(appid)];
+    const image = app?.success ? app?.data?.header_image : "";
+    return typeof image === "string" && image.startsWith("https://") ? image : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 async function mapWithConcurrency(items, concurrency, mapper) {
   const results = new Array(items.length);
   let nextIndex = 0;
@@ -671,7 +686,7 @@ app.get("/api/steam-profile", async (req, res) => {
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetFavoriteBadge/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&relationship=friend")),
-      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=5")),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=10")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileBackground/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
@@ -759,12 +774,12 @@ app.get("/api/steam-profile", async (req, res) => {
         badges: totalBadges,
         friends: friends
       },
-      recentGames: recent.slice(0, 5).map((item) => {
+      recentGames: await mapWithConcurrency(recent.slice(0, 10), 4, async (item) => {
         const appid = Number(item.appid);
         return {
           appid,
           name: item.name || ("App " + item.appid),
-          image: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + appid + "/header.jpg",
+          image: await fetchSteamHeaderImage(appid),
           hours: Math.round(Number(item.playtime_forever || 0) / 60),
           hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
         };
