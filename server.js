@@ -194,6 +194,7 @@ app.get("/api/game/:appid", async (req, res) => {
     const hero2x = hero.replace(/\/header\.jpg(?=\?|$)/, "/header_2x.jpg");
     if (hero2x !== hero) hero = hero2x;
     let libraryHero = "";
+    let gameLogo = "";
 
     try {
       const assetUrl = new URL("https://api.steampowered.com/IStoreBrowseService/GetItems/v1/");
@@ -207,6 +208,10 @@ app.get("/api/game/:appid", async (req, res) => {
       const hash = item?.assets?.library_hero;
       if (hash) {
         libraryHero = `https://cdn.akamai.steamstatic.com/steam/apps/${appid}/library_hero_2x.jpg`;
+      }
+      const logoHash = item?.assets?.logo;
+      if (logoHash) {
+        gameLogo = `https://cdn.akamai.steamstatic.com/steam/apps/${appid}/logo.png`;
       }
     } catch {
       // This undocumented endpoint may not return data for every title.
@@ -248,6 +253,7 @@ app.get("/api/game/:appid", async (req, res) => {
       header_image: d.header_image || "",
       header_image_2x: hero,
       library_hero: libraryHero,
+      game_logo: gameLogo,
       background: d.background || "",
       developers: d.developers || [],
       publishers: d.publishers || [],
