@@ -29,7 +29,7 @@ function formatNumber(value) {
   return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
 }
 
-function DeckCompatibilityIcon({ status, size = 18 }) {
+function SteamDeckMark({ size = 18 }) {\n  return <svg className="steam-deck-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.777 4.302a5.698 5.698 0 1 1 0 11.396v3.19a8.889 8.889 0 1 0 0-17.777v3.191Zm0 9.587a3.889 3.889 0 1 0 0-7.778 3.889 3.889 0 0 0 0 7.778Z" /></svg>;\n}\n\nfunction DeckCompatibilityIcon({ status, size = 18 }) {
   const icons = {
     verified: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/verified_18.png",
     playable: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/playable_18.png",
@@ -256,7 +256,7 @@ export default function App() {
 
           <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
             <div className="deck-main">
-              <div className="deck-icon"><Monitor size={25} /></div>
+              <div className="deck-icon"><SteamDeckMark size={27} /></div>
               <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
               <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={21} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
             </div>
