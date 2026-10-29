@@ -818,3 +818,29 @@
 .app-shell[data-theme="light"] .regional-name small{color:#78839a}
 .app-shell[data-theme="light"] .regional-net{color:#13835e!important}
 @media(max-width:620px){.regional-market-section{padding:15px!important}.regional-market-heading{flex-direction:column}.regional-market-live{align-self:flex-start}.regional-order-summary{grid-template-columns:1fr}.regional-order-stat{padding:11px 12px}}
+
+
+/* Steam-style profile level frame and Year of Service badge */
+.steam-profile-badges{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:13px;margin:20px 26px 24px;padding:13px 15px;border:1px solid #ffffff12;border-radius:10px;background:rgba(7,12,25,.42)}
+.steam-level-display{display:flex;align-items:center;gap:10px;padding-right:15px;border-right:1px solid #ffffff16}
+.steam-level-frame{display:grid;place-items:center;width:47px;height:47px;flex:0 0 47px;border:2px solid #66c0f4;border-radius:50%;box-shadow:inset 0 0 0 3px #66c0f41a,0 0 14px #66c0f418;color:#e8f7ff}
+.steam-level-frame span{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.steam-level-caption{color:#aab7d0;font-size:11px;font-weight:700}
+.steam-service-badge{display:flex;align-items:center;gap:10px;min-width:0}
+.steam-service-badge img{display:block;width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 2px 7px #0005)}
+.steam-service-badge>span,.steam-badge-count>span{display:flex;flex-direction:column;gap:5px;min-width:0}
+.steam-service-badge strong,.steam-badge-count strong{color:#e9efff;font-size:11px}
+.steam-service-badge small,.steam-badge-count small{color:#8493b2;font-size:10px}
+.steam-badge-count{display:flex;align-items:center;gap:9px;margin-left:auto;padding-left:15px;border-left:1px solid #ffffff16;color:#a995ff}
+.app-shell[data-theme="light"] .steam-profile-badges{background:#f6f8fc;border-color:#dfe4ef}
+.app-shell[data-theme="light"] .steam-level-caption{color:#596781}
+.app-shell[data-theme="light"] .steam-service-badge strong,.app-shell[data-theme="light"] .steam-badge-count strong{color:#28334b}
+.app-shell[data-theme="light"] .steam-service-badge small,.app-shell[data-theme="light"] .steam-badge-count small{color:#68738a}
+@media(max-width:620px){
+ .steam-profile-badges{margin:17px 14px;padding:12px;gap:12px}
+ .steam-level-display{padding-right:12px}
+ .steam-level-frame{width:42px;height:42px;flex-basis:42px}
+ .steam-service-badge{flex:1}
+ .steam-service-badge img{width:46px;height:46px}
+ .steam-badge-count{margin-left:0;padding-left:12px}
+}
