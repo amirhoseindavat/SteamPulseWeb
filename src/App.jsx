@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX
 } from "lucide-react";
@@ -48,7 +48,12 @@ function Strip({ label, value, icon: Icon }) {
 }
 
 export default function App() {
-  const [region, setRegion] = useState("US");
+  const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
+  const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
+  const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
+  const [ownership, setOwnership] = useState(null);
+  const [ownershipLoading, setOwnershipLoading] = useState(false);
+  const [ownershipError, setOwnershipError] = useState("");
   const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -207,7 +212,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|settings)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -229,8 +234,42 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    localStorage.setItem("steampulse-region", region);
     if (game) loadGame(appid, region);
   }, [region]);
+
+  function saveSettings() {
+    const cleanProfile = steamProfileDraft.trim();
+    setSteamProfile(cleanProfile);
+    localStorage.setItem("steampulse-profile", cleanProfile);
+    localStorage.setItem("steampulse-region", region);
+    setOwnership(null);
+    setOwnershipError("");
+  }
+
+  async function checkOwnership() {
+    if (!steamProfile.trim() || !game) {
+      setOwnershipError("Add your Steam profile in Settings first.");
+      return;
+    }
+    setOwnershipLoading(true);
+    setOwnershipError("");
+    try {
+      const appids = [...new Set([Number(game.appid), ...(game.dlc || []).map((item) => Number(item.appid))].filter(Number.isFinite))];
+      const response = await fetch("/api/ownership-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: steamProfile, appids })
+      });
+      const data = await readApiResponse(response);
+      if (!response.ok) throw new Error(data.error || "Could not check this Steam library.");
+      setOwnership(data);
+    } catch (e) {
+      setOwnershipError(e.message || "Ownership check failed.");
+    } finally {
+      setOwnershipLoading(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -290,11 +329,22 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : <Sparkles size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right"><span className="online-pill"><span className="status-dot" /> API READY</span><span className="avatar">SP</span></div>
       </header>
 
       <main className="main-content">
+        {currentPage === "settings" && <section className="settings-page detail-card">
+          <div className="settings-heading"><span className="section-kicker"><Settings size={13} /> PERSONAL PREFERENCES</span><h1>Settings</h1><p>Save your default Steam price region and profile for quick library checks.</p></div>
+          <div className="settings-form">
+            <label><span><Globe2 size={16} /> Default price region</span><select value={region} onChange={(e) => setRegion(e.target.value)}>{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.label} ({r.code} · {r.currency})</option>)}</select><small>This region is remembered in this browser and used for future game lookups.</small></label>
+            <label><span><Users size={16} /> Steam profile URL or SteamID64</span><input value={steamProfileDraft} onChange={(e) => setSteamProfileDraft(e.target.value)} placeholder="https://steamcommunity.com/profiles/7656… or /id/username" /><small>Your profile and owned games must be public for library checks.</small></label>
+            <button className="primary-button" onClick={saveSettings}><Save size={16} /> Save settings</button>
+            {steamProfile && <p className="settings-saved"><CheckCircle2 size={15} /> Steam profile saved in this browser.</p>}
+          </div>
+          <div className="settings-note"><ShieldCheck size={18} /><div><strong>About ownership checks</strong><p>The server needs a Steam Web API key configured as <code>STEAM_API_KEY</code>. Steam may not expose every DLC as a separate owned app, so DLC results are best-effort, not a purchase receipt.</p></div></div>
+        </section>}
+
         {(currentPage === "home" || currentPage === "games") && <>
         {currentPage === "home" && <section className="intro">
           <div className="eyebrow"><Sparkles size={14} /> YOUR STEAM COMMAND CENTER</div>
@@ -448,6 +498,14 @@ export default function App() {
             <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
             <Strip label="RECOMMENDATIONS" value={formatNumber(game.recommendations)} icon={Activity} />
             <div className="region-select"><Globe2 size={16} /><select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Price region">{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.code} · {r.currency}</option>)}</select></div>
+          </section>
+
+
+          <section className="ownership-panel detail-card">
+            <div className="ownership-heading"><div><span className="section-kicker"><Library size={13} /> YOUR STEAM LIBRARY</span><h2>Have you already bought it?</h2><p>Check this game and its currently loaded DLC against your public Steam library.</p></div><button className="secondary-button" onClick={checkOwnership} disabled={ownershipLoading || !steamProfile}>{ownershipLoading ? <><LoaderCircle size={15} className="spin" /> Checking…</> : <><ShieldCheck size={15} /> Check library</>}</button></div>
+            {!steamProfile && <p className="ownership-hint">Save your Steam profile in Settings to enable library checks.</p>}
+            {ownershipError && <p className="ownership-error">{ownershipError}</p>}
+            {ownership && <div className="ownership-results"><p className="ownership-summary">Library checked for SteamID <strong>{ownership.steamId}</strong>. Results only reflect apps Steam returned for this public profile.</p>{ownership.items.map((item) => <div className="ownership-row" key={item.appid}><span>{item.name}</span><strong className={item.owned ? "owned" : "not-owned"}>{item.owned ? "In library" : "Not detected"}</strong></div>)}</div>}
           </section>
 
           {game.type !== "dlc" && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
