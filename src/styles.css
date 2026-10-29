@@ -231,3 +231,9 @@
 .browse-game-card strong{font-size:13px;line-height:1.5;color:#e8edff}
 .browse-game-card small{display:flex;align-items:center;gap:4px;font:9px "DM Mono",monospace;letter-spacing:.6px;color:#a999ff}
 @media(max-width:620px){.browse-games-section{padding:18px 13px}.browse-games-grid{grid-template-columns:1fr;gap:9px}.browse-game-card>img{width:40%}.browse-game-card strong{font-size:12px}.browse-game-card small{font-size:8px}}
+
+
+/* Give About this game more room and show its full description */
+.overview-grid{grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr)}
+.about-copy{max-height:none;overflow:visible}
+@media(max-width:760px){.overview-grid{grid-template-columns:minmax(0,1fr)}}
