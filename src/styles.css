@@ -1144,3 +1144,17 @@
   .steam-profile-page .current-game-art { flex-basis: 105px; }
   .steam-profile-page .current-game-open { width: 30px; height: 30px; flex-basis: 30px; }
 }
+
+
+/* Give the Free Game Alert description breathing room before its game grid. */
+.free-games-section .discovery-heading p {
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 1.65;
+}
+.free-games-section .discovery-grid {
+  margin-top: 24px;
+}
+@media (max-width: 620px) {
+  .free-games-section .discovery-grid { margin-top: 18px; }
+}
