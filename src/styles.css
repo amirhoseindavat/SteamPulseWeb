@@ -862,3 +862,18 @@
 @media(max-width:760px){.profile-badge-stat{min-height:140px}}
 
 @media(min-width:761px){.profile-stats-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.profile-badge-stat{min-width:0;padding:16px}.profile-badge-stat>strong{font-size:clamp(13px,1.2vw,16px)!important}}
+
+
+/* Consistent two-row layout for every profile stat card. */
+.profile-stats-grid{align-items:stretch}
+.profile-stats-grid>.profile-stat{box-sizing:border-box;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:0;min-height:170px;padding:16px}
+.profile-stat-heading{display:flex;align-items:center;gap:8px;width:100%;height:28px;min-height:28px;white-space:nowrap}
+.profile-stat-heading svg{width:18px;height:18px;flex:0 0 18px;color:#a995ff}
+.profile-stat-heading span{font-size:11px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-stats-grid>.profile-stat>.profile-stat-value{display:flex;align-items:center;justify-content:flex-start;min-height:68px;margin-top:12px;font-size:clamp(14px,1.5vw,23px)!important;line-height:1.25;overflow-wrap:anywhere}
+.profile-badge-stat .profile-badge-art{display:flex;align-items:center;justify-content:flex-start;min-height:68px;height:68px;margin-top:12px}
+.profile-badge-stat .profile-badge-image,.profile-badge-stat .profile-badge-placeholder{width:54px;height:54px;flex:0 0 54px;display:flex;align-items:center;justify-content:center;object-fit:contain}
+.profile-badge-stat .steam-level-frame{width:42px;height:42px;flex:0 0 42px;background-size:auto 320px}
+.profile-badge-stat>.profile-stat-value{margin-top:12px}
+.profile-badge-stat>small{display:block;margin-top:4px}
+@media(max-width:760px){.profile-stats-grid>.profile-stat{padding:12px;min-height:158px}.profile-stat-heading{gap:6px}.profile-stat-heading span{font-size:10px}.profile-stats-grid>.profile-stat>.profile-stat-value{font-size:15px!important;min-height:60px}.profile-badge-stat .profile-badge-art{min-height:60px;height:60px}}
