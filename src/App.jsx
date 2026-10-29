@@ -477,7 +477,17 @@ export default function App() {
               </div>
               <div className="steam-profile-badges">
                 <div className="steam-level-display" title={`Steam Level ${steamProfileData.stats.level ?? "unavailable"}`}>
-                  <span className="steam-level-frame"><span>{steamProfileData.stats.level == null ? "—" : formatNumber(steamProfileData.stats.level)}</span></span>
+                  {(() => {
+                    const level = Number(steamProfileData.stats.level);
+                    const validLevel = Number.isFinite(level) && level >= 0 ? Math.floor(level) : null;
+                    const shapes = ["hexagons", "shields", "books", "chevrons", "circles", "angles", "flags", "wings", "arrows", "crystals", "space", "water", "fire", "earth"];
+                    const shape = validLevel == null || validLevel < 100 ? null : shapes[Math.min(shapes.length - 1, Math.floor(validLevel / 100) - 1)];
+                    const colors = ["#8b929a", "#e35d5b", "#e58b45", "#e2c34c", "#80b95b", "#66a8d8", "#9274d8", "#d77bbd", "#9f5965", "#b58b5a"];
+                    const style = validLevel == null ? {} : validLevel < 100
+                      ? { "--steam-level-color": colors[Math.floor(validLevel / 10)] }
+                      : { backgroundImage: `url(https://community.fastly.steamstatic.com/public/shared/images/community/levels_${shape}.png)`, backgroundPosition: `0 -${Math.floor((validLevel % 100) / 10) * 32}px` };
+                    return <span className={`steam-level-frame ${validLevel != null && validLevel >= 100 ? "is-sprite" : ""}`} style={style}><span>{validLevel == null ? "—" : formatNumber(validLevel)}</span></span>;
+                  })()}
                   <span className="steam-level-caption">Steam Level</span>
                 </div>
                 {steamProfileData.yearOfService && <div className="steam-service-badge" title={`Years of Service · Level ${steamProfileData.yearOfService.level}`}>
