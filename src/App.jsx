@@ -126,15 +126,17 @@ export default function App() {
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
       // Bundle discovery can be slow on some Steam pages; load it after the main game details.
-      fetch(`/api/game/${id}/bundles?cc=${cc}`)
-        .then((response) => response.ok ? response.json() : null)
-        .then((bundleData) => {
-          if (!bundleData || !Array.isArray(bundleData.bundles)) return;
-          setGame((current) => String(current?.appid) === String(id) && String(region) === String(cc)
-            ? { ...current, bundles: bundleData.bundles }
-            : current);
-        })
-        .catch(() => {});
+      if (String(data.type || "").toLowerCase() !== "dlc") {
+        fetch(`/api/game/${id}/bundles?cc=${cc}`)
+          .then((response) => response.ok ? response.json() : null)
+          .then((bundleData) => {
+            if (!bundleData || !Array.isArray(bundleData.bundles)) return;
+            setGame((current) => String(current?.appid) === String(id) && String(region) === String(cc)
+              ? { ...current, bundles: bundleData.bundles }
+              : current);
+          })
+          .catch(() => {});
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
       setRegionalPriceInput(data.price_overview?.final != null ? (data.price_overview.final / 100).toFixed(2) : "");
       setAppid(String(id));
@@ -306,7 +308,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (currentPage === "game" && game?.appid && steamProfile && steamApiKey) checkOwnership();
+    if (currentPage === "game" && game?.appid && game.type !== "dlc" && steamProfile && steamApiKey) checkOwnership();
   }, [currentPage, game?.appid, steamProfile, steamApiKey]);
 
   useEffect(() => {
@@ -551,7 +553,7 @@ export default function App() {
             <div className="hero-header-image"><img src={game.header_image || hero || ""} alt={`${game.name} header`} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></div>
             <div className="hero-content">
               <div className="hero-topline"><span className="game-label"><Gamepad2 size={13} /> STEAM TITLE</span><span className="app-tag">APP/{game.appid}</span></div>
-              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p><div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> YOUR LIBRARY</span>{ownershipLoading ? <strong>Checking…</strong> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamProfile && steamApiKey ? "Checking…" : "Add profile + API key in Settings"}</strong>}</div><div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
+              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> YOUR LIBRARY</span>{ownershipLoading ? <strong>Checking…</strong> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamProfile && steamApiKey ? "Checking…" : "Add profile + API key in Settings"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
               <div className="hero-meta">
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
                 <div className="hero-platforms" aria-label="Supported platforms">
@@ -569,11 +571,13 @@ export default function App() {
             <div className="hero-corner">STEAMPULSE <span>01 / GAME PROFILE</span></div>
           </section>
 
-          <section className="stats-strip">
+          {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
             <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
-          </section>
+          </section>}
+
+          {game.type === "dlc" && <section className="dlc-parent-notice detail-card"><div className="dlc-parent-icon"><Library size={22} /></div><div className="dlc-parent-copy"><span className="section-kicker">DLC · BASE GAME REQUIRED</span><h3>This content requires the base game</h3><p>This is downloadable content, not a standalone game. You need to own the base game on Steam to access it.</p>{game.parent_game?.appid ? <a href={"https://store.steampowered.com/app/" + game.parent_game.appid + "/"} target="_blank" rel="noreferrer"><img src={game.parent_game.header_image || ""} alt="" /> <span><strong>{game.parent_game.name}</strong><small>View base game on Steam</small></span><ExternalLink size={15} /></a> : <p className="dlc-parent-unknown">Check the DLC store page for its required base game.</p>}</div></section>}
 
           <div className="purchase-layout">
             <div className="purchase-options-column">
