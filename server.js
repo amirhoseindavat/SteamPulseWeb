@@ -768,7 +768,7 @@ app.get("/api/steam-profile", async (req, res) => {
           hours: Math.round(Number(item.playtime_forever || 0) / 60),
           hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
         };
-      }))
+      })
     });
   } catch (error) {
     console.error("Steam profile fetch failed:", error);
