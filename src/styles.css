@@ -543,3 +543,151 @@
   .purchase-options-column{padding:17px}
   .purchase-layout>.key-calculator{height:auto}
 }
+
+
+/* Keep Steam's rich About the Game HTML contained inside its card. */
+.about-card{min-width:0;overflow:hidden}
+.about-copy{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:normal}
+.about-copy img,.about-copy video,.about-copy iframe,.about-copy picture,.about-copy table{
+  max-width:100%!important;
+}
+.about-copy img,.about-copy video,.about-copy iframe{height:auto!important}
+.about-copy img{display:block;object-fit:contain}
+.about-copy table{display:block;overflow-x:auto}
+.about-copy *{max-width:100%}
+
+/* Compact global search and theme switch in the application header. */
+.topbar-right{gap:10px}
+.header-search-box{position:relative;display:flex;align-items:center;width:clamp(150px,19vw,245px);height:39px;border:1px solid var(--line);border-radius:10px;background:rgba(8,14,29,.72);color:#a18aff}
+.header-search-icon{flex-shrink:0;margin-left:12px}
+.header-search-box input{width:100%;min-width:0;height:100%;padding:0 9px;border:0;outline:0;background:transparent;color:#edf0ff;font-size:11px}
+.header-search-box input::placeholder{color:#75819c}
+.header-search-box:focus-within{border-color:#8b6cff99;box-shadow:0 0 0 3px #8b6cff15}
+.header-search-clear{flex-shrink:0;margin-right:8px;padding:3px;border:0;background:transparent;color:#9ba8c4;display:grid;place-items:center}
+.header-search-results{position:absolute;top:calc(100% + 10px);right:0;left:auto;width:min(390px,88vw);z-index:250;max-height:420px;overflow:auto}
+.theme-toggle{width:38px;height:38px;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);color:#c9baff;transition:background .18s,color .18s}
+.theme-toggle:hover{background:rgba(139,108,255,.14);color:#fff}
+@media(max-width:900px){.header-search-box{width:clamp(130px,20vw,190px)}.online-pill{display:none}}
+@media(max-width:620px){
+ .topbar-right{gap:7px}
+ .header-search-box{width:39px;justify-content:center}
+ .header-search-box .header-search-icon{margin:0}
+ .header-search-box input{width:0;padding:0;opacity:0}
+ .header-search-box:focus-within{position:absolute;left:16px;right:16px;top:12px;width:auto;z-index:260;background:var(--panel)}
+ .header-search-box:focus-within .header-search-icon{margin-left:12px}
+ .header-search-box:focus-within input{width:100%;padding:0 9px;opacity:1}
+ .header-search-box:focus-within .header-search-clear{margin-right:8px}
+}
+
+/* Light theme overrides; the dark theme remains the default. */
+.app-shell[data-theme="light"]{
+  color:#20283a;
+  background-color:#f4f6fb;
+  background-image:radial-gradient(ellipse at 80% 0%,rgba(132,112,230,.12),transparent 36%)!important;
+  --muted:#667085;
+  --line:rgba(61,75,105,.17);
+  --panel:rgba(255,255,255,.9);
+}
+.app-shell[data-theme="light"] .topbar{background:rgba(250,251,255,.92);border-bottom-color:#dce2ef}
+.app-shell[data-theme="light"] .brand{color:#27314a}
+.app-shell[data-theme="light"] .brand small{color:#77819a}
+.app-shell[data-theme="light"] .topbar-center{color:#68738d}
+.app-shell[data-theme="light"] .main-nav button{color:#65708a}
+.app-shell[data-theme="light"] .main-nav button:hover{color:#31265e;background:#7860d10d}
+.app-shell[data-theme="light"] .main-nav button.active{color:#5d43bf;background:#8b6cff12;border-color:#8b6cff35;box-shadow:none}
+.app-shell[data-theme="light"] .header-search-box{background:#fff;border-color:#d8deeb;color:#7057d4}
+.app-shell[data-theme="light"] .header-search-box input{color:#26314a}
+.app-shell[data-theme="light"] .header-search-box input::placeholder{color:#8a93a7}
+.app-shell[data-theme="light"] .theme-toggle{background:#fff;color:#6b54c8;border-color:#d8deeb}
+.app-shell[data-theme="light"] .online-pill{color:#667085;background:#fff}
+.app-shell[data-theme="light"] .main-content{color:#20283a}
+.app-shell[data-theme="light"] .intro h1{color:#1d2740}
+.app-shell[data-theme="light"] .intro p,
+.app-shell[data-theme="light"] .search-hint{color:#69758e}
+.app-shell[data-theme="light"] .search-panel,
+.app-shell[data-theme="light"] .detail-card,
+.app-shell[data-theme="light"] .stats-strip,
+.app-shell[data-theme="light"] .welcome-panel,
+.app-shell[data-theme="light"] .extra-content-section,
+.app-shell[data-theme="light"] .detail-section,
+.app-shell[data-theme="light"] .steam-profile-hero,
+.app-shell[data-theme="light"] .steam-profile-page .detail-card{
+  background:rgba(255,255,255,.9);
+  border-color:#dfe4ef;
+  box-shadow:0 10px 32px rgba(29,42,73,.06);
+}
+.app-shell[data-theme="light"] .search-box>input,
+.app-shell[data-theme="light"] .app-id-box,
+.app-shell[data-theme="light"] .calculator-region,
+.app-shell[data-theme="light"] .usd-price-field,
+.app-shell[data-theme="light"] .calculator-result,
+.app-shell[data-theme="light"] .about-card,
+.app-shell[data-theme="light"] .requirements-card{
+  background:#f7f8fc;
+  border-color:#dce2ef;
+  color:#26314a;
+}
+.app-shell[data-theme="light"] .search-box>input,
+.app-shell[data-theme="light"] .app-id-box input,
+.app-shell[data-theme="light"] .calculator-region select,
+.app-shell[data-theme="light"] .usd-price-field input{color:#20283a}
+.app-shell[data-theme="light"] .search-box>input::placeholder{color:#8b95aa}
+.app-shell[data-theme="light"] .detail-header h2,
+.app-shell[data-theme="light"] .search-heading h2,
+.app-shell[data-theme="light"] .card-title h3,
+.app-shell[data-theme="light"] .about-copy h1,
+.app-shell[data-theme="light"] .about-copy h2,
+.app-shell[data-theme="light"] .about-copy h3,
+.app-shell[data-theme="light"] .about-copy h4,
+.app-shell[data-theme="light"] .people-grid strong,
+.app-shell[data-theme="light"] .info-list strong,
+.app-shell[data-theme="light"] .calculator-heading h2,
+.app-shell[data-theme="light"] .deck-title h2,
+.app-shell[data-theme="light"] .steam-profile-name h1{color:#20283a}
+.app-shell[data-theme="light"] .about-copy,
+.app-shell[data-theme="light"] .detail-card p,
+.app-shell[data-theme="light"] .people-grid,
+.app-shell[data-theme="light"] .info-list span,
+.app-shell[data-theme="light"] .calculator-heading p,
+.app-shell[data-theme="light"] .deck-title p{color:#5f6b83}
+.app-shell[data-theme="light"] .strip-item strong{color:#28334b}
+.app-shell[data-theme="light"] .strip-item small{color:#6e7890}
+.app-shell[data-theme="light"] .edition-card{background:linear-gradient(180deg,#fff,#f5f7fc);border-color:#dfe4ef}
+.app-shell[data-theme="light"] .edition-card:hover{background:linear-gradient(180deg,#fff,#edf1fa);border-color:#a9b8d4}
+.app-shell[data-theme="light"] .edition-card h3,
+.app-shell[data-theme="light"] .edition-bottom strong{color:#26314a}
+.app-shell[data-theme="light"] .edition-card .edition-select>p{color:#65718a}
+.app-shell[data-theme="light"] .edition-bottom,
+.app-shell[data-theme="light"] .edition-calculate,
+.app-shell[data-theme="light"] .edition-external-link{border-color:#e2e6f0}
+.app-shell[data-theme="light"] .purchase-options-column{background:linear-gradient(135deg,#fff,#f4f6fb);border-color:#dfe4ef}
+.app-shell[data-theme="light"] .purchase-options-column .edition-card{background:#f8f9fd;border-color:#e1e6f0}
+.app-shell[data-theme="light"] .purchase-options-column .edition-card:hover{background:#eef2fa}
+.app-shell[data-theme="light"] .purchase-layout .calculator-result{background:#f0f3fa;border-color:#dce2ef}
+.app-shell[data-theme="light"] .purchase-layout .cost-result{background:linear-gradient(145deg,#e6f7f4,#f5f8fc);border-color:#c6e8e2}
+.app-shell[data-theme="light"] .calculator-result strong{color:#26314a}
+.app-shell[data-theme="light"] .calculator-result p,
+.app-shell[data-theme="light"] .calculator-result small,
+.app-shell[data-theme="light"] .usd-price-field>span{color:#68738a}
+.app-shell[data-theme="light"] .calculator-region select{background:#fff;border-color:#d8deeb}
+.app-shell[data-theme="light"] .calculator-region option{background:#fff;color:#20283a}
+.app-shell[data-theme="light"] .search-results{background:#fff;border-color:#dce2ef;box-shadow:0 15px 40px rgba(29,42,73,.15)}
+.app-shell[data-theme="light"] .result-row{color:#26314a}
+.app-shell[data-theme="light"] .result-row:hover{background:#f0f3fb}
+.app-shell[data-theme="light"] .result-name small,
+.app-shell[data-theme="light"] .results-label{color:#68738a}
+.app-shell[data-theme="light"] .tabs button{color:#66718a}
+.app-shell[data-theme="light"] .tabs button.active{color:#5e45c2;background:#8b6cff12}
+.app-shell[data-theme="light"] .tag{color:#6348c2;background:#8b6cff0b;border-color:#8b6cff30}
+.app-shell[data-theme="light"] .deck-compatibility,
+.app-shell[data-theme="light"] .screenshot-card,
+.app-shell[data-theme="light"] .dlc-card{background:#fff;border-color:#dfe4ef}
+.app-shell[data-theme="light"] .dlc-copy strong,
+.app-shell[data-theme="light"] .requirements-copy{color:#34405a}
+.app-shell[data-theme="light"] .people-grid{border-top-color:#e0e5ef}
+.app-shell[data-theme="light"] .page-footer{color:#77819a}
+.app-shell[data-theme="light"] .ambient{opacity:.07}
+.app-shell[data-theme="light"] .hero-content h2,
+.app-shell[data-theme="light"] .hero-description{color:#fff}
+.app-shell[data-theme="light"] .game-hero{box-shadow:0 18px 42px rgba(29,42,73,.1)}
+.app-shell[data-theme="light"] .search-panel .primary-button{color:#fff}
