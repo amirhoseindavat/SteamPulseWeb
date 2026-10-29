@@ -304,14 +304,12 @@
 .steam-profile-name{flex:1;min-width:0;padding-bottom:5px}
 .steam-profile-name h1{margin:8px 0 4px;font-size:clamp(23px,3vw,34px);letter-spacing:-.8px;overflow-wrap:anywhere}
 .steam-profile-name p{margin:0 0 8px;color:#98a5c0;font-size:12px}
-.steam-online,.steam-offline{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:#8f9cb8}
-.steam-online i,.steam-in-game i,.steam-offline i{width:7px;height:7px;border-radius:50%}
+.steam-online,.steam-offline,.steam-away{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:#8f9cb8}
+.steam-online i,.steam-in-game i,.steam-offline i,.steam-away i{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
 .steam-online i{background:#1a9fff}
 .steam-in-game i{background:#5cba3c}
 .steam-offline i{background:#64708a}
-.steam-away{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#c3a6ff}
-.steam-away-zzz{display:inline-flex;align-items:baseline;font:700 10px/1 "DM Mono",monospace;letter-spacing:-1px;color:#c3a6ff}
-.steam-away-zzz sup{font-size:7px;position:relative;top:-3px}
+.steam-away i{background:#a995ff}
 .profile-steam-link{display:inline-flex;align-items:center;gap:7px;margin-bottom:6px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:#dfe6fa;text-decoration:none;font-size:11px;white-space:nowrap}
 .steam-profile-summary{position:relative;margin:20px 26px 24px;color:#9aa7c2;font-size:13px;line-height:1.8;white-space:pre-wrap}
 .profile-stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
