@@ -443,12 +443,12 @@ app.get("/api/game/:appid", async (req, res) => {
     const packageGroups = Array.isArray(d.package_groups) ? d.package_groups : [];
     const editions = packageGroups.flatMap((group) => (group.subs || []).map((sub) => ({
       name: cleanEditionName(sub.option_text || sub.name || group.title || group.name || "Steam edition"),
-      image: sub.header_image || sub.image || sub.large_capsule || sub.small_capsule || "",
       description: sub.option_description || group.description || "",
       kind: group.name || group.title || "EDITION",
       priceValue: sub.price_in_cents_with_discount != null ? Number(sub.price_in_cents_with_discount) / 100 : (sub.price_in_cents != null ? Number(sub.price_in_cents) / 100 : null),
       price: sub.price_in_cents_with_discount != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents_with_discount) / 100) : (sub.price_in_cents != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents) / 100) : null),
-      savings: sub.percent_savings_text ? String(sub.percent_savings_text).replace(/[^0-9]/g, "") : "",
+      originalPrice: sub.price_in_cents != null && sub.price_in_cents_with_discount != null && Number(sub.price_in_cents) > Number(sub.price_in_cents_with_discount) ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents) / 100) : null,
+      savings: sub.percent_savings_text ? String(sub.percent_savings_text).replace(/[^0-9]/g, "") : (sub.price_in_cents != null && sub.price_in_cents_with_discount != null && Number(sub.price_in_cents) > 0 ? String(Math.round((1 - Number(sub.price_in_cents_with_discount) / Number(sub.price_in_cents)) * 100)) : ""),
       url: (sub.packageid || sub.id) ? `https://store.steampowered.com/sub/${sub.packageid || sub.id}/` : ""
     })));
 
