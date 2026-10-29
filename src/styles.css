@@ -877,3 +877,10 @@
 .profile-badge-stat>.profile-stat-value{margin-top:12px}
 .profile-badge-stat>small{display:block;margin-top:4px}
 @media(max-width:760px){.profile-stats-grid>.profile-stat{padding:12px;min-height:158px}.profile-stat-heading{gap:6px}.profile-stat-heading span{font-size:10px}.profile-stats-grid>.profile-stat>.profile-stat-value{font-size:15px!important;min-height:60px}.profile-badge-stat .profile-badge-art{min-height:60px;height:60px}}
+
+
+/* Final profile badge polish: artwork-only service badge and clean Steam level sprite crop. */
+.profile-badge-stat .steam-level-frame{overflow:hidden;isolation:isolate}
+.profile-badge-stat .steam-level-frame.is-sprite{width:42px;height:42px;flex:0 0 42px;background-size:42px 420px!important;background-repeat:no-repeat;background-color:transparent;border:0;border-radius:0;box-shadow:none}
+.profile-badge-stat .steam-level-frame>span{font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:12px;font-weight:800;letter-spacing:-.35px;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000,0 0 4px #000}
+.profile-badge-stat .profile-badge-art .profile-badge-image{display:block;width:54px;height:54px;object-fit:contain}
