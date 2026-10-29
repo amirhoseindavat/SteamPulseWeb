@@ -1048,3 +1048,38 @@
 /* Keep the Away label identical to the other Steam presence labels. */
 .steam-profile-name .steam-away{display:inline-flex!important;align-items:center!important;gap:7px!important;font-family:inherit!important;font-size:11px!important;font-weight:400!important;line-height:normal!important;color:#8f9cb8!important}
 .steam-profile-name .steam-away i{display:inline-block!important;width:7px!important;height:7px!important;min-width:7px!important;min-height:7px!important;flex:0 0 7px!important;border-radius:50%!important;background:#a995ff!important}
+
+
+/* Subtle glassmorphism across the Steam profile surface. */
+.steam-profile-page .steam-profile-hero.detail-card,
+.steam-profile-page .steam-profile-identity,
+.steam-profile-page .profile-stat,
+.steam-profile-page .profile-current-game,
+.steam-profile-page .profile-recent,
+.steam-profile-page .profile-account,
+.steam-profile-page .steam-profile-badges,
+.steam-profile-page > .detail-card {
+  background: rgba(13, 19, 37, .82) !important;
+  border: 1px solid rgba(255, 255, 255, .09);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  backdrop-filter: blur(12px) saturate(115%);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .12), inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+.steam-profile-page .steam-profile-identity {
+  border-radius: 0 0 17px 17px;
+}
+.steam-profile-page .steam-profile-cover {
+  opacity: .72;
+}
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-hero.detail-card,
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity,
+.app-shell[data-theme="light"] .steam-profile-page .profile-stat,
+.app-shell[data-theme="light"] .steam-profile-page .profile-current-game,
+.app-shell[data-theme="light"] .steam-profile-page .profile-recent,
+.app-shell[data-theme="light"] .steam-profile-page .profile-account,
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-badges,
+.app-shell[data-theme="light"] .steam-profile-page > .detail-card {
+  background: rgba(244, 247, 255, .82) !important;
+  border-color: rgba(70, 85, 120, .14);
+  box-shadow: 0 8px 28px rgba(28, 39, 65, .08), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
