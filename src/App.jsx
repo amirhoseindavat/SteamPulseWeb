@@ -347,7 +347,6 @@ export default function App() {
   }, [region]);
 
   useEffect(() => {
-    if (currentPage !== "market") return;
     let cancelled = false;
     let timer;
     const loadShopData = async () => {
@@ -368,7 +367,7 @@ export default function App() {
     loadShopData();
     timer = setInterval(loadShopData, 60000);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [currentPage]);
+  }, []);
 
   useEffect(() => {
     if (currentPage !== "market") return;
