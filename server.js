@@ -234,7 +234,7 @@ app.get("/api/game/:appid", async (req, res) => {
       const item = assets?.response?.store_items?.[0] || assets?.store_items?.[0];
       const hash = item?.assets?.library_hero;
       if (hash) {
-        libraryHero = `https://cdn.akamai.steamstatic.com/steam/apps/${appid}/library_hero_2x.jpg`;
+        libraryHero = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`;
       }
       const logoHash = item?.assets?.logo;
       if (logoHash) {
