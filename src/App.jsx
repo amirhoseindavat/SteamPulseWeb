@@ -475,27 +475,6 @@ export default function App() {
                 <div className="steam-profile-name"><span className="section-kicker"><UserRound size={13} /> STEAM ACCOUNT</span><h1>{steamProfileData.profile.name || "Steam user"}</h1><p>{steamProfileData.profile.realName || "Steam community member"}{steamProfileData.profile.country ? ` · ${steamProfileData.profile.country}` : ""}</p><span className={steamProfileData.profile.online ? "steam-online" : "steam-offline"}><i />{steamProfileData.profile.status || "Offline"}</span></div>
                 <a className="profile-steam-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> View on Steam</a>
               </div>
-              <div className="steam-profile-badges">
-                <div className="steam-level-display" title={`Steam Level ${steamProfileData.stats.level ?? "unavailable"}`}>
-                  {(() => {
-                    const level = Number(steamProfileData.stats.level);
-                    const validLevel = Number.isFinite(level) && level >= 0 ? Math.floor(level) : null;
-                    const shapes = ["hexagons", "shields", "books", "chevrons", "circles", "angles", "flags", "wings", "arrows", "crystals", "space", "water", "fire", "earth"];
-                    const shape = validLevel == null || validLevel < 100 ? null : shapes[Math.min(shapes.length - 1, Math.floor(validLevel / 100) - 1)];
-                    const colors = ["#8b929a", "#e35d5b", "#e58b45", "#e2c34c", "#80b95b", "#66a8d8", "#9274d8", "#d77bbd", "#9f5965", "#b58b5a"];
-                    const style = validLevel == null ? {} : validLevel < 100
-                      ? { "--steam-level-color": colors[Math.floor(validLevel / 10)] }
-                      : { backgroundImage: `url(https://community.fastly.steamstatic.com/public/shared/images/community/levels_${shape}.png)`, backgroundPosition: `0 -${Math.floor((validLevel % 100) / 10) * 32}px` };
-                    return <span className={`steam-level-frame ${validLevel != null && validLevel >= 100 ? "is-sprite" : ""}`} style={style}><span>{validLevel == null ? "—" : formatNumber(validLevel)}</span></span>;
-                  })()}
-                  <span className="steam-level-caption">Steam Level</span>
-                </div>
-                {steamProfileData.yearOfService && <div className="steam-service-badge" title={`Years of Service · Level ${steamProfileData.yearOfService.level}`}>
-                  <img src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" />
-                  <span><strong>Years of Service</strong><small>{steamProfileData.yearOfService.level} {steamProfileData.yearOfService.level === 1 ? "year" : "years"} on Steam</small></span>
-                </div>}
-                <div className="steam-badge-count"><Trophy size={16} /><span><strong>{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong><small>Badges earned</small></span></div>
-              </div>
               {steamProfileData.profile.summary && <p className="steam-profile-summary">{steamProfileData.profile.summary}</p>}
             </section>
             <section className="profile-stats-grid">
