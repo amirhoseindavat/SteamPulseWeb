@@ -479,15 +479,15 @@ export default function App() {
             {regionalMarketError && <div className="market-error"><Info size={16} />{regionalMarketError}</div>}
             {regionalMarketLoading && !regionalMarketData.length ? <div className="market-loading"><LoaderCircle size={20} className="spin" /> Loading regional Steam Market orders…</div> : <>
               <div className="regional-order-summary">
-                <div className="regional-order-stat"><span>Sell orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(item.sellOrderCount) || 0), 0))}</strong></div>
-                <div className="regional-order-stat"><span>Buy orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(item.buyOrderCount) || 0), 0))}</strong></div>
+                <div className="regional-order-stat"><span>Sell orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(String(item.sellOrderCount ?? "").replace(/[，,\s]/g, "")) || 0), 0))}</strong></div>
+                <div className="regional-order-stat"><span>Buy orders · all regions</span><strong>{formatNumber(regionalMarketData.reduce((sum, item) => sum + (Number(String(item.buyOrderCount ?? "").replace(/[，,\s]/g, "")) || 0), 0))}</strong></div>
               </div>
               <div className="regional-market-table-wrap">
                 <table className="regional-market-table">
                   <thead><tr><th>Country / region</th><th>Lowest sell</th><th>Net estimate</th><th>Change</th></tr></thead>
                   <tbody>
                     {regionalMarketData.map((item) => <tr key={item.code}>
-                      <td><span className="regional-name"><span className="regional-flag">{item.flag}</span><span><strong>{item.label}</strong></span></span></td>
+                      <td><span className="regional-name"><img className="regional-flag" src={`https://flagcdn.com/w40/${item.code === "EU" ? "eu" : item.country.toLowerCase()}.png`} alt="" loading="lazy" /><span><strong>{item.label}</strong></span></span></td>
                       <td className="regional-price">{item.lowestSellFormatted || "—"}</td>
                       <td className="regional-net">{item.netFormatted || "—"}</td>
                       <td><span className={item.change == null ? "regional-change" : item.change > 0 ? "regional-change up" : item.change < 0 ? "regional-change down" : "regional-change"}>{item.change == null ? "—" : item.change > 0 ? `▲ ${item.changeFormatted}` : item.change < 0 ? `▼ ${item.changeFormatted}` : "—"}</span></td>
