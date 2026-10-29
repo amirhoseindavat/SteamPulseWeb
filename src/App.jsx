@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
-  Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX
+  Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
 
 const REGIONS = [
@@ -61,6 +61,7 @@ export default function App() {
   const [steamProfileError, setSteamProfileError] = useState("");
   const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
+  const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -82,6 +83,7 @@ export default function App() {
   const [freeGamesError, setFreeGamesError] = useState("");
   const calculatorRef = useRef(null);
   const searchRef = useRef(null);
+  const headerSearchRef = useRef(null);
   const debounceRef = useRef(null);
 
   function navigateTo(page) {
@@ -229,7 +231,7 @@ export default function App() {
 
   useEffect(() => {
     const close = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false);
+      if (!searchRef.current?.contains(event.target) && !headerSearchRef.current?.contains(event.target)) setSearchOpen(false);
     };
     document.addEventListener("mousedown", close);
     return () => {
@@ -358,7 +360,7 @@ export default function App() {
   const tabNames = ["overview", "screenshots", "requirements"];
 
   return (
-    <div className="app-shell" style={game?.background ? { backgroundImage: `linear-gradient(180deg, rgba(8,13,27,.84) 0%, rgba(8,13,27,.94) 34rem, #080d1b 85%), url("${game.background}")` } : undefined}>
+    <div className="app-shell" data-theme={theme} style={game?.background ? { backgroundImage: `linear-gradient(180deg, rgba(8,13,27,.84) 0%, rgba(8,13,27,.94) 34rem, #080d1b 85%), url("${game.background}")` } : undefined}>
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
@@ -366,7 +368,16 @@ export default function App() {
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
         <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
-        <div className="topbar-right"><span className="online-pill"><span className="status-dot" /> API READY</span><button className="avatar-button" title="Steam profile" aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}</button></div>
+        <div className="topbar-right">
+          <div className="header-search-box" ref={headerSearchRef}>
+            <Search size={16} className="header-search-icon" />
+            <input value={query} onChange={(e) => onSearchChange(e.target.value)} onFocus={() => query.trim().length >= 2 && setSearchOpen(true)} onKeyDown={(e) => { if (e.key === "Enter") { if (/^\\d+$/.test(query.trim())) loadGame(query.trim()); else if (results[0]) chooseGame(results[0]); else searchGames(query); } if (e.key === "Escape") setSearchOpen(false); }} placeholder="Search games…" aria-label="Search Steam games" />
+            {searching && <LoaderCircle size={15} className="spin" />}
+            {query && <button className="header-search-clear" onClick={() => { setQuery(""); setResults([]); setSearchOpen(false); }} aria-label="Clear search"><X size={14} /></button>}
+            {searchOpen && results.length > 0 && <div className="search-results header-search-results"><div className="results-label">STEAM STORE RESULTS <span>{results.length} MATCHES</span></div>{results.slice(0, 6).map((item) => <button className="result-row" key={item.id} onClick={() => chooseGame(item)}><img src={item.tiny_image} alt="" loading="lazy" /><span className="result-name">{item.name}<small>APP ID · {item.id}</small></span><span className="result-type">{item.type || "game"}</span><ChevronRight size={16} /></button>)}</div>}
+          </div>
+          <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
+          <span className="online-pill"><span className="status-dot" /> API READY</span><button className="avatar-button" title="Steam profile" aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}</button></div>
       </header>
 
       <main className="main-content">
