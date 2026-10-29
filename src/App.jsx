@@ -304,6 +304,10 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (currentPage === "game" && game?.appid && steamProfile && steamApiKey) checkOwnership();
+  }, [currentPage, game?.appid, steamProfile, steamApiKey]);
+
+  useEffect(() => {
     let cancelled = false;
     setDiscoveryLoading(true);
     setDiscoveryError("");
@@ -536,7 +540,7 @@ export default function App() {
             {game?.game_logo && <div className="hero-game-logo"><img src={game.game_logo} alt={`${game.name} logo`} onError={(event) => { event.currentTarget.parentElement.style.display = "none"; }} /></div>}
             <div className="hero-content">
               <div className="hero-topline"><span className="game-label"><Gamepad2 size={13} /> STEAM TITLE</span><span className="app-tag">APP/{game.appid}</span></div>
-              <h2>{game.name}</h2><p className="hero-description">{game.short_description || "No short description is available for this title."}</p>
+              <h2>{game.name}</h2><p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p><div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> YOUR LIBRARY</span>{ownershipLoading ? <strong>Checking…</strong> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamProfile && steamApiKey ? "Checking…" : "Add profile + API key in Settings"}</strong>}</div>
               <div className="hero-meta">
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
                 <div className="hero-platforms" aria-label="Supported platforms">
@@ -559,15 +563,6 @@ export default function App() {
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
             <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
             <Strip label="RECOMMENDATIONS" value={formatNumber(game.recommendations)} icon={Activity} />
-            <div className="region-select"><Globe2 size={16} /><select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Price region">{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.code} · {r.currency}</option>)}</select></div>
-          </section>
-
-
-          <section className="ownership-panel detail-card">
-            <div className="ownership-heading"><div><span className="section-kicker"><Library size={13} /> YOUR STEAM LIBRARY</span><h2>Have you already bought it?</h2><p>Check this game and its currently loaded DLC against your public Steam library.</p></div><button className="secondary-button" onClick={checkOwnership} disabled={ownershipLoading || !steamProfile}>{ownershipLoading ? <><LoaderCircle size={15} className="spin" /> Checking…</> : <><ShieldCheck size={15} /> Check library</>}</button></div>
-            {!steamProfile && <p className="ownership-hint">Save your Steam profile in Settings to enable library checks.</p>}
-            {ownershipError && <p className="ownership-error">{ownershipError}</p>}
-            {ownership && <div className="ownership-results"><p className="ownership-summary">Library checked for SteamID <strong>{ownership.steamId}</strong>. Results only reflect apps Steam returned for this public profile.</p>{ownership.items.map((item) => <div className="ownership-row" key={item.appid}><span>{item.name}</span><strong className={item.owned ? "owned" : "not-owned"}>{item.owned ? "In library" : "Not detected"}</strong></div>)}</div>}
           </section>
 
           {game.type !== "dlc" && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
@@ -580,18 +575,20 @@ export default function App() {
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>}
 
-          <section className="key-calculator detail-card" ref={calculatorRef}>
-            <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Required keys &amp; estimated cost</h2><p>Uses the selected region\u2019s Steam price and an estimated local equivalent of $1.85 per key. You can edit the price manually.</p></div><div className="calculator-icon"><Tag size={21} /></div></div>
-            <div className="calculator-content">
-              <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
-              <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
-              <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount ? `${keyCount} × 480,000 toman` : "Enter a USD price to calculate"}</p></div>
-            </div>
-          </section>
+
 
           {(game.editions || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Editions &amp; bundles</h2><p className="purchase-hint">Select an edition or bundle to calculate its required keys and estimated cost.</p></div><span className="section-count">{game.editions.length} OPTIONS</span></div><div className="editions-grid">{game.editions.map((edition, i) => <article className={`edition-card ${selectedEditionName === edition.name ? "edition-card-selected" : ""}`} key={`${edition.name}-${i}`}><button className="edition-select" onClick={() => { if (edition.priceValue != null) { setRegionalPriceInput(String(edition.priceValue)); setSelectedEditionName(edition.name); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={edition.priceValue == null} title={edition.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this option"}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">{edition.kind || "BUNDLE / EDITION"}</span></div><h3>{edition.name}</h3><p>{edition.description || "Steam purchase option"}</p><div className="edition-bottom"><strong>{edition.price || "Price unavailable"}</strong>{edition.savings && <span>{edition.savings} OFF</span>}</div><span className="edition-calculate">{edition.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span></button>{edition.url && <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>}</article>)}</div></section>}
 
           {(game.bundles || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">STEAM STORE BUNDLES</span><h2>Bundles featuring this game</h2><p className="purchase-hint">Bundles listed on the Steam store page that include this game. Select one to estimate its key cost.</p></div><span className="section-count">{game.bundles.length} BUNDLES</span></div><div className="editions-grid">{game.bundles.map((bundle) => <article className={`edition-card ${selectedEditionName === bundle.name ? "edition-card-selected" : ""}`} key={bundle.id}><button className="edition-select" onClick={() => { if (bundle.priceValue != null) { setRegionalPriceInput(String(bundle.priceValue)); setSelectedEditionName(bundle.name); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={bundle.priceValue == null} title={bundle.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this bundle"}><div className="edition-top"><span className="edition-icon"><Tag size={16} /></span><span className="edition-tag">STEAM BUNDLE</span></div><h3>{bundle.name}</h3><p>{bundle.appCount ? `Includes ${bundle.appCount} games or items, including this title.` : "Steam bundle featuring this title."}</p><div className="edition-bottom"><strong>{bundle.price || "Price unavailable"}</strong>{bundle.savings && <span>{bundle.savings}% OFF</span>}</div><span className="edition-calculate">{bundle.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span></button><a className="edition-external-link" href={bundle.url} target="_blank" rel="noreferrer">View bundle on Steam <ExternalLink size={13} /></a></article>)}</div></section>}
+
+          <section className="key-calculator detail-card" ref={calculatorRef}>
+            <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Calculate your key cost</h2><p>Choose the Steam region and price to estimate how many keys you need and the total cost.</p></div><div className="calculator-icon"><Tag size={21} /></div></div><label className="calculator-region"><span><Globe2 size={15} /> Steam price region</span><select value={region} onChange={(e) => { setRegion(e.target.value); localStorage.setItem("steampulse-region", e.target.value); }} aria-label="Steam price region">{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.label} ({r.code} · {r.currency})</option>)}</select></label>
+            <div className="calculator-content">
+              <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
+              <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
+              <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount ? `${keyCount} × 480,000 toman` : `Enter the price in ${selectedRegion.currency} to calculate`}</p></div>
+            </div>
+          </section>
 
           {(game.dlc || []).length > 0 && <section className="extra-content-section"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2><p className="purchase-hint">Open a DLC here or view its Steam store page.</p></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <article className="dlc-card" key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><strong>{item.name}</strong><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span><div className="dlc-actions"><button type="button" className="dlc-open-button" onClick={() => loadGame(item.appid, region)}><Gamepad2 size={13} /> Show details</button><a className="dlc-store-button" href={item.url} target="_blank" rel="noreferrer">Steam <ExternalLink size={12} /></a></div></div></article>)}</div>{game.dlc.length < game.dlc_total && <div className="dlc-load-more"><p className="dlc-note">Showing {game.dlc.length} of {game.dlc_total} DLC items.</p><button type="button" className="secondary-button" onClick={loadMoreDlc} disabled={loadingMoreDlc}>{loadingMoreDlc ? <><LoaderCircle size={15} className="spin" /> Loading DLCs…</> : <><ChevronRight size={15} /> Load more DLCs</>}</button></div>}</section>}
 
@@ -601,7 +598,7 @@ export default function App() {
               <article className="detail-card about-card"><div className="card-title"><Info size={17} /><h3>About this game</h3></div><div className="about-copy" dangerouslySetInnerHTML={{__html: game.about_the_game || game.short_description || "No description available."}} /><div className="tag-group">{(game.genres || []).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
                 <div className="people-grid"><div><small>DEVELOPED BY</small><strong>{game.developers?.join(", ") || "Not listed"}</strong></div><div><small>PUBLISHED BY</small><strong>{game.publishers?.join(", ") || "Not listed"}</strong></div></div>
               </article>
-              <article className="detail-card"><div className="card-title"><Activity size={17} /><h3>Game profile</h3></div><div className="info-list"><div><span>Release date</span><strong>{game.release_date || "Unknown"}</strong></div><div><span>Genre</span><strong>{game.genres?.join(", ") || "Not listed"}</strong></div><div><span>Supported OS</span><strong>{systemNames.join(", ") || "Not listed"}</strong></div><div><span>Store categories</span><strong>{game.categories?.slice(0, 5).join(", ") || "Not listed"}</strong></div><div><span>Price region</span><strong>{REGIONS.find((r) => r.code === region)?.label || region}</strong></div></div></article>
+              
             </div>}
             {activeTab === "screenshots" && <div className="screenshots-grid">{(game.screenshots || []).length ? game.screenshots.map((src, i) => <a href={src} target="_blank" rel="noreferrer" key={src} className="screenshot-card"><img src={src} loading="lazy" alt={`${game.name} screenshot ${i + 1}`} /><span><ImageIcon size={14} /> SCREENSHOT {String(i + 1).padStart(2,"0")} <ExternalLink size={13} /></span></a>) : <div className="empty-card">No screenshots are available for this title.</div>}</div>}
             {activeTab === "requirements" && <div className="detail-card requirements-card"><div className="card-title"><Monitor size={17} /><h3>PC system requirements</h3></div>{game.pc_requirements?.minimum ? <div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.minimum}} /> : <p>Steam has not provided minimum PC requirements for this title.</p>}{game.pc_requirements?.recommended && <><h4>Recommended</h4><div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.recommended}} /></>}</div>}
