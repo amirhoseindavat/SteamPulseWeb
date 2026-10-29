@@ -445,3 +445,38 @@
 .cost-result{border-color:rgba(120,227,213,.22);background:linear-gradient(145deg,rgba(28,73,76,.22),rgba(8,14,29,.72))}
 @media(max-width:760px){.calculator-content{grid-template-columns:1fr 1fr}.usd-price-field{grid-column:1/-1}.calculator-result{min-height:112px}}
 @media(max-width:620px){.key-calculator{padding:18px 14px}.calculator-heading{margin-bottom:17px}.calculator-heading h2{font-size:19px}.calculator-region{padding:12px;min-height:0}.calculator-content{grid-template-columns:1fr}.usd-price-field{grid-column:auto;padding:13px}.calculator-result{min-height:100px;padding:15px}.calculator-result strong{font-size:26px}.hero-developer{font-size:11px}}
+
+
+/* Two-column purchase area: stacked edition rows on the left, key estimator on the right */
+.purchase-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px;margin-top:30px}
+.purchase-options-column{display:flex;flex-direction:column;gap:16px;min-width:0}
+.purchase-options-column .extra-content-section{margin-top:0;min-width:0}
+.purchase-options-column .detail-header{align-items:flex-start;margin-bottom:13px}
+.purchase-options-column .detail-header h2{font-size:18px}
+.purchase-options-column .detail-header .purchase-hint{max-width:390px}
+.purchase-options-column .editions-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+.purchase-options-column .edition-select{min-height:0;padding:14px 15px}
+.purchase-options-column .edition-card h3{margin:10px 0 6px;font-size:14px}
+.purchase-options-column .edition-card .edition-select>p{margin-bottom:12px}
+.purchase-options-column .edition-bottom{padding-top:10px;margin-top:auto}
+.purchase-options-column .edition-image{height:78px;margin-bottom:10px}
+.purchase-layout>.key-calculator{margin-top:0;min-width:0;height:fit-content}
+.purchase-layout .calculator-heading{align-items:flex-start}
+.purchase-layout .calculator-content{grid-template-columns:minmax(0,1fr);gap:10px}
+.purchase-layout .usd-price-field{min-height:100px}
+.purchase-layout .calculator-result{min-height:105px}
+@media(max-width:900px){
+ .purchase-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+ .purchase-options-column .detail-header{gap:8px}
+ .purchase-options-column .section-count{font-size:8px;padding:7px}
+ .purchase-layout .calculator-heading h2{font-size:19px}
+}
+@media(max-width:680px){
+ .purchase-layout{grid-template-columns:minmax(0,1fr);gap:18px;margin-top:24px}
+ .purchase-options-column{gap:18px}
+ .purchase-layout>.key-calculator{grid-row:1}
+ .purchase-options-column{grid-row:2}
+ .purchase-layout .calculator-content{grid-template-columns:1fr 1fr}
+ .purchase-layout .usd-price-field{grid-column:1/-1;min-height:0}
+ .purchase-layout .calculator-result{min-height:100px}
+}
