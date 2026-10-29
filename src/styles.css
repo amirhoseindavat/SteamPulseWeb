@@ -1014,9 +1014,8 @@
 }
 
 
-/* Keep the Steam profile hero transparent so the page artwork shows through. */
+/* Keep the profile hero consistent with other detail cards; the Steam artwork stays in its own cover layer. */
 .steam-profile-page > .steam-profile-hero.detail-card {
-  background: transparent !important;
-  backdrop-filter: none;
-  box-shadow: none;
+  background: var(--panel, rgba(16,24,44,.82)) !important;
+  backdrop-filter: blur(18px);
 }
