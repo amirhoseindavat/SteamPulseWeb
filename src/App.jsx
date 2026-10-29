@@ -88,6 +88,7 @@ export default function App() {
   const [shopDataLoading, setShopDataLoading] = useState(false);
   const [shopDataError, setShopDataError] = useState("");
   const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
+  const [regionalKeyPrice, setRegionalKeyPrice] = useState(null);
   const [regionalMarketData, setRegionalMarketData] = useState([]);
   const [regionalMarketLoading, setRegionalMarketLoading] = useState(false);
   const [regionalMarketError, setRegionalMarketError] = useState("");
@@ -370,6 +371,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    let timer;
+    const loadRegionalKeyPrice = async () => {
+      try {
+        const response = await fetch(`/api/key-price?region=${encodeURIComponent(selectedRegion.code)}`);
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Could not load this region's Steam key price.");
+        if (!cancelled) setRegionalKeyPrice(data);
+      } catch (error) {
+        if (!cancelled) setRegionalKeyPrice({ region: selectedRegion.code, error: error.message || "Steam key price unavailable." });
+      }
+    };
+    setRegionalKeyPrice(null);
+    loadRegionalKeyPrice();
+    timer = setInterval(loadRegionalKeyPrice, 60000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [selectedRegion.code]);
+
+  useEffect(() => {
     if (currentPage !== "market") return;
     let cancelled = false;
     const loadRegionalMarket = async () => {
@@ -414,9 +434,9 @@ export default function App() {
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
   const numericRegionalPrice = Number(regionalPriceInput);
-  const liveKeyPriceUsd = Number(shopData?.steamKeyPriceUsd);
-  const regionalKeyPrice = Number.isFinite(liveKeyPriceUsd) && liveKeyPriceUsd > 0 ? liveKeyPriceUsd * selectedRegion.usdRate : 0;
-  const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPrice > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPrice) : 0;
+  const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
+  const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
+  const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPriceForCalculation > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPriceForCalculation) : 0;
   const liveKeyPriceToman = Number(shopData?.Key);
   const totalToman = keyCount * (Number.isFinite(liveKeyPriceToman) && liveKeyPriceToman > 0 ? liveKeyPriceToman : 0);
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
@@ -691,7 +711,7 @@ export default function App() {
               <div className="calculator-content">
                 <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
                 <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
-                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : shopDataError || (shopData?.steamKeyPriceUsd ? `Enter the price in ${selectedRegion.currency} to calculate` : "Loading live Steam key price…")}</p></div>
+                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : regionalKeyPrice?.error || (regionalKeyPriceForCalculation > 0 ? `Enter the price in ${selectedRegion.currency} to calculate` : "Loading live Steam key price for this region…")}</p></div>
               </div>
             </section>
           </div>
