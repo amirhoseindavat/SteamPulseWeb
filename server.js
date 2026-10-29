@@ -509,6 +509,7 @@ app.get("/api/game/:appid", async (req, res) => {
       appid: Number(appid),
       name: d.name || "Unknown game",
       type: d.type || "game",
+      parent_game: d.fullgame?.appid ? { appid: Number(d.fullgame.appid), name: d.fullgame.name || "Base game", header_image: d.fullgame.header_image || "" } : null,
       short_description: d.short_description || "",
       about_the_game: d.about_the_game || "",
       header_image: d.header_image || "",
