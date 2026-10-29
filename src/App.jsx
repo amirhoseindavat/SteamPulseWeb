@@ -86,6 +86,10 @@ export default function App() {
     setLoading(true);
     setError("");
     setSearchOpen(false);
+    // Hide the previous game's details immediately so stale art never remains visible.
+    setGame(null);
+    setRegionalPriceInput("");
+    setSelectedEditionName("");
     try {
       const response = await fetch(`/api/game/${id}?cc=${cc}`);
       const data = await readApiResponse(response);
