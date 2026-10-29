@@ -699,10 +699,10 @@ app.get("/api/steam-profile", async (req, res) => {
       ""
     );
     const avatarFrame = normalizeSteamAssetUrl(
-      avatarFrameData?.image_large ||
-      avatarFrameData?.image_small ||
-      equippedItems?.avatar_frame?.image_large ||
       equippedItems?.avatar_frame?.image_small ||
+      equippedItems?.avatar_frame?.image_large ||
+      avatarFrameData?.image_small ||
+      avatarFrameData?.image_large ||
       ""
     );
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
