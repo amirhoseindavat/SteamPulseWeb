@@ -192,12 +192,11 @@ app.get("/api/game/:appid", async (req, res) => {
     deckReportUrl.searchParams.set("nAppID", appid);
     deckReportUrl.searchParams.set("l", "english");
 
-    const [storeResult, playersResult, usStoreResult, deckResult, bundlesResult] = await Promise.allSettled([
+    const [storeResult, playersResult, usStoreResult, deckResult] = await Promise.allSettled([
       fetchJson(storeUrl),
       fetchJson(`https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`),
       cc === "US" ? Promise.resolve(null) : fetchJson(usStoreUrl),
-      fetchJson(deckReportUrl),
-      fetchSteamBundles(appid, cc)
+      fetchJson(deckReportUrl)
     ]);
 
     const storeEnvelope = storeResult.status === "fulfilled"
@@ -327,7 +326,7 @@ app.get("/api/game/:appid", async (req, res) => {
       return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: item.header_image || "", price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
     });
     const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
-    const bundles = bundlesResult.status === "fulfilled" ? bundlesResult.value : [];
+    const bundles = [];
 
     const result = {
       appid: Number(appid),
@@ -377,6 +376,17 @@ app.get("/api/game/:appid", async (req, res) => {
       detail: error.message
     });
   }
+});
+
+app.get("/api/game/:appid/bundles", async (req, res) => {
+  const appid = String(req.params.appid);
+  if (!/^\\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const key = `bundles:${appid}:${cc}`;
+  const hit = cached(key);
+  if (hit) return res.json(hit);
+  const bundles = await fetchSteamBundles(appid, cc);
+  return res.json(saveCache(key, { bundles }));
 });
 
 app.get("/api/game/:appid/dlc", async (req, res) => {
