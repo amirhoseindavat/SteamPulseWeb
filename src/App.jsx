@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX
 } from "lucide-react";
@@ -54,7 +54,10 @@ export default function App() {
   const [ownership, setOwnership] = useState(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending)$/)?.[1] || "home"); });
+  const [steamProfileData, setSteamProfileData] = useState(null);
+  const [steamProfileLoading, setSteamProfileLoading] = useState(false);
+  const [steamProfileError, setSteamProfileError] = useState("");
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -212,7 +215,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|settings)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -245,6 +248,26 @@ export default function App() {
     localStorage.setItem("steampulse-region", region);
     setOwnership(null);
     setOwnershipError("");
+  }
+
+  async function loadSteamProfile() {
+    if (!steamProfile.trim()) {
+      setSteamProfileData(null);
+      setSteamProfileError("Add your Steam profile in Settings first, then save it.");
+      return;
+    }
+    setSteamProfileLoading(true);
+    setSteamProfileError("");
+    try {
+      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile)}`);
+      const data = await readApiResponse(response);
+      if (!response.ok) throw new Error(data.error || "Could not load the Steam profile.");
+      setSteamProfileData(data);
+    } catch (e) {
+      setSteamProfileError(e.message || "Could not load the Steam profile.");
+    } finally {
+      setSteamProfileLoading(false);
+    }
   }
 
   async function checkOwnership() {
@@ -330,10 +353,36 @@ export default function App() {
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
         <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
-        <div className="topbar-right"><span className="online-pill"><span className="status-dot" /> API READY</span><span className="avatar">SP</span></div>
+        <div className="topbar-right"><span className="online-pill"><span className="status-dot" /> API READY</span><button className="avatar-button" title="Steam profile" aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}</button></div>
       </header>
 
       <main className="main-content">
+        {currentPage === "profile" && <section className="steam-profile-page">
+          {steamProfileLoading && <div className="profile-loading detail-card"><LoaderCircle className="spin" size={22} /> Loading Steam profile…</div>}
+          {steamProfileError && !steamProfileLoading && <div className="profile-error detail-card"><UserRound size={24} /><h2>Steam profile unavailable</h2><p>{steamProfileError}</p><button className="primary-button" onClick={() => navigateTo("settings")}><Settings size={15} /> Open Settings</button><button className="secondary-button" onClick={loadSteamProfile}><RefreshCw size={15} /> Try again</button></div>}
+          {steamProfileData && !steamProfileLoading && <>
+            <section className="steam-profile-hero detail-card">
+              <div className="steam-profile-cover" />
+              <div className="steam-profile-identity">
+                <img className="steam-profile-avatar" src={steamProfileData.profile.avatar} alt="" />
+                <div className="steam-profile-name"><span className="section-kicker"><UserRound size={13} /> STEAM ACCOUNT</span><h1>{steamProfileData.profile.name || "Steam user"}</h1><p>{steamProfileData.profile.realName || "Steam community member"}{steamProfileData.profile.country ? ` · ${steamProfileData.profile.country}` : ""}</p><span className={steamProfileData.profile.online ? "steam-online" : "steam-offline"}><i />{steamProfileData.profile.status || "Offline"}</span></div>
+                <a className="profile-steam-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> View on Steam</a>
+              </div>
+              {steamProfileData.profile.summary && <p className="steam-profile-summary">{steamProfileData.profile.summary}</p>}
+            </section>
+            <section className="profile-stats-grid">
+              <div className="profile-stat detail-card"><Library size={19} /><span>Games owned</span><strong>{steamProfileData.stats.games == null ? "Private" : formatNumber(steamProfileData.stats.games)}</strong></div>
+              <div className="profile-stat detail-card"><Clock3 size={19} /><span>Total playtime</span><strong>{steamProfileData.stats.hours == null ? "Private" : `${formatNumber(steamProfileData.stats.hours)} hrs`}</strong></div>
+              <div className="profile-stat detail-card"><Trophy size={19} /><span>Steam level</span><strong>{steamProfileData.stats.level == null ? "—" : formatNumber(steamProfileData.stats.level)}</strong></div>
+              <div className="profile-stat detail-card"><Trophy size={19} /><span>Badges</span><strong>{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong></div>
+            </section>
+            <section className="profile-content-grid">
+              <div className="detail-card profile-recent"><div className="card-title"><Clock3 size={17} /><h3>Recently played</h3></div>{steamProfileData.recentGames.length ? steamProfileData.recentGames.map((item) => <a className="recent-game-row" key={item.appid} href={`https://store.steampowered.com/app/${item.appid}/`} target="_blank" rel="noreferrer"><img src={item.image} alt="" loading="lazy" /><span>{item.name}<small>{formatNumber(item.hours2Weeks)} hrs in last 2 weeks · {formatNumber(item.hours)} hrs total</small></span><ExternalLink size={14} /></a>) : <p className="profile-muted">No recent games available, or the profile's game details are private.</p>}</div>
+              <div className="detail-card profile-account"><div className="card-title"><UsersRound size={17} /><h3>Account details</h3></div><dl><div><dt>SteamID64</dt><dd>{steamProfileData.profile.steamId}</dd></div><div><dt>Account created</dt><dd>{steamProfileData.profile.created || "Not public"}</dd></div><div><dt>Last online</dt><dd>{steamProfileData.profile.lastLogoff || "Not available"}</dd></div><div><dt>Profile visibility</dt><dd>{steamProfileData.profile.visibility || "Unknown"}</dd></div><div><dt>Friends count</dt><dd>{steamProfileData.stats.friends == null ? "Private / unavailable" : formatNumber(steamProfileData.stats.friends)}</dd></div></dl><a className="profile-full-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer">Open full Steam profile <ExternalLink size={13} /></a></div>
+            </section>
+          </>}
+        </section>}
+
         {currentPage === "settings" && <section className="settings-page detail-card">
           <div className="settings-heading"><span className="section-kicker"><Settings size={13} /> PERSONAL PREFERENCES</span><h1>Settings</h1><p>Save your default Steam price region and profile for quick library checks.</p></div>
           <div className="settings-form">
