@@ -91,6 +91,16 @@ export default function App() {
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
+      // Bundle discovery can be slow on some Steam pages; load it after the main game details.
+      fetch(`/api/game/${id}/bundles?cc=${cc}`)
+        .then((response) => response.ok ? response.json() : null)
+        .then((bundleData) => {
+          if (!bundleData || !Array.isArray(bundleData.bundles)) return;
+          setGame((current) => String(current?.appid) === String(id) && String(region) === String(cc)
+            ? { ...current, bundles: bundleData.bundles }
+            : current);
+        })
+        .catch(() => {});
       window.scrollTo({ top: 0, behavior: "smooth" });
       setRegionalPriceInput(data.price_overview?.final != null ? (data.price_overview.final / 100).toFixed(2) : "");
       setAppid(String(id));
