@@ -69,6 +69,46 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+async function fetchSteamBundles(appid, cc) {
+  try {
+    const pageUrl = new URL(`https://store.steampowered.com/app/${appid}/`);
+    pageUrl.searchParams.set("cc", cc);
+    pageUrl.searchParams.set("l", "english");
+    const response = await fetch(pageUrl, { headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0" } });
+    if (!response.ok) return [];
+
+    const html = await response.text();
+    const bundleIds = [...new Set([
+      ...[...html.matchAll(/(?:store\.steampowered\.com)?\/bundle\/(\d+)/g)].map((m) => Number(m[1])),
+      ...[...html.matchAll(/(?:bundleid|bundle_id|bundleid=)["':=\s]+(\d+)/gi)].map((m) => Number(m[1]))
+    ])].filter((id) => Number.isSafeInteger(id) && id > 0).slice(0, 30);
+
+    if (!bundleIds.length) return [];
+    const bundleUrl = new URL("https://store.steampowered.com/actions/ajaxresolvebundles");
+    bundleUrl.searchParams.set("bundleids", bundleIds.join(","));
+    bundleUrl.searchParams.set("cc", cc);
+    bundleUrl.searchParams.set("l", "english");
+    const bundles = await fetchJson(bundleUrl);
+    const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "TR" ? "TRY" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "AR" ? "ARS" : "USD";
+
+    return (Array.isArray(bundles) ? bundles : [])
+      .filter((bundle) => Number(bundle.bundleid) > 0 && (bundle.appids || []).map(Number).includes(Number(appid)))
+      .map((bundle) => ({
+        id: Number(bundle.bundleid),
+        name: bundle.name || "Steam Bundle",
+        image: bundle.header_image_url || bundle.main_capsule || "",
+        priceValue: bundle.final_price != null ? Number(bundle.final_price) / 100 : null,
+        price: bundle.formatted_final_price || (bundle.final_price != null ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(Number(bundle.final_price) / 100) : null),
+        savings: bundle.discount_percent ? String(bundle.discount_percent) : "",
+        appCount: (bundle.appids || []).length,
+        url: `https://store.steampowered.com/bundle/${Number(bundle.bundleid)}/`
+      }));
+  } catch (error) {
+    console.warn(`Could not load Steam bundles for AppID ${appid}:`, error.message);
+    return [];
+  }
+}
+
 app.get("/api/game/:appid", async (req, res) => {
   const appid = String(req.params.appid);
   if (!/^\d+$/.test(appid)) {
@@ -95,11 +135,12 @@ app.get("/api/game/:appid", async (req, res) => {
     deckReportUrl.searchParams.set("nAppID", appid);
     deckReportUrl.searchParams.set("l", "english");
 
-    const [storeResult, playersResult, usStoreResult, deckResult] = await Promise.allSettled([
+    const [storeResult, playersResult, usStoreResult, deckResult, bundlesResult] = await Promise.allSettled([
       fetchJson(storeUrl),
       fetchJson(`https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`),
       cc === "US" ? Promise.resolve(null) : fetchJson(usStoreUrl),
-      fetchJson(deckReportUrl)
+      fetchJson(deckReportUrl),
+      fetchSteamBundles(appid, cc)
     ]);
 
     const storeEnvelope = storeResult.status === "fulfilled"
@@ -196,6 +237,7 @@ app.get("/api/game/:appid", async (req, res) => {
       return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: (item.header_image || "").replace(/\/header\.jpg(?=\?|$)/, "/header_2x.jpg"), price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
     }));
     const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
+    const bundles = bundlesResult.status === "fulfilled" ? bundlesResult.value : [];
 
     const result = {
       appid: Number(appid),
@@ -216,6 +258,7 @@ app.get("/api/game/:appid", async (req, res) => {
       price_overview: d.price_overview || null,
       us_price_overview: usPriceOverview,
       editions,
+      bundles,
       dlc,
       dlc_total: dlcIds.length,
       metacritic: d.metacritic || null,
