@@ -678,7 +678,8 @@ app.get("/api/steam-profile", async (req, res) => {
     const player = summaryResult.status === "fulfilled" ? summaryResult.value?.response?.players?.[0] : null;
     const backgroundData = backgroundResult.status === "fulfilled" ? backgroundResult.value?.response?.profile_background : null;
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
-    const backgroundImage = backgroundData?.image_large || backgroundData?.image || "";
+    const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
+    const backgroundImage = typeof backgroundImageRaw === "string" && backgroundImageRaw.trim() ? (backgroundImageRaw.startsWith("//") ? "https:" + backgroundImageRaw : backgroundImageRaw) : "";
     if (!player) return res.status(404).json({ error: "Steam profile not found, or Steam did not return a public profile summary." });
     const games = gamesResult.status === "fulfilled" && Array.isArray(gamesResult.value?.response?.games) ? gamesResult.value.response.games : null;
     const recent = recentResult.status === "fulfilled" ? (recentResult.value?.response?.games || []) : [];
