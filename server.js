@@ -505,11 +505,36 @@ app.get("/api/game/:appid", async (req, res) => {
     const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
     const bundles = [];
 
+    let parentGame = d.fullgame?.appid ? {
+      appid: Number(d.fullgame.appid),
+      name: d.fullgame.name || "Base game",
+      header_image: d.fullgame.header_image || ""
+    } : null;
+    // Steam's DLC metadata often omits the parent game's artwork; request the base game's appdetails as a fallback.
+    if (parentGame && !parentGame.header_image) {
+      try {
+        const parentUrl = new URL("https://store.steampowered.com/api/appdetails");
+        parentUrl.searchParams.set("appids", String(parentGame.appid));
+        parentUrl.searchParams.set("cc", cc);
+        parentUrl.searchParams.set("l", "english");
+        const parentEnvelope = (await fetchJson(parentUrl))?.[String(parentGame.appid)];
+        if (parentEnvelope?.success && parentEnvelope.data) {
+          parentGame = {
+            ...parentGame,
+            name: parentEnvelope.data.name || parentGame.name,
+            header_image: parentEnvelope.data.header_image || parentEnvelope.data.header_image_2x || ""
+          };
+        }
+      } catch (error) {
+        console.warn(`Could not load base-game artwork for AppID ${parentGame.appid}: ${error.message || error}`);
+      }
+    }
+
     const result = {
       appid: Number(appid),
       name: d.name || "Unknown game",
       type: d.type || "game",
-      parent_game: d.fullgame?.appid ? { appid: Number(d.fullgame.appid), name: d.fullgame.name || "Base game", header_image: d.fullgame.header_image || "" } : null,
+      parent_game: parentGame,
       short_description: d.short_description || "",
       about_the_game: d.about_the_game || "",
       header_image: d.header_image || "",
