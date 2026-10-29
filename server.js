@@ -800,50 +800,62 @@ app.post("/api/ownership-check", async (req, res) => {
 });
 
 const TF2_MARKET_REGIONS = [
-  { code: "US", label: "United States", flag: "🇺🇸", country: "US", currency: 1 },
-  { code: "GB", label: "United Kingdom", flag: "🇬🇧", country: "GB", currency: 2 },
-  { code: "EU", label: "Euro area", flag: "🇪🇺", country: "DE", currency: 3 },
-  { code: "AR", label: "Argentina", flag: "🇦🇷", country: "AR", currency: 34 },
-  { code: "TR", label: "Türkiye", flag: "🇹🇷", country: "TR", currency: 17 },
-  { code: "UA", label: "Ukraine", flag: "🇺🇦", country: "UA", currency: 18 },
-  { code: "RU", label: "Russia", flag: "🇷🇺", country: "RU", currency: 5 },
-  { code: "IN", label: "India", flag: "🇮🇳", country: "IN", currency: 24 },
-  { code: "BR", label: "Brazil", flag: "🇧🇷", country: "BR", currency: 7 },
-  { code: "KZ", label: "Kazakhstan", flag: "🇰🇿", country: "KZ", currency: 37 },
-  { code: "CN", label: "China", flag: "🇨🇳", country: "CN", currency: 23 },
-  { code: "JP", label: "Japan", flag: "🇯🇵", country: "JP", currency: 8 }
+  { code: "US", label: "United States", flag: "🇺🇸", country: "US", currency: 1, currencyCode: "USD" },
+  { code: "GB", label: "United Kingdom", flag: "🇬🇧", country: "GB", currency: 2, currencyCode: "GBP" },
+  { code: "EU", label: "Euro area", flag: "🇪🇺", country: "DE", currency: 3, currencyCode: "EUR" },
+  { code: "AR", label: "Argentina", flag: "🇦🇷", country: "AR", currency: 34, currencyCode: "ARS" },
+  { code: "TR", label: "Türkiye", flag: "🇹🇷", country: "TR", currency: 17, currencyCode: "TRY" },
+  { code: "UA", label: "Ukraine", flag: "🇺🇦", country: "UA", currency: 18, currencyCode: "UAH" },
+  { code: "RU", label: "Russia", flag: "🇷🇺", country: "RU", currency: 5, currencyCode: "RUB" },
+  { code: "IN", label: "India", flag: "🇮🇳", country: "IN", currency: 24, currencyCode: "INR" },
+  { code: "BR", label: "Brazil", flag: "🇧🇷", country: "BR", currency: 7, currencyCode: "BRL" },
+  { code: "KZ", label: "Kazakhstan", flag: "🇰🇿", country: "KZ", currency: 37, currencyCode: "KZT" },
+  { code: "CN", label: "China", flag: "🇨🇳", country: "CN", currency: 23, currencyCode: "CNY" },
+  { code: "JP", label: "Japan", flag: "🇯🇵", country: "JP", currency: 8, currencyCode: "JPY" }
 ];
-// Steam's catalog identifier for the Mann Co. Supply Crate Key histogram.
- // This item is a long-lived commodity and its known item_nameid is 1.
-const tf2KeyItemNameId = "1";
-async function getTf2KeyItemNameId() {
-  return tf2KeyItemNameId;
-}
 
 app.get("/api/market-regions", async (_req, res) => {
   try {
-    const itemNameId = await getTf2KeyItemNameId();
-    const results = await mapWithConcurrency(TF2_MARKET_REGIONS, 3, async (region) => {
-      const url = new URL("https://steamcommunity.com/market/itemordershistogram");
-      url.searchParams.set("country", region.country);
-      url.searchParams.set("language", "english");
+    const results = await mapWithConcurrency(TF2_MARKET_REGIONS, 2, async (region) => {
+      const url = new URL("https://steamcommunity.com/market/orderbook");
+      url.searchParams.set("q", "Load");
+      url.searchParams.set("cc", region.country);
+      url.searchParams.set("l", "english");
       url.searchParams.set("currency", String(region.currency));
-      url.searchParams.set("item_nameid", itemNameId);
-      url.searchParams.set("two_factor", "0");
-      const data = await fetchJson(url, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36", "Accept": "application/json", "Referer": "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/" } });
-      const lowest = Number(data.lowest_sell_order);
-      const highestBuy = Number(data.highest_buy_order);
-      const graphLowest = Array.isArray(data.sell_order_graph) && data.sell_order_graph.length ? Number(data.sell_order_graph[0][0]) : NaN;
-      const sellPrice = Number.isFinite(lowest) && lowest > 0 ? lowest / 100 : graphLowest;
-      const buyPrice = Number.isFinite(highestBuy) && highestBuy > 0 ? highestBuy / 100 : (Array.isArray(data.buy_order_graph) && data.buy_order_graph.length ? Number(data.buy_order_graph[0][0]) : NaN);
-      const price = Number.isFinite(sellPrice) && sellPrice > 0 ? sellPrice : null;
+      url.searchParams.set("qp", JSON.stringify([440, "Mann Co. Supply Crate Key"]));
+
+      const listingUrl = "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/";
+      const response = await fetchJson(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/plain, */*",
+          "Referer": listingUrl,
+          "Origin": "https://steamcommunity.com",
+          "x-valve-request-type": "queryAction"
+        }
+      });
+
+      const data = response?.data;
+      if (response?.success !== true || !data || Number(data.eCurrency) !== region.currency) {
+        throw new Error(`Invalid orderbook response for ${region.code} (success=${String(response?.success)}, currency=${String(data?.eCurrency ?? "missing")})`);
+      }
+
+      const sellCents = Number(data.amtMinSellOrder);
+      const buyCents = Number(data.amtMaxBuyOrder);
+      const price = Number.isFinite(sellCents) && sellCents > 0 ? sellCents / 100 : null;
+      const buyPrice = Number.isFinite(buyCents) && buyCents > 0 ? buyCents / 100 : null;
       const net = price == null ? null : price * 0.87;
       const previous = previousRegionalSellPrices.get(region.code);
       const change = price == null || previous == null ? null : price - previous;
       if (price != null) previousRegionalSellPrices.set(region.code, price);
-      const prefix = String(data.price_prefix || "");
-      const suffix = String(data.price_suffix || "");
-      const fmt = (value) => value == null ? null : `${prefix}${new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}${suffix}`;
+
+      const fmt = (value) => value == null ? null : new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: region.currencyCode,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(value);
+
       return {
         ...region,
         lowestSell: price,
@@ -852,18 +864,36 @@ app.get("/api/market-regions", async (_req, res) => {
         netFormatted: fmt(net == null ? null : Number(net.toFixed(2))),
         change: change == null ? null : Number(change.toFixed(2)),
         changeFormatted: change == null ? null : fmt(Math.abs(change)),
-        highestBuy: Number.isFinite(buyPrice) && buyPrice > 0 ? buyPrice : null,
-        sellOrderCount: data.sell_order_count ?? null,
-        buyOrderCount: data.buy_order_count ?? null
+        highestBuy: buyPrice,
+        sellOrderCount: data.cSellOrders ?? null,
+        buyOrderCount: data.cBuyOrders ?? null
       };
     });
+
     const regions = results.filter((item) => item.status === "fulfilled").map((item) => item.value);
-    if (!regions.length) throw new Error("Steam returned no regional order-histogram data.");
+    const failures = results
+      .filter((item) => item.status === "rejected")
+      .map((item, index) => ({ region: TF2_MARKET_REGIONS[index]?.code, reason: item.reason?.message || "Unknown Steam error" }));
+
+    if (!regions.length) {
+      console.error("Steam orderbook failed for all regions:", failures);
+      throw new Error("Steam returned no valid orderbook data for any region. " + failures.map((item) => `${item.region}: ${item.reason}`).join("; "));
+    }
+
     res.set("Cache-Control", "no-store");
-    res.json({ item: "Mann Co. Supply Crate Key", itemNameId, fetchedAt: new Date().toISOString(), regions });
+    res.json({
+      item: "Mann Co. Supply Crate Key",
+      source: "Steam Community Market orderbook",
+      fetchedAt: new Date().toISOString(),
+      regions,
+      failedRegions: failures
+    });
   } catch (error) {
     console.error("Steam regional market request failed:", error);
-    res.status(502).json({ error: "Could not load TF2 Key prices from Steam Community Market.", detail: error.message });
+    res.status(502).json({
+      error: "Could not load TF2 Key prices from Steam Community Market.",
+      detail: error.message
+    });
   }
 });
 
