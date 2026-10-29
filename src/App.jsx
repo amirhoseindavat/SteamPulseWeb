@@ -663,7 +663,7 @@ export default function App() {
                   {freeGames.map((item) => <article className="free-game-card" key={item.id}>
                     <button className="free-game-main" onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                       <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
-                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">Expires {item.expires || "soon"}</span></span>
+                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
                     </button>
                     <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
                   </article>)}
