@@ -287,8 +287,10 @@
 .profile-error p{margin:0 0 10px;color:#929fbb;font-size:13px}
 .steam-profile-hero{position:relative;overflow:hidden;padding:0}
 .steam-profile-cover{position:absolute;inset:0 0 auto;height:145px;background:linear-gradient(90deg,#171c35,#10172a);background-size:cover;background-position:center;opacity:.85}
-.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 0}
-.steam-profile-avatar{width:112px;height:112px;object-fit:cover;border:4px solid #101629;border-radius:18px;background:#0b1020}
+.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 18px;background:var(--panel,rgba(16,24,44,.92));border-radius:0 0 17px 17px}
+.steam-profile-avatar-wrap{position:relative;display:block;width:112px;height:112px;flex:0 0 112px;z-index:2}
+.steam-profile-avatar{display:block;width:100%;height:100%;object-fit:cover;border:4px solid #101629;border-radius:18px;background:#0b1020}
+.steam-profile-avatar-frame{position:absolute;inset:-12%;width:124%;height:124%;object-fit:contain;pointer-events:none;z-index:3}
 .steam-profile-name{flex:1;min-width:0;padding-bottom:5px}
 .steam-profile-name h1{margin:8px 0 4px;font-size:clamp(23px,3vw,34px);letter-spacing:-.8px;overflow-wrap:anywhere}
 .steam-profile-name p{margin:0 0 8px;color:#98a5c0;font-size:12px}
@@ -317,7 +319,7 @@
 .profile-account dt{font-size:11px;color:#8b98b3}
 .profile-account dd{margin:0;text-align:right;font-size:11px;color:#dfe6f7;overflow-wrap:anywhere}
 .profile-full-link{display:flex;align-items:center;gap:7px;margin-top:14px;color:#b8a8ff;font-size:11px;text-decoration:none}
-@media(max-width:760px){.profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-content-grid{grid-template-columns:1fr}.steam-profile-identity{align-items:flex-start;flex-wrap:wrap;gap:14px;padding:78px 18px 0}.steam-profile-avatar{width:82px;height:82px}.steam-profile-name{padding:0;min-width:calc(100% - 100px)}.profile-steam-link{margin:0 0 8px}.steam-profile-summary{margin:18px}.profile-stat{padding:16px}}
+@media(max-width:760px){.profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-content-grid{grid-template-columns:1fr}.steam-profile-identity{align-items:flex-start;flex-wrap:wrap;gap:14px;padding:78px 18px 0}.steam-profile-avatar-wrap{width:82px;height:82px;flex-basis:82px}.steam-profile-avatar{width:100%;height:100%}.steam-profile-name{padding:0;min-width:calc(100% - 100px)}.profile-steam-link{margin:0 0 8px}.steam-profile-summary{margin:18px}.profile-stat{padding:16px}}
 
 .api-key-settings{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
 .api-key-guide{padding:16px;border:1px solid var(--line);border-radius:10px;background:#ffffff03}
@@ -921,6 +923,7 @@
 
 /* Extend the animated profile artwork to the full viewport, not just the profile card. */
 .steam-profile-page{position:relative;isolation:auto;overflow:visible;background-color:transparent!important;background-image:none!important}
+.steam-profile-identity{background:var(--panel,rgba(16,24,44,.92))!important}
 .steam-profile-background-video{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;object-position:center center;z-index:0;pointer-events:none;opacity:.48}
 .steam-profile-page>*:not(.steam-profile-background-video){position:relative;z-index:1}
 .steam-profile-page>.steam-profile-background-video{position:fixed}
