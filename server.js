@@ -640,9 +640,9 @@ app.get("/api/steam-profile", async (req, res) => {
 
 
 app.post("/api/ownership-check", async (req, res) => {
-  const apiKey = process.env.STEAM_API_KEY;
+  const apiKey = String(req.get("X-Steam-API-Key") || process.env.STEAM_API_KEY || "").trim();
   if (!apiKey) {
-    return res.status(503).json({ error: "Steam library checking is not configured yet. Add STEAM_API_KEY to the server environment and restart the API." });
+    return res.status(503).json({ error: "Add your Steam Web API key in Settings to check your library." });
   }
 
   const profile = String(req.body?.profile || "").trim();
