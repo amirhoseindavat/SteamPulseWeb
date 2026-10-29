@@ -723,7 +723,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
     const backgroundImage = normalizeSteamAssetUrl(backgroundImageRaw);
     const backgroundVideoRaw = backgroundData?.movie_webm || backgroundData?.video_webm || backgroundData?.movie || "";
-    const backgroundVideo = normalizeSteamAssetUrl(backgroundVideoRaw) || "https://shared.fastly.steamstatic.com/community_assets/images/items/1861440/68cdfcdf2b3198ca54f3fafd49e70268bab335b2.webm";
+    const backgroundVideo = normalizeSteamAssetUrl(backgroundVideoRaw);
     if (!player) return res.status(404).json({ error: "Steam profile not found, or Steam did not return a public profile summary." });
     const games = gamesResult.status === "fulfilled" && Array.isArray(gamesResult.value?.response?.games) ? gamesResult.value.response.games : null;
     const recent = recentResult.status === "fulfilled" ? (recentResult.value?.response?.games || []) : [];
