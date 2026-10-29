@@ -28,6 +28,17 @@ function money(price) {
 function formatNumber(value) {
   return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
 }
+
+function DeckCompatibilityIcon({ status, size = 18 }) {
+  const icons = {
+    verified: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/verified_18.png",
+    playable: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/playable_18.png",
+    unsupported: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/unsupported_18.png",
+    unknown: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/unknown_18.png"
+  };
+  return <img className="steam-deck-rating-icon" src={icons[status] || icons.unknown} width={size} height={size} alt="" />;
+}
+
 function Strip({ label, value, icon: Icon }) {
   return <div className="strip-item"><span className="strip-icon"><Icon size={16} /></span><span><small>{label}</small><strong>{value || "—"}</strong></span></div>;
 }
@@ -226,7 +237,7 @@ export default function App() {
                   </span>) : <span className="platform-unavailable">Platform data unavailable</span>}
                 </div>
                 <span className={`hero-deck-status deck-status-${game.steam_deck?.status || "unknown"}`} title={game.steam_deck?.summary || "Steam Deck compatibility unknown"}>
-                  {game.steam_deck?.status === "verified" ? <CheckCircle2 size={17} /> : game.steam_deck?.status === "playable" ? <AlertTriangle size={17} /> : game.steam_deck?.status === "unsupported" ? <CircleX size={17} /> : <CircleHelp size={17} />}
+                  <DeckCompatibilityIcon status={game.steam_deck?.status} size={18} />
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>
               </div>
@@ -247,7 +258,7 @@ export default function App() {
             <div className="deck-main">
               <div className="deck-icon"><Monitor size={25} /></div>
               <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
-              <div className="deck-badge">{game.steam_deck?.status === "verified" ? <CheckCircle2 size={21} /> : game.steam_deck?.status === "playable" ? <AlertTriangle size={21} /> : game.steam_deck?.status === "unsupported" ? <CircleX size={21} /> : <CircleHelp size={21} />}<span>{game.steam_deck?.label || "Unknown"}</span></div>
+              <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={21} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
             </div>
             {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
