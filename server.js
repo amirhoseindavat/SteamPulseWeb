@@ -557,6 +557,88 @@ app.get("/api/game/:appid/dlc", async (req, res) => {
 });
 
 
+
+function resolveSteamProfileId(profile, apiKey) {
+  const value = String(profile || "").trim();
+  const numeric = value.match(/^\d{17}$/);
+  const profileUrl = value.match(/steamcommunity\.com\/profiles\/(\d{17})(?:\/|$|\?)/i);
+  const vanity = value.match(/steamcommunity\.com\/id\/([^/?#]+)/i);
+  if (numeric) return Promise.resolve(numeric[0]);
+  if (profileUrl) return Promise.resolve(profileUrl[1]);
+  if (!vanity) return Promise.reject(new Error("Use a Steam profile URL (/profiles/… or /id/…) or a 17-digit SteamID64."));
+  const url = new URL("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/");
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("vanityurl", decodeURIComponent(vanity[1]));
+  return fetchJson(url).then((data) => {
+    if (Number(data?.response?.success) !== 1 || !data?.response?.steamid) throw new Error("Could not resolve that Steam vanity profile.");
+    return String(data.response.steamid);
+  });
+}
+
+app.get("/api/steam-profile", async (req, res) => {
+  const apiKey = process.env.STEAM_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: "Steam profile data needs STEAM_API_KEY configured on the server." });
+  try {
+    const steamId = await resolveSteamProfileId(req.query.profile, apiKey);
+    const summariesUrl = new URL("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/");
+    summariesUrl.searchParams.set("key", apiKey);
+    summariesUrl.searchParams.set("steamids", steamId);
+    const [summaryResult, gamesResult, levelResult, badgesResult, friendsResult, recentResult] = await Promise.allSettled([
+      fetchJson(summariesUrl),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&include_appinfo=true&include_played_free_games=true")),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&relationship=friend")),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=5"))
+    ]);
+    const player = summaryResult.status === "fulfilled" ? summaryResult.value?.response?.players?.[0] : null;
+    if (!player) return res.status(404).json({ error: "Steam profile not found, or Steam did not return a public profile summary." });
+    const games = gamesResult.status === "fulfilled" && Array.isArray(gamesResult.value?.response?.games) ? gamesResult.value.response.games : null;
+    const recent = recentResult.status === "fulfilled" ? (recentResult.value?.response?.games || []) : [];
+    const badges = badgesResult.status === "fulfilled" ? badgesResult.value?.response : null;
+    const visibility = Number(player.communityvisibilitystate);
+    const hours = games ? Math.round(games.reduce((sum, item) => sum + Number(item.playtime_forever || 0), 0) / 60) : null;
+    const countryNames = { US: "United States", GB: "United Kingdom", DE: "Germany", UA: "Ukraine", TR: "Türkiye", CA: "Canada", AU: "Australia", FR: "France", PL: "Poland", BR: "Brazil", IN: "India", JP: "Japan" };
+    const profile = {
+      steamId: String(player.steamid),
+      name: player.personaname || "Steam user",
+      avatar: player.avatarfull || player.avatarmedium || player.avatar || "",
+      url: player.profileurl || ("https://steamcommunity.com/profiles/" + steamId + "/"),
+      realName: player.realname || "",
+      country: player.loccountrycode ? (countryNames[player.loccountrycode] || player.loccountrycode) : "",
+      summary: "",
+      online: Number(player.personastate || 0) !== 0,
+      status: ({ 0: "Offline", 1: "Online", 2: "Busy", 3: "Away", 4: "Snooze", 5: "Looking to trade", 6: "Looking to play" })[Number(player.personastate || 0)] || "Online",
+      created: player.timecreated ? new Date(Number(player.timecreated) * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "",
+      lastLogoff: player.lastlogoff ? new Date(Number(player.lastlogoff) * 1000).toLocaleString("en-US") : "",
+      visibility: visibility === 3 ? "Public" : visibility === 2 ? "Friends only" : visibility === 1 ? "Private" : "Unknown"
+    };
+    const friends = friendsResult.status === "fulfilled" && Array.isArray(friendsResult.value?.friendslist?.friends) ? friendsResult.value.friendslist.friends.length : null;
+    const totalBadges = badges && Array.isArray(badges.badges) ? badges.badges.length : null;
+    res.json({
+      profile,
+      stats: {
+        games: games ? games.length : null,
+        hours: hours,
+        level: levelResult.status === "fulfilled" && Number.isFinite(Number(levelResult.value?.response?.player_level)) ? Number(levelResult.value.response.player_level) : null,
+        badges: totalBadges,
+        friends: friends
+      },
+      recentGames: recent.map((item) => ({
+        appid: Number(item.appid),
+        name: item.name || ("App " + item.appid),
+        image: "https://cdn.akamai.steamstatic.com/steam/apps/" + Number(item.appid) + "/capsule_184x69.jpg",
+        hours: Math.round(Number(item.playtime_forever || 0) / 60),
+        hours2Weeks: Math.round(Number(item.playtime_2weeks || 0) / 60)
+      }))
+    });
+  } catch (error) {
+    console.error("Steam profile fetch failed:", error);
+    res.status(error?.status === 429 ? 503 : 502).json({ error: error.message || "Could not load Steam profile data." });
+  }
+});
+
+
 app.post("/api/ownership-check", async (req, res) => {
   const apiKey = process.env.STEAM_API_KEY;
   if (!apiKey) {
