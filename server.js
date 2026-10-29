@@ -664,7 +664,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const summariesUrl = new URL("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/");
     summariesUrl.searchParams.set("key", apiKey);
     summariesUrl.searchParams.set("steamids", steamId);
-    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult, equippedItemsResult] = await Promise.allSettled([
+    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult, equippedItemsResult, animatedAvatarResult, avatarFrameResult] = await Promise.allSettled([
       fetchJson(summariesUrl),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&include_appinfo=true&include_played_free_games=true")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
@@ -674,30 +674,37 @@ app.get("/api/steam-profile", async (req, res) => {
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=5")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileBackground/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
-      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId)))
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetAnimatedAvatar/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetAvatarFrame/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId)))
     ]);
     const player = summaryResult.status === "fulfilled" ? summaryResult.value?.response?.players?.[0] : null;
     const backgroundData = backgroundResult.status === "fulfilled" ? backgroundResult.value?.response?.profile_background : null;
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
-    const equippedItems = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response?.profile_items : null;
-    const equippedList = Array.isArray(equippedItems?.profile_items) ? equippedItems.profile_items : (Array.isArray(equippedItems) ? equippedItems : []);
+    const equippedResponse = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response : null;
+    const equippedItems = equippedResponse?.profile_items || equippedResponse || {};
+    const animatedAvatarData = animatedAvatarResult.status === "fulfilled" ? animatedAvatarResult.value?.response?.animated_avatar : null;
+    const avatarFrameData = avatarFrameResult.status === "fulfilled" ? avatarFrameResult.value?.response?.avatar_frame : null;
     const normalizeSteamAssetUrl = (value) => {
       if (typeof value !== "string" || !value.trim()) return "";
       const asset = value.trim();
-      if (/^https?:\/\//i.test(asset)) return asset;
+      if (/^https?:\\/\\//i.test(asset)) return asset;
       if (asset.startsWith("//")) return "https:" + asset;
-      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\/+/, "");
+      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\\/+/, "");
     };
-    const findEquippedImage = (kind) => {
-      const item = equippedList.find((entry) => {
-        const type = String(entry?.community_item_type || entry?.item_type || entry?.type || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        return type.includes(kind);
-      });
-      const raw = item?.image_large || item?.image || item?.image_small || "";
-      return normalizeSteamAssetUrl(raw);
-    };
-    const avatarAnimated = findEquippedImage("animatedavatar");
-    const avatarFrame = findEquippedImage("avatarframe");
+    const avatarAnimated = normalizeSteamAssetUrl(
+      animatedAvatarData?.image_small ||
+      equippedItems?.animated_avatar?.image_small ||
+      equippedItems?.animated_avatar?.image_large ||
+      ""
+    );
+    const avatarFrame = normalizeSteamAssetUrl(
+      avatarFrameData?.image_large ||
+      avatarFrameData?.image_small ||
+      equippedItems?.avatar_frame?.image_large ||
+      equippedItems?.avatar_frame?.image_small ||
+      ""
+    );
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
     const backgroundImage = normalizeSteamAssetUrl(backgroundImageRaw);
     const backgroundVideoRaw = backgroundData?.movie_webm || backgroundData?.video_webm || backgroundData?.movie || "";
