@@ -635,7 +635,7 @@ export default function App() {
             : <div className="discovery-grid">
               {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).slice(0, 8).map((item) => <button className="discovery-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                 <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
-                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{item.price ? <b>{item.price}</b> : null}</span></span>
+                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{item.price ? <b>{item.price}</b> : discoveryTab === "upcoming" ? <b>Price TBA</b> : null}</span></span>
               </button>)}
             </div>}
           {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
