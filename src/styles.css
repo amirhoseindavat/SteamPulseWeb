@@ -780,3 +780,36 @@
 .app-shell[data-theme="light"] .market-product-meta strong{color:#28334b}
 .app-shell[data-theme="light"] .market-footnote{color:#68738a}
 @media(max-width:620px){.market-heading{align-items:flex-start;flex-direction:column;gap:13px}.market-heading h1{font-size:27px}.market-refresh{width:100%}.market-product-grid{grid-template-columns:1fr;gap:12px}.market-product-card{padding:17px!important}.market-updated{width:100%;margin-left:16px}}
+
+/* Regional Steam Community Market table */
+.regional-market-section{margin:18px 0 24px;padding:22px!important;min-width:0}
+.regional-market-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.regional-market-heading h2{margin:9px 0 7px;color:#f0f3ff;font-size:clamp(19px,2vw,25px);letter-spacing:-.5px}
+.regional-market-heading p{margin:0;color:#8b97b3;font-size:11px;line-height:1.7}
+.regional-market-live{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #39d6a033;border-radius:6px;color:#5ddbb1;font:9px "DM Mono",monospace;letter-spacing:.7px}
+.regional-market-live>span{width:6px;height:6px;border-radius:50%;background:currentColor}
+.regional-market-live.is-error{border-color:#f8717133;color:#f87171}
+.regional-market-table-wrap{width:100%;overflow-x:auto}
+.regional-market-table{width:100%;border-collapse:collapse;min-width:650px;text-align:left;font-size:11px}
+.regional-market-table th{padding:11px 12px;border-bottom:1px solid var(--line);color:#7886a3;font-size:9px;font-weight:700;letter-spacing:.55px;text-transform:uppercase;white-space:nowrap}
+.regional-market-table td{padding:13px 12px;border-bottom:1px solid var(--line);color:#aab5cc;white-space:nowrap}
+.regional-market-table tbody tr:last-child td{border-bottom:0}
+.regional-market-table tbody tr:hover{background:#8b6cff0a}
+.regional-name{display:flex;align-items:center;gap:10px}
+.regional-flag{font-size:19px;line-height:1}
+.regional-name strong{display:block;color:#e8ecf8;font-size:11px}
+.regional-name small{display:block;margin-top:3px;color:#7886a3;font-size:9px}
+.regional-price{color:#f0f3ff!important;font-weight:800;font-variant-numeric:tabular-nums}
+.regional-net{color:#8de0c2!important;font-weight:700;font-variant-numeric:tabular-nums}
+.regional-change{color:#7886a3;font-size:10px;font-variant-numeric:tabular-nums}
+.regional-change.up{color:#55d6a3}.regional-change.down{color:#fb8585}
+.regional-iran-row{background:#8b6cff0b}
+.regional-iran-row .regional-name strong{color:#c2b3ff}
+.app-shell[data-theme="light"] .regional-market-heading h2{color:#20283a}
+.app-shell[data-theme="light"] .regional-market-heading p{color:#68738a}
+.app-shell[data-theme="light"] .regional-market-table th{color:#68738a}
+.app-shell[data-theme="light"] .regional-market-table td{color:#596781}
+.app-shell[data-theme="light"] .regional-name strong,.app-shell[data-theme="light"] .regional-price{color:#28334b!important}
+.app-shell[data-theme="light"] .regional-name small{color:#78839a}
+.app-shell[data-theme="light"] .regional-net{color:#13835e!important}
+@media(max-width:620px){.regional-market-section{padding:15px!important}.regional-market-heading{flex-direction:column}.regional-market-live{align-self:flex-start}}
