@@ -12,6 +12,7 @@ const REGIONS = [
   { code: "TR", label: "Türkiye", currency: "TRY" },
   { code: "AR", label: "Argentina", currency: "ARS" },
   { code: "PL", label: "Poland", currency: "PLN" },
+  { code: "UA", label: "Ukraine", currency: "UAH" },
   { code: "IN", label: "India", currency: "INR" },
   { code: "BR", label: "Brazil", currency: "BRL" }
 ];
@@ -43,6 +44,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
+  const [usdPriceInput, setUsdPriceInput] = useState("");
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
@@ -71,6 +73,8 @@ export default function App() {
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
+      const usdPrice = data.us_price_overview || (data.price_overview?.currency === "USD" ? data.price_overview : null);
+      setUsdPriceInput(usdPrice?.final != null ? (usdPrice.final / 100).toFixed(2) : "");
       setAppid(String(id));
       setInputId(String(id));
       setQuery(data.name);
@@ -139,6 +143,9 @@ export default function App() {
 
   const hero = game?.library_hero || game?.header_image;
   const price = money(game?.price_overview);
+  const numericUsdPrice = Number(usdPriceInput);
+  const keyCount = usdPriceInput.trim() !== "" && Number.isFinite(numericUsdPrice) && numericUsdPrice > 0 ? Math.ceil(numericUsdPrice / 1.85) : 0;
+  const totalToman = keyCount * 480000;
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
   const tabNames = ["overview", "screenshots", "requirements"];
 
@@ -222,6 +229,15 @@ export default function App() {
             <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
             <Strip label="RECOMMENDATIONS" value={formatNumber(game.recommendations)} icon={Activity} />
             <div className="region-select"><Globe2 size={16} /><select value={region} onChange={(e) => setRegion(e.target.value)} aria-label="Price region">{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.code} · {r.currency}</option>)}</select></div>
+          </section>
+
+          <section className="key-calculator detail-card">
+            <div className="calculator-heading"><div><span className="section-kicker">KEY COST ESTIMATOR</span><h2>Required keys &amp; estimated cost</h2><p>Based on $1.85 per key and 480,000 toman per key. Enter a different USD price for a bundle if needed.</p></div><div className="calculator-icon"><Tag size={21} /></div></div>
+            <div className="calculator-content">
+              <label className="usd-price-field"><span>Steam price (USD)</span><div><span>$</span><input type="number" min="0" step="0.01" value={usdPriceInput} onChange={(e) => setUsdPriceInput(e.target.value)} placeholder="48.00" aria-label="Steam price in US dollars" /></div></label>
+              <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>Round up to the next whole key</p></div>
+              <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount ? `${keyCount} × 480,000 toman` : "Enter a USD price to calculate"}</p></div>
+            </div>
           </section>
 
           <section className="detail-section">
