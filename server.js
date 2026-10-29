@@ -437,9 +437,14 @@ app.get("/api/game/:appid", async (req, res) => {
       );
 
       const logoAsset = itemAssets.logo || itemAssets.logo_2x || itemAssets.library_logo || itemAssets.library_logo_2x;
+      // StoreBrowse currently omits the logo field for Forza Horizon 6,
+      // even though its hashed logo asset exists on Steam's CDN.
+      const knownLogoFallbacks = {
+        "2483190": "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2483190/b494309a99c0631f1be4b211c2c80bcaaa13d06a/logo.png"
+      };
       gameLogo = resolveAssetUrl(
         logoAsset,
-        `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
+        knownLogoFallbacks[appid] || `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
       );
     } catch {
       // This undocumented endpoint may not return data for every title.
