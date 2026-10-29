@@ -47,6 +47,18 @@ export default function App() {
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
 
+  async function readApiResponse(response) {
+    const text = await response.text();
+    if (!text.trim()) {
+      throw new Error("The SteamPulse API returned an empty response. Make sure both the Vite client and Express server are running with npm run dev.");
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error("The API returned a non-JSON response. Open the app through the Vite dev server and check that the Express API is running on port 3001.");
+    }
+  }
+
   async function loadGame(id = appid, cc = region) {
     if (!/^\d+$/.test(String(id))) {
       setError("Enter a valid numeric Steam AppID.");
@@ -57,8 +69,8 @@ export default function App() {
     setSearchOpen(false);
     try {
       const response = await fetch(`/api/game/${id}?cc=${cc}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to load this game.");
+      const data = await readApiResponse(response);
+      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
       setAppid(String(id));
       setInputId(String(id));
@@ -81,11 +93,12 @@ export default function App() {
     try {
       const response = await fetch(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${region}`);
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Search failed.");
+      if (!response.ok) throw new Error(data.error || data.detail || "Search failed.");
       setResults(data.items || []);
       setSearchOpen(true);
-    } catch {
+    } catch (e) {
       setResults([]);
+      setError(e.message || "Steam search failed. Check that the API server is running.");
     } finally {
       setSearching(false);
     }
