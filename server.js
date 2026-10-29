@@ -166,6 +166,48 @@ async function fetchSteamBundles(appid, cc) {
   return [];
 }
 
+app.get("/api/discover", async (req, res) => {
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const key = `discover:${cc}`;
+  if (req.query.refresh !== "1") {
+    const hit = cached(key);
+    if (hit) return res.json(hit);
+  }
+
+  try {
+    const url = new URL("https://store.steampowered.com/api/featuredcategories/");
+    url.searchParams.set("cc", cc);
+    url.searchParams.set("l", "english");
+    const data = await fetchJson(url);
+    const normalize = (items, badge) => (items || [])
+      .filter((item) => Number(item.id) > 0 && item.name)
+      .map((item) => ({
+        id: Number(item.id),
+        name: item.name,
+        image: item.large_capsule_image || item.header_image || item.small_capsule_image || "",
+        price: item.final_price != null
+          ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.currency || "USD" }).format(Number(item.final_price) / 100)
+          : (item.final_formatted || ""),
+        releaseDate: item.release_date?.date || "",
+        subtitle: item.discount_percent ? `${item.discount_percent}% off` : "",
+        badge
+      }));
+
+    const result = {
+      newReleases: normalize(data?.new_releases?.items, "NEW"),
+      upcoming: normalize(data?.coming_soon?.items, "UPCOMING"),
+      topSellers: normalize(data?.top_sellers?.items, "TRENDING")
+    };
+    if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
+      return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
+    }
+    res.json(saveCache(key, result));
+  } catch (error) {
+    console.error("Steam discovery failed:", error);
+    res.status(502).json({ error: "Steam game discovery is temporarily unavailable.", detail: error.message });
+  }
+});
+
 app.get("/api/game/:appid", async (req, res) => {
   const appid = String(req.params.appid);
   if (!/^\d+$/.test(appid)) {
