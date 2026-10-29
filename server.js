@@ -927,32 +927,6 @@ app.get("/api/shop-data", async (_req, res) => {
 });
 
 
-app.get("/api/key-price", async (_req, res) => {
-  try {
-    const response = await fetch("https://key-price-bot.adavatgary.workers.dev/", {
-      headers: { "Accept": "application/json", "User-Agent": "SteamPulseWeb/1.0" },
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!response.ok) return res.status(502).json({ error: `Key price API returned ${response.status}.` });
-    const data = await response.json();
-    if (!data || !Number.isFinite(Number(data.key_price)) || Number(data.key_price) <= 0 ||
-        !Number.isFinite(Number(data.final_price)) || Number(data.final_price) <= 0) {
-      return res.status(502).json({ error: "Key price API returned invalid key_price or final_price." });
-    }
-    res.set("Cache-Control", "no-store");
-    res.json({
-      key_price: Number(data.key_price),
-      final_price: Number(data.final_price),
-      usdt: data.usdt ?? null,
-      profit_percent: data.profit_percent ?? null,
-      fetchedAt: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Key price API request failed:", error);
-    res.status(502).json({ error: "Could not fetch live key price.", detail: error.message });
-  }
-});
-
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
