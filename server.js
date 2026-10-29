@@ -907,6 +907,64 @@ app.get("/api/market-regions", async (_req, res) => {
   }
 });
 
+const TF2_KEY_PRICE_CURRENCIES = {
+  US: 1,  // USD
+  GB: 2,  // GBP
+  DE: 3,  // EUR
+  TR: 1,  // USD (Steam pricing used by this calculator)
+  AR: 1,  // USD (Steam pricing used by this calculator)
+  PL: 6,  // PLN
+  UA: 18, // UAH
+  IN: 24, // INR
+  BR: 7   // BRL
+};
+
+app.get("/api/key-price", async (req, res) => {
+  const region = String(req.query.region || "US").toUpperCase();
+  const currency = TF2_KEY_PRICE_CURRENCIES[region];
+  if (!currency) return res.status(400).json({ error: "Unsupported Steam region." });
+
+  try {
+    const url = new URL("https://steamcommunity.com/market/priceoverview/");
+    url.searchParams.set("appid", "440");
+    url.searchParams.set("currency", String(currency));
+    url.searchParams.set("market_hash_name", "Mann Co. Supply Crate Key");
+
+    const response = await fetch(url, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0",
+        "Referer": "https://steamcommunity.com/market/"
+      },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) return res.status(502).json({ error: `Steam price API returned ${response.status} for ${region}.` });
+
+    const data = await response.json();
+    const rawPrice = String(data?.lowest_price || "");
+    const grossPrice = Number(rawPrice.replace(/[^0-9.,]/g, "").replace(/,(?=\d{3}(?:\D|$))/g, "").replace(",", "."));
+    if (!data?.success || !Number.isFinite(grossPrice) || grossPrice <= 0) {
+      return res.status(502).json({ error: `Steam did not return a valid key price for ${region}.` });
+    }
+
+    // Steam Market's seller fee is approximately 13%; use the net proceeds.
+    const netPrice = Number((grossPrice * 0.87).toFixed(2));
+    res.set("Cache-Control", "no-store");
+    res.json({
+      region,
+      currency,
+      lowestPrice: rawPrice,
+      grossPrice,
+      feeRate: 0.13,
+      netPrice,
+      fetchedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`Steam key price request failed for ${region}:`, error);
+    res.status(502).json({ error: `Could not load Steam key price for ${region}.`, detail: error.message });
+  }
+});
+
 app.get("/api/shop-data", async (_req, res) => {
   try {
     const response = await fetch("https://api.codemage.ir/Projects/SteamPulse/ShopData/", {
