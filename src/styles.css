@@ -917,3 +917,10 @@
 .steam-profile-page[style*="background-image"]{background-image:linear-gradient(180deg,rgba(7,11,23,.35),rgba(7,11,23,.78))!important}
 .steam-profile-page>.steam-profile-hero,.steam-profile-page>.detail-card{position:relative}
 @media(prefers-reduced-motion:reduce){.steam-profile-background-video{display:none}}
+
+
+/* Extend the animated profile artwork to the full viewport, not just the profile card. */
+.steam-profile-page{position:relative;isolation:auto;overflow:visible;background-color:transparent!important;background-image:none!important}
+.steam-profile-background-video{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;object-position:center center;z-index:0;pointer-events:none;opacity:.48}
+.steam-profile-page>*:not(.steam-profile-background-video){position:relative;z-index:1}
+.steam-profile-page>.steam-profile-background-video{position:fixed}
