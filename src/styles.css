@@ -59,3 +59,17 @@
 .edition-card-selected{border-color:#8b6cffaa;box-shadow:0 0 0 1px #8b6cff44,0 8px 28px #0002}
 .edition-card-selected .edition-calculate{color:#78e3d5}
 .hero-deck-status .steam-deck-mark{color:#c4cce0}
+
+
+/* DLC cards have separate actions for in-app details and Steam Store */
+.dlc-card{display:flex;align-items:stretch;gap:12px;padding:12px;text-decoration:none;color:inherit}
+.dlc-card>img{width:112px;min-width:112px;height:64px;object-fit:cover;border-radius:6px;align-self:flex-start}
+.dlc-copy{display:flex;flex:1;min-width:0;flex-direction:column;align-items:flex-start;gap:5px}
+.dlc-copy>strong{font-size:12px;line-height:1.45}
+.dlc-copy>small{font-size:9px;color:#8290ae}
+.dlc-copy>span{font-size:11px;color:#c4cce0}
+.dlc-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+.dlc-open-button,.dlc-store-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #ffffff1e;border-radius:5px;padding:6px 8px;background:#ffffff08;color:#cfd7eb;font-size:10px;font-weight:600;text-decoration:none;cursor:pointer}
+.dlc-open-button{background:#7657e90f;border-color:#8b6cff55;color:#c6b9ff}
+.dlc-open-button:hover,.dlc-store-button:hover{border-color:#9e8bff;color:#fff}
+@media(max-width:520px){.dlc-card>img{width:88px;min-width:88px;height:50px}.dlc-actions{gap:5px}.dlc-open-button,.dlc-store-button{padding:6px;font-size:9px}}
