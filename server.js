@@ -8,6 +8,7 @@ app.use(express.json());
 
 const cache = new Map();
 const inflightRequests = new Map();
+const previousRegionalSellPrices = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 const STEAM_REQUEST_TIMEOUT_MS = 10000;
 
