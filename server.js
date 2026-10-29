@@ -664,7 +664,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const summariesUrl = new URL("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/");
     summariesUrl.searchParams.set("key", apiKey);
     summariesUrl.searchParams.set("steamids", steamId);
-    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult] = await Promise.allSettled([
+    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult, equippedItemsResult] = await Promise.allSettled([
       fetchJson(summariesUrl),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&include_appinfo=true&include_played_free_games=true")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
@@ -673,11 +673,21 @@ app.get("/api/steam-profile", async (req, res) => {
       fetchJson(new URL("https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&relationship=friend")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=5")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileBackground/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
-      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId)))
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId)))
     ]);
     const player = summaryResult.status === "fulfilled" ? summaryResult.value?.response?.players?.[0] : null;
     const backgroundData = backgroundResult.status === "fulfilled" ? backgroundResult.value?.response?.profile_background : null;
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
+    const equippedItems = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response?.profile_items : null;
+    const equippedList = Array.isArray(equippedItems?.profile_items) ? equippedItems.profile_items : (Array.isArray(equippedItems) ? equippedItems : []);
+    const findEquippedImage = (kind) => {
+      const item = equippedList.find((entry) => String(entry?.community_item_type || entry?.item_type || entry?.type || "").toLowerCase().includes(kind));
+      const raw = item?.image_large || item?.image || item?.image_small || "";
+      return normalizeSteamAssetUrl(raw);
+    };
+    const avatarAnimated = findEquippedImage("animated_avatar");
+    const avatarFrame = findEquippedImage("avatar_frame");
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
     const normalizeSteamAssetUrl = (value) => {
       if (typeof value !== "string" || !value.trim()) return "";
@@ -700,6 +710,8 @@ app.get("/api/steam-profile", async (req, res) => {
       steamId: String(player.steamid),
       name: player.personaname || "Steam user",
       avatar: player.avatarfull || player.avatarmedium || player.avatar || "",
+      avatarAnimated: avatarAnimated || "",
+      avatarFrame: avatarFrame || "",
       url: player.profileurl || ("https://steamcommunity.com/profiles/" + steamId + "/"),
       realName: player.realname || "",
       country: player.loccountrycode ? (countryNames[player.loccountrycode] || player.loccountrycode) : "",
