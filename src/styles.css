@@ -846,3 +846,17 @@
  .steam-service-badge img{width:46px;height:46px}
  .steam-badge-count{margin-left:0;padding-left:12px}
 }
+
+
+/* Keep Steam badges aligned with the other profile statistics. */
+.profile-badge-stat{justify-content:flex-start;min-height:155px}
+.profile-badge-stat .profile-badge-art{display:flex;align-items:center;justify-content:center;min-height:54px}
+.profile-badge-stat .steam-level-frame{width:42px;height:42px;flex-basis:42px}
+.profile-badge-stat .steam-level-frame>span{font-size:11px}
+.profile-badge-image{display:block;width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 2px 7px #0004)}
+.profile-badge-stat>span:not(.profile-badge-art){font-size:11px;color:#8f9cb8}
+.profile-badge-stat>strong{font-size:16px!important;line-height:1.4}
+.profile-badge-stat>small{color:#8493b2;font-size:10px;overflow-wrap:anywhere}
+.app-shell[data-theme="light"] .profile-badge-stat>span:not(.profile-badge-art){color:#68738a}
+.app-shell[data-theme="light"] .profile-badge-stat>small{color:#68738a}
+@media(max-width:760px){.profile-badge-stat{min-height:140px}}
