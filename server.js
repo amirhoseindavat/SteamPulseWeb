@@ -799,6 +799,85 @@ app.post("/api/ownership-check", async (req, res) => {
   }
 });
 
+const TF2_MARKET_REGIONS = [
+  { code: "US", label: "United States", flag: "🇺🇸", country: "US", currency: 1 },
+  { code: "GB", label: "United Kingdom", flag: "🇬🇧", country: "GB", currency: 2 },
+  { code: "EU", label: "Euro area", flag: "🇪🇺", country: "DE", currency: 3 },
+  { code: "AR", label: "Argentina", flag: "🇦🇷", country: "AR", currency: 34 },
+  { code: "TR", label: "Türkiye", flag: "🇹🇷", country: "TR", currency: 17 },
+  { code: "UA", label: "Ukraine", flag: "🇺🇦", country: "UA", currency: 18 },
+  { code: "RU", label: "Russia", flag: "🇷🇺", country: "RU", currency: 5 },
+  { code: "IN", label: "India", flag: "🇮🇳", country: "IN", currency: 24 },
+  { code: "BR", label: "Brazil", flag: "🇧🇷", country: "BR", currency: 7 },
+  { code: "KZ", label: "Kazakhstan", flag: "🇰🇿", country: "KZ", currency: 37 },
+  { code: "CN", label: "China", flag: "🇨🇳", country: "CN", currency: 23 },
+  { code: "JP", label: "Japan", flag: "🇯🇵", country: "JP", currency: 8 }
+];
+let tf2KeyItemNameId = null;
+let previousRegionalSellPrices = new Map();
+
+async function getTf2KeyItemNameId() {
+  if (tf2KeyItemNameId) return tf2KeyItemNameId;
+  const url = "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/";
+  const response = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36", "Accept-Language": "en-US,en;q=0.9" },
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error(`Steam Market listing page returned ${response.status}.`);
+  const html = await response.text();
+  const match = html.match(/Market_LoadOrderSpread\(\s*(\d+)\s*\)/) || html.match(/item_nameid\s*=\s*["']?(\d+)/);
+  if (!match) throw new Error("Could not find the TF2 Key order-histogram ID on Steam.");
+  tf2KeyItemNameId = match[1];
+  return tf2KeyItemNameId;
+}
+
+app.get("/api/market-regions", async (_req, res) => {
+  try {
+    const itemNameId = await getTf2KeyItemNameId();
+    const results = await mapWithConcurrency(TF2_MARKET_REGIONS, 3, async (region) => {
+      const url = new URL("https://steamcommunity.com/market/itemordershistogram");
+      url.searchParams.set("country", region.country);
+      url.searchParams.set("language", "english");
+      url.searchParams.set("currency", String(region.currency));
+      url.searchParams.set("item_nameid", itemNameId);
+      url.searchParams.set("two_factor", "0");
+      const data = await fetchJson(url, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36", "Accept": "application/json", "Referer": "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/" } });
+      const lowest = Number(data.lowest_sell_order);
+      const highestBuy = Number(data.highest_buy_order);
+      const graphLowest = Array.isArray(data.sell_order_graph) && data.sell_order_graph.length ? Number(data.sell_order_graph[0][0]) : NaN;
+      const sellPrice = Number.isFinite(lowest) && lowest > 0 ? lowest / 100 : graphLowest;
+      const buyPrice = Number.isFinite(highestBuy) && highestBuy > 0 ? highestBuy / 100 : (Array.isArray(data.buy_order_graph) && data.buy_order_graph.length ? Number(data.buy_order_graph[0][0]) : NaN);
+      const price = Number.isFinite(sellPrice) && sellPrice > 0 ? sellPrice : null;
+      const net = price == null ? null : price * 0.87;
+      const previous = previousRegionalSellPrices.get(region.code);
+      const change = price == null || previous == null ? null : price - previous;
+      if (price != null) previousRegionalSellPrices.set(region.code, price);
+      const prefix = String(data.price_prefix || "");
+      const suffix = String(data.price_suffix || "");
+      const fmt = (value) => value == null ? null : `${prefix}${new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}${suffix}`;
+      return {
+        ...region,
+        lowestSell: price,
+        lowestSellFormatted: fmt(price),
+        net: net == null ? null : Number(net.toFixed(2)),
+        netFormatted: fmt(net == null ? null : Number(net.toFixed(2))),
+        change: change == null ? null : Number(change.toFixed(2)),
+        changeFormatted: change == null ? null : fmt(Math.abs(change)),
+        highestBuy: Number.isFinite(buyPrice) && buyPrice > 0 ? buyPrice : null,
+        sellOrderCount: data.sell_order_count ?? null,
+        buyOrderCount: data.buy_order_count ?? null
+      };
+    });
+    const regions = results.filter((item) => item.status === "fulfilled").map((item) => item.value);
+    if (!regions.length) throw new Error("Steam returned no regional order-histogram data.");
+    res.set("Cache-Control", "no-store");
+    res.json({ item: "Mann Co. Supply Crate Key", itemNameId, fetchedAt: new Date().toISOString(), regions });
+  } catch (error) {
+    console.error("Steam regional market request failed:", error);
+    res.status(502).json({ error: "Could not load TF2 Key prices from Steam Community Market.", detail: error.message });
+  }
+});
+
 app.get("/api/shop-data", async (_req, res) => {
   try {
     const response = await fetch("https://api.codemage.ir/Projects/SteamPulse/ShopData/", {
