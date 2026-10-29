@@ -254,7 +254,8 @@ export default function App() {
 
         {game && <>
           <section className="game-hero">
-            <div className="hero-art" style={{backgroundImage: hero ? `linear-gradient(90deg, rgba(8,13,27,.98) 0%, rgba(8,13,27,.83) 43%, rgba(8,13,27,.2) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
+            <div className="hero-art" style={{backgroundImage: game?.library_hero ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.library_hero}")` : hero ? `linear-gradient(90deg, rgba(8,13,27,.92) 0%, rgba(8,13,27,.82) 48%, rgba(8,13,27,.58) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
+            {game?.game_logo && <div className="hero-game-logo"><img src={game.game_logo} alt={`${game.name} logo`} onError={(event) => { event.currentTarget.parentElement.style.display = "none"; }} /></div>}
             <div className="hero-content">
               <div className="hero-topline"><span className="game-label"><Gamepad2 size={13} /> STEAM TITLE</span><span className="app-tag">APP/{game.appid}</span></div>
               <h2>{game.name}</h2><p className="hero-description">{game.short_description || "No short description is available for this title."}</p>
