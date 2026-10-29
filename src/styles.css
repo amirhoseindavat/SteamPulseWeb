@@ -931,12 +931,14 @@
 @media(prefers-reduced-motion:reduce){.steam-profile-background-video{display:none}}
 
 
-/* Extend the animated profile artwork to the full viewport, not just the profile card. */
-.steam-profile-page{position:relative;isolation:auto;overflow:visible;background-color:transparent!important;background-image:none!important}
+/* The selected user's Steam background spans the viewport; the hero remains a normal detail card. */
+.steam-profile-page{position:relative;isolation:isolate;overflow:visible;background-color:transparent!important;background-image:none!important}
+.steam-profile-background-video,.steam-profile-background-image{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;object-position:center center;z-index:0;pointer-events:none;opacity:.48}
+.steam-profile-background-image{background-size:cover;background-position:center center;background-repeat:no-repeat}
+.steam-profile-page>*:not(.steam-profile-background-video):not(.steam-profile-background-image){position:relative;z-index:1}
+.steam-profile-hero.detail-card{background:var(--panel,rgba(16,24,44,.82))!important;backdrop-filter:blur(18px)}
 .steam-profile-identity{background:var(--panel,rgba(16,24,44,.92))!important}
-.steam-profile-background-video{position:fixed;inset:0;width:100vw;height:100vh;object-fit:cover;object-position:center center;z-index:0;pointer-events:none;opacity:.48}
-.steam-profile-page>*:not(.steam-profile-background-video){position:relative;z-index:1}
-.steam-profile-page>.steam-profile-background-video{position:fixed}
+@media(prefers-reduced-motion:reduce){.steam-profile-background-video{display:none}}
 
 
 /* Steam profile card: tighter header and precisely aligned avatar frame. */
