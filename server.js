@@ -270,19 +270,34 @@ app.get("/api/game/:appid", async (req, res) => {
       const assetUrl = new URL("https://api.steampowered.com/IStoreBrowseService/GetItems/v1/");
       assetUrl.searchParams.set("input_json", JSON.stringify({
         ids: [{ appid: Number(appid) }],
-        context: { language: "english", country_code: cc }
+        context: { language: "english", country_code: cc },
+        data_request: { include_assets: true }
       }));
 
       const assets = await fetchJson(assetUrl);
       const item = assets?.response?.store_items?.[0] || assets?.store_items?.[0];
-      const hash = item?.assets?.library_hero;
-      if (hash) {
-        libraryHero = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`;
-      }
-      const logoHash = item?.assets?.logo;
-      if (logoHash) {
-        gameLogo = `https://cdn.akamai.steamstatic.com/steam/apps/${appid}/logo.png`;
-      }
+      const itemAssets = item?.assets || {};
+      const assetUrlFormat = String(itemAssets.asset_url_format || "");
+
+      // Newer Steam titles use hash-based asset paths; the old AppID-only
+      // URLs return 404 for many games. Prefer the exact URLs from StoreBrowse.
+      const resolveAssetUrl = (assetPath, fallbackPath) => {
+        if (assetPath && assetUrlFormat.includes("${FILENAME}")) {
+          return `https://shared.steamstatic.com/store_item_assets/${assetUrlFormat.replace("${FILENAME}", assetPath)}`;
+        }
+        return fallbackPath;
+      };
+
+      libraryHero = resolveAssetUrl(
+        itemAssets.library_hero,
+        `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`
+      );
+
+      const logoAsset = itemAssets.logo || itemAssets.library_logo;
+      gameLogo = resolveAssetUrl(
+        logoAsset,
+        `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
+      );
     } catch {
       // This undocumented endpoint may not return data for every title.
     }
