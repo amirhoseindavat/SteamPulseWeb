@@ -237,6 +237,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (currentPage === "profile" || steamProfile.trim()) loadSteamProfile();
+  }, [currentPage, steamProfile]);
+
+  useEffect(() => {
     localStorage.setItem("steampulse-region", region);
     if (game) loadGame(appid, region);
   }, [region]);
