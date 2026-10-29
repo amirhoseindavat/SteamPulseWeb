@@ -813,21 +813,10 @@ const TF2_MARKET_REGIONS = [
   { code: "CN", label: "China", flag: "🇨🇳", country: "CN", currency: 23 },
   { code: "JP", label: "Japan", flag: "🇯🇵", country: "JP", currency: 8 }
 ];
-let tf2KeyItemNameId = null;
-let previousRegionalSellPrices = new Map();
-
+// Steam's catalog identifier for the Mann Co. Supply Crate Key histogram.
+ // This item is a long-lived commodity and its known item_nameid is 1.
+const tf2KeyItemNameId = "1";
 async function getTf2KeyItemNameId() {
-  if (tf2KeyItemNameId) return tf2KeyItemNameId;
-  const url = "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/";
-  const response = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36", "Accept-Language": "en-US,en;q=0.9" },
-    signal: AbortSignal.timeout(10000)
-  });
-  if (!response.ok) throw new Error(`Steam Market listing page returned ${response.status}.`);
-  const html = await response.text();
-  const match = html.match(/Market_LoadOrderSpread\(\s*(\d+)\s*\)/) || html.match(/item_nameid\s*=\s*["']?(\d+)/);
-  if (!match) throw new Error("Could not find the TF2 Key order-histogram ID on Steam.");
-  tf2KeyItemNameId = match[1];
   return tf2KeyItemNameId;
 }
 
