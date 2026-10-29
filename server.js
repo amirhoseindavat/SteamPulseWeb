@@ -664,11 +664,12 @@ app.get("/api/steam-profile", async (req, res) => {
     const summariesUrl = new URL("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/");
     summariesUrl.searchParams.set("key", apiKey);
     summariesUrl.searchParams.set("steamids", steamId);
-    const [summaryResult, gamesResult, levelResult, badgesResult, friendsResult, recentResult] = await Promise.allSettled([
+    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult] = await Promise.allSettled([
       fetchJson(summariesUrl),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&include_appinfo=true&include_played_free_games=true")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetFavoriteBadge/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&relationship=friend")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&count=5"))
     ]);
@@ -698,8 +699,20 @@ app.get("/api/steam-profile", async (req, res) => {
     const badgeList = badges && Array.isArray(badges.badges) ? badges.badges : [];
     const totalBadges = badges ? badgeList.length : null;
     const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
+    const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
+    const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
+    const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
+    const favoriteBadgeLevel = Number(favoriteBadgeResponse?.level) || 1;
+    const favoriteBadge = favoriteBadgeId > 0 ? {
+      badgeId: favoriteBadgeId,
+      appId: favoriteBadgeAppId,
+      level: favoriteBadgeLevel,
+      name: favoriteBadgeId === 1 ? "Years of Service" : favoriteBadgeAppId ? "Game Badge" : "Steam Badge",
+      image: favoriteBadgeId === 1 ? "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + favoriteBadgeLevel + "_80.png" : ""
+    } : null;
     res.json({
       profile,
+      favoriteBadge,
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
       stats: {
         games: games ? games.length : null,
