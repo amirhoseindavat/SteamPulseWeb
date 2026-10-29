@@ -1083,3 +1083,64 @@
   border-color: rgba(70, 85, 120, .14);
   box-shadow: 0 8px 28px rgba(28, 39, 65, .08), inset 0 1px 0 rgba(255, 255, 255, .6);
 }
+
+
+/* Cleaner separation between the Currently Playing heading and the game row. */
+.steam-profile-page .profile-current-game {
+  padding: 22px;
+  min-width: 0;
+}
+.steam-profile-page .profile-current-game > .card-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 17px;
+  padding: 0 0 13px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.steam-profile-page .current-game-content {
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+}
+.steam-profile-page .current-game-art {
+  flex: 0 1 180px;
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 9px;
+  box-shadow: 0 5px 16px rgba(0,0,0,.18);
+}
+.steam-profile-page .current-game-art img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 460 / 215;
+  object-fit: cover;
+}
+.steam-profile-page .current-game-copy {
+  gap: 7px;
+  padding: 3px 0;
+}
+.steam-profile-page .current-game-copy strong {
+  line-height: 1.45;
+}
+.app-shell[data-theme="light"] .steam-profile-page .profile-current-game > .card-title {
+  border-bottom-color: rgba(70,85,120,.16);
+}
+.app-shell[data-theme="light"] .steam-profile-page .current-game-art {
+  border-color: rgba(70,85,120,.18);
+  box-shadow: 0 5px 16px rgba(28,39,65,.1);
+}
+@media (max-width: 760px) {
+  .steam-profile-page .profile-current-game { padding: 17px; }
+  .steam-profile-page .profile-current-game > .card-title {
+    margin-bottom: 14px;
+    padding-bottom: 11px;
+  }
+  .steam-profile-page .current-game-content { gap: 12px; }
+  .steam-profile-page .current-game-art { flex-basis: 124px; }
+}
+@media (max-width: 420px) {
+  .steam-profile-page .current-game-content { gap: 10px; }
+  .steam-profile-page .current-game-art { flex-basis: 105px; }
+  .steam-profile-page .current-game-open { width: 30px; height: 30px; flex-basis: 30px; }
+}
