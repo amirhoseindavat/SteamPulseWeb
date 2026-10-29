@@ -76,7 +76,7 @@ export default function App() {
 
   function navigateTo(page) {
     const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
-    if (window.location.hash !== nextHash) window.location.hash = nextHash;
+    if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
     setCurrentPage(page);
     if (page !== "game") { setGame(null); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -100,7 +100,7 @@ export default function App() {
       return;
     }
     setCurrentPage("game");
-    if (window.location.hash !== `#/game/${id}`) window.location.hash = `#/game/${id}`;
+    if (window.location.hash !== `#/game/${id}`) window.history.pushState(null, "", `#/game/${id}`);
     setLoading(true);
     setError("");
     setSearchOpen(false);
@@ -212,9 +212,9 @@ export default function App() {
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
     };
-    window.addEventListener("hashchange", syncPageFromHash);
+    window.addEventListener("popstate", syncPageFromHash);
     if (window.location.hash) syncPageFromHash();
-    return () => window.removeEventListener("hashchange", syncPageFromHash);
+    return () => window.removeEventListener("popstate", syncPageFromHash);
   }, []);
 
   useEffect(() => {
@@ -339,6 +339,7 @@ export default function App() {
           </div>
           <div className="popular-line"><span>TRY A QUICK LOOK</span>{[{ name:"Cyberpunk 2077",id:"1091500"},{name:"Elden Ring",id:"1245620"},{name:"Baldur's Gate 3",id:"1086940"},{name:"Hades II",id:"1145350"}].map((g) => <button key={g.id} onClick={() => {setQuery(g.name);loadGame(g.id);}}>{g.name}</button>)}</div>
         </section>
+        </>}
 
         {currentPage === "trending" && <>
         <section className="discovery-section">
@@ -405,6 +406,7 @@ export default function App() {
         {currentPage === "game" && error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
         {loading && <div className="loading-panel"><LoaderCircle className="spin" size={26} /><span>Syncing game data from Steam…</span></div>}
 
+        {currentPage === "home" && !loading && <section className="welcome-panel"><Sparkles size={28} /><h2>Your next favorite game is out there</h2><p>Search the Steam catalog or open Trending to discover what’s hot and what’s free right now.</p></section>}
         {currentPage === "game" && !game && !loading && <section className="welcome-panel"><Gamepad2 size={36} /><h2>Ready when you are</h2><p>Search for a game above to pull its Steam Store details.</p></section>}
 
         {currentPage === "game" && game && <>
