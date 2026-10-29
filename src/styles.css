@@ -73,3 +73,49 @@
 .dlc-open-button{background:#7657e90f;border-color:#8b6cff55;color:#c6b9ff}
 .dlc-open-button:hover,.dlc-store-button:hover{border-color:#9e8bff;color:#fff}
 @media(max-width:520px){.dlc-card>img{width:88px;min-width:88px;height:50px}.dlc-actions{gap:5px}.dlc-open-button,.dlc-store-button{padding:6px;font-size:9px}}
+
+
+/* Readability and search dropdown stacking fixes */
+.search-panel{position:relative;z-index:30;overflow:visible}
+.search-box{z-index:31}
+.search-results{z-index:1000;isolation:isolate}
+.results-label{font-size:10px}
+.result-name{font-size:12px}
+.result-name small{font-size:10px}
+.result-type{font-size:10px}
+.empty-results{font-size:12px}
+.brand small{font-size:9px}
+.online-pill{font-size:10px}
+.eyebrow,.section-kicker{font-size:11px}
+.search-hint,.calculator-heading p,.purchase-hint,.deck-title p{font-size:12px}
+.primary-button,.secondary-button{font-size:12px}
+.app-id-box label{font-size:10px}
+.popular-line>span{font-size:10px}
+.popular-line button{font-size:11px}
+.hero-meta{font-size:11px}
+.game-label,.app-tag{font-size:10px}
+.strip-item small,.people-grid small{font-size:10px}
+.hero-corner,.hero-corner span{font-size:9px}
+.tabs button{font-size:11px}
+.about-copy,.requirements-copy{font-size:12px}
+.tag{font-size:10px}
+.info-list>div{font-size:11px}
+.screenshot-card span{font-size:10px}
+.page-footer{font-size:10px}
+.edition-tag{font-size:9px}
+.edition-select>p,.edition-calculate,.edition-external-link{font-size:11px}
+.dlc-copy>strong{font-size:13px}
+.dlc-copy>small{font-size:10px}
+.dlc-copy>span,.dlc-note{font-size:11px}
+.dlc-open-button,.dlc-store-button{font-size:11px}
+.deck-criterion{font-size:11px}
+.deck-criterion small{font-size:9px}
+.deck-report-link{font-size:11px}
+.calculator-heading p,.calculator-result p{font-size:11px}
+@media(max-width:620px){
+  .brand small{font-size:8px}
+  .online-pill{font-size:0}
+  .popular-line button{font-size:10px}
+  .strip-item small{font-size:9px}
+  .page-footer{font-size:9px}
+}
