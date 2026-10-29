@@ -29,6 +29,9 @@ function formatNumber(value) {
   return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
 }
 
+function KeyRoundIcon() { return <Tag size={20} />; }
+function TicketIcon() { return <Gift size={20} />; }
+
 function SteamDeckMark({ size = 18 }) {
   return <svg className="steam-deck-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.777 4.302a5.698 5.698 0 1 1 0 11.396v3.19a8.889 8.889 0 1 0 0-17.777v3.191Zm0 9.587a3.889 3.889 0 1 0 0-7.778 3.889 3.889 0 0 0 0 7.778Z" /></svg>;
 }
@@ -59,7 +62,7 @@ export default function App() {
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|settings|profile)$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
@@ -81,6 +84,10 @@ export default function App() {
   const [freeGames, setFreeGames] = useState([]);
   const [freeGamesLoading, setFreeGamesLoading] = useState(true);
   const [freeGamesError, setFreeGamesError] = useState("");
+  const [shopData, setShopData] = useState(null);
+  const [shopDataLoading, setShopDataLoading] = useState(false);
+  const [shopDataError, setShopDataError] = useState("");
+  const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
   const calculatorRef = useRef(null);
   const searchRef = useRef(null);
   const headerSearchRef = useRef(null);
@@ -221,7 +228,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|settings|profile)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -336,6 +343,30 @@ export default function App() {
   }, [region]);
 
   useEffect(() => {
+    if (currentPage !== "market") return;
+    let cancelled = false;
+    let timer;
+    const loadShopData = async () => {
+      setShopDataLoading(true);
+      setShopDataError("");
+      try {
+        const response = await fetch("/api/shop-data");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
+        if (!Number.isFinite(Number(data.Key)) || !Number.isFinite(Number(data.KeyBuy))) throw new Error("The shop API returned an unexpected price format.");
+        if (!cancelled) { setShopData(data); setShopDataUpdatedAt(new Date()); }
+      } catch (error) {
+        if (!cancelled) setShopDataError(error.message || "Live key prices are temporarily unavailable.");
+      } finally {
+        if (!cancelled) setShopDataLoading(false);
+      }
+    };
+    loadShopData();
+    timer = setInterval(loadShopData, 60000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [currentPage]);
+
+  useEffect(() => {
     let cancelled = false;
     setFreeGamesLoading(true);
     setFreeGamesError("");
@@ -369,7 +400,7 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
           <div className="header-search-box" ref={headerSearchRef}>
             <Search size={16} className="header-search-icon" />
@@ -406,6 +437,19 @@ export default function App() {
               <div className="detail-card profile-recent"><div className="card-title"><Clock3 size={17} /><h3>Recently played</h3></div>{steamProfileData.recentGames.length ? steamProfileData.recentGames.map((item) => <a className="recent-game-row" key={item.appid} href={`https://store.steampowered.com/app/${item.appid}/`} target="_blank" rel="noreferrer"><img src={item.image} alt="" loading="lazy" onError={(event) => { const image = event.currentTarget; if (!image.dataset.fallbackTried) { image.dataset.fallbackTried = "1"; image.src = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appid}/capsule_184x69.jpg`; } else { image.style.visibility = "hidden"; image.parentElement.classList.add("recent-game-no-capsule"); } }} /><span>{item.name}<small>{formatNumber(item.hours2Weeks)} hrs in last 2 weeks · {formatNumber(item.hours)} hrs total</small></span><ExternalLink size={14} /></a>) : <p className="profile-muted">No recent games available, or the profile's game details are private.</p>}</div>
               <div className="detail-card profile-account"><div className="card-title"><UsersRound size={17} /><h3>Account details</h3></div><dl><div><dt>SteamID64</dt><dd>{steamProfileData.profile.steamId}</dd></div><div><dt>Account created</dt><dd>{steamProfileData.profile.created || "Not public"}</dd></div><div><dt>Last online</dt><dd>{steamProfileData.profile.lastLogoff || "Not available"}</dd></div><div><dt>Profile visibility</dt><dd>{steamProfileData.profile.visibility || "Unknown"}</dd></div><div><dt>Friends count</dt><dd>{steamProfileData.stats.friends == null ? "Private / unavailable" : formatNumber(steamProfileData.stats.friends)}</dd></div></dl><a className="profile-full-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer">Open full Steam profile <ExternalLink size={13} /></a></div>
             </section>
+          </>}
+        </section>}
+
+        {currentPage === "market" && <section className="market-page">
+          <div className="market-heading"><div><span className="section-kicker"><Tag size={13} /> STEAMPULSE MARKET</span><h1>Steam key market</h1><p>Live Iranian shop prices, stock and purchase links.</p></div><button className="market-refresh" onClick={() => { setShopDataLoading(true); setShopDataError(""); fetch("/api/shop-data").then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || "Could not load live key prices."); return data; }).then((data) => { setShopData(data); setShopDataUpdatedAt(new Date()); }).catch((error) => setShopDataError(error.message || "Refresh failed.")).finally(() => setShopDataLoading(false)); }} disabled={shopDataLoading}><RefreshCw size={14} className={shopDataLoading ? "spin" : ""} /> Refresh prices</button></div>
+          <div className="market-status"><span className={shopDataError ? "market-status-dot is-error" : "market-status-dot"} />{shopDataError ? "Live data unavailable" : shopDataLoading && !shopData ? "Connecting to shop API…" : "Live shop data"}<span className="market-updated">{shopData?.LastUpdateDate ? `Source updated: ${shopData.LastUpdateDate}` : shopDataUpdatedAt ? `Fetched: ${shopDataUpdatedAt.toLocaleTimeString()}` : "Waiting for first update"}</span></div>
+          {shopDataError && <div className="market-error"><Info size={16} />{shopDataError}</div>}
+          {shopDataLoading && !shopData ? <div className="market-loading detail-card"><LoaderCircle size={22} className="spin" /> Loading live prices…</div> : shopData && <>
+            <div className="market-product-grid">
+              <article className="market-product-card detail-card"><div className="market-product-top"><span className="market-product-icon"><KeyRoundIcon /></span><span className="market-live-tag">LIVE PRICE</span></div><span className="market-product-label">TF2 Key</span><strong className="market-price">{formatNumber(shopData.Key)} <small>toman</small></strong><div className="market-product-meta"><span>Buy price</span><strong>{formatNumber(shopData.KeyBuy)} toman</strong></div><div className="market-product-meta"><span>Available stock</span><strong>{formatNumber(shopData.KeyStock)} keys</strong></div><a className="market-buy-button" href={shopData.KeyUrl} target="_blank" rel="noreferrer">Buy TF2 Keys <ExternalLink size={14} /></a></article>
+              <article className="market-product-card detail-card"><div className="market-product-top"><span className="market-product-icon ticket"><TicketIcon /></span><span className="market-live-tag">LIVE PRICE</span></div><span className="market-product-label">TF2 Ticket</span><strong className="market-price">{formatNumber(shopData.Ticket)} <small>toman</small></strong><div className="market-product-meta"><span>Available stock</span><strong>{formatNumber(shopData.TicketStock)} tickets</strong></div><div className="market-product-meta"><span>Data source</span><strong>CodeMage API</strong></div><a className="market-buy-button" href={shopData.TicketUrl} target="_blank" rel="noreferrer">Buy TF2 Tickets <ExternalLink size={14} /></a></article>
+            </div>
+            <p className="market-footnote"><Info size={14} /> Prices are refreshed automatically every 60 seconds. Last source update: {shopData.LastUpdateDate || (shopData.LastUpdate ? new Date(Number(shopData.LastUpdate) * 1000).toLocaleString() : "not provided")}.</p>
           </>}
         </section>}
 
