@@ -799,6 +799,25 @@ app.post("/api/ownership-check", async (req, res) => {
   }
 });
 
+app.get("/api/shop-data", async (_req, res) => {
+  try {
+    const response = await fetch("https://api.codemage.ir/Projects/SteamPulse/ShopData/", {
+      headers: { "Accept": "application/json", "User-Agent": "SteamPulseWeb/1.0" },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) return res.status(502).json({ error: `Shop data API returned ${response.status}.` });
+    const data = await response.json();
+    if (!data || !Number.isFinite(Number(data.Key)) || !Number.isFinite(Number(data.KeyBuy))) {
+      return res.status(502).json({ error: "Shop data API returned invalid key price data." });
+    }
+    res.set("Cache-Control", "no-store");
+    res.json(data);
+  } catch (error) {
+    console.error("Shop data request failed:", error);
+    res.status(502).json({ error: "Could not fetch live shop data.", detail: error.message });
+  }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
