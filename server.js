@@ -681,6 +681,13 @@ app.get("/api/steam-profile", async (req, res) => {
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
     const equippedItems = equippedItemsResult.status === "fulfilled" ? equippedItemsResult.value?.response?.profile_items : null;
     const equippedList = Array.isArray(equippedItems?.profile_items) ? equippedItems.profile_items : (Array.isArray(equippedItems) ? equippedItems : []);
+    const normalizeSteamAssetUrl = (value) => {
+      if (typeof value !== "string" || !value.trim()) return "";
+      const asset = value.trim();
+      if (/^https?:\/\//i.test(asset)) return asset;
+      if (asset.startsWith("//")) return "https:" + asset;
+      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\/+/, "");
+    };
     const findEquippedImage = (kind) => {
       const item = equippedList.find((entry) => {
         const type = String(entry?.community_item_type || entry?.item_type || entry?.type || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -692,13 +699,6 @@ app.get("/api/steam-profile", async (req, res) => {
     const avatarAnimated = findEquippedImage("animatedavatar");
     const avatarFrame = findEquippedImage("avatarframe");
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
-    const normalizeSteamAssetUrl = (value) => {
-      if (typeof value !== "string" || !value.trim()) return "";
-      const asset = value.trim();
-      if (/^https?:\/\//i.test(asset)) return asset;
-      if (asset.startsWith("//")) return "https:" + asset;
-      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\/+/, "");
-    };
     const backgroundImage = normalizeSteamAssetUrl(backgroundImageRaw);
     const backgroundVideoRaw = backgroundData?.movie_webm || backgroundData?.video_webm || backgroundData?.movie || "";
     const backgroundVideo = normalizeSteamAssetUrl(backgroundVideoRaw) || "https://shared.fastly.steamstatic.com/community_assets/images/items/1861440/68cdfcdf2b3198ca54f3fafd49e70268bab335b2.webm";
