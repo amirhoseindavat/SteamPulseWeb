@@ -247,9 +247,20 @@ app.get("/api/discover", async (req, res) => {
         detailUrl.searchParams.set("appids", String(item.id));
         detailUrl.searchParams.set("cc", cc);
         detailUrl.searchParams.set("l", "english");
-        const details = await fetchJson(detailUrl);
-        const envelope = details?.[item.id] || details?.[String(item.id)];
-        return envelope?.success && String(envelope.data?.type || "").toLowerCase() === "game" ? item : null;
+        try {
+          const details = await fetchJson(detailUrl);
+          const envelope = details?.[item.id] || details?.[String(item.id)];
+          // If Steam confirms the app type, only show games. If appdetails is
+          // temporarily unavailable/rate-limited, keep the featured-store entry
+          // instead of dropping valid trending titles from the whole category.
+          if (envelope?.success) {
+            return String(envelope.data?.type || "").toLowerCase() === "game" ? item : null;
+          }
+          return null;
+        } catch (error) {
+          console.warn(`Steam appdetails check failed for discovery app ${item.id}:`, error.message);
+          return item;
+        }
       });
       return checked.filter((entry) => entry.status === "fulfilled" && entry.value).map(({ value: item }) => ({
         id: Number(item.id),
