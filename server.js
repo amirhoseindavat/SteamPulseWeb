@@ -19,6 +19,14 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function fetchJsonWithOptions(url, options = {}) {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`Steam request failed (${response.status})`);
+  }
+  return response.json();
+}
+
 function cached(key) {
   const entry = cache.get(key);
   if (entry && Date.now() - entry.at < CACHE_TTL) return entry.value;
