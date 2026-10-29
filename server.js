@@ -679,7 +679,16 @@ app.get("/api/steam-profile", async (req, res) => {
     const backgroundData = backgroundResult.status === "fulfilled" ? backgroundResult.value?.response?.profile_background : null;
     const customization = customizationResult.status === "fulfilled" ? customizationResult.value?.response?.profile_customization : null;
     const backgroundImageRaw = backgroundData?.image_large || backgroundData?.image || backgroundData?.image_small || "";
-    const backgroundImage = typeof backgroundImageRaw === "string" && backgroundImageRaw.trim() ? (backgroundImageRaw.startsWith("//") ? "https:" + backgroundImageRaw : backgroundImageRaw) : "";
+    const normalizeSteamAssetUrl = (value) => {
+      if (typeof value !== "string" || !value.trim()) return "";
+      const asset = value.trim();
+      if (/^https?:\/\//i.test(asset)) return asset;
+      if (asset.startsWith("//")) return "https:" + asset;
+      return "https://shared.fastly.steamstatic.com/community_assets/images/" + asset.replace(/^\/+/, "");
+    };
+    const backgroundImage = normalizeSteamAssetUrl(backgroundImageRaw);
+    const backgroundVideoRaw = backgroundData?.movie_webm || backgroundData?.video_webm || backgroundData?.movie || "";
+    const backgroundVideo = normalizeSteamAssetUrl(backgroundVideoRaw) || "https://shared.fastly.steamstatic.com/community_assets/images/items/1861440/68cdfcdf2b3198ca54f3fafd49e70268bab335b2.webm";
     if (!player) return res.status(404).json({ error: "Steam profile not found, or Steam did not return a public profile summary." });
     const games = gamesResult.status === "fulfilled" && Array.isArray(gamesResult.value?.response?.games) ? gamesResult.value.response.games : null;
     const recent = recentResult.status === "fulfilled" ? (recentResult.value?.response?.games || []) : [];
@@ -717,7 +726,7 @@ app.get("/api/steam-profile", async (req, res) => {
       image: favoriteBadgeId === 1 ? "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + favoriteBadgeLevel + "_80.png" : ""
     } : null;
     res.json({
-      profile: { ...profile, background: backgroundImage, theme: customization?.profile_theme || "" },
+      profile: { ...profile, background: backgroundImage, backgroundVideo, theme: customization?.profile_theme || "" },
       profileCustomization: customization ? { theme: customization.profile_theme || "", showcaseCount: Array.isArray(customization.slots) ? customization.slots.length : 0 } : null,
       favoriteBadge,
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
