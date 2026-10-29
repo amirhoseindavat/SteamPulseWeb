@@ -38,8 +38,8 @@ export default function App() {
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [appid, setAppid] = useState(INITIAL_APPID);
-  const [inputId, setInputId] = useState(INITIAL_APPID);
+  const [appid, setAppid] = useState("");
+  const [inputId, setInputId] = useState("");
   const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -124,7 +124,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    loadGame(INITIAL_APPID, "US");
     const close = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false);
     };
