@@ -7,24 +7,54 @@ app.use(cors());
 app.use(express.json());
 
 const cache = new Map();
+const inflightRequests = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
+const STEAM_REQUEST_TIMEOUT_MS = 10000;
 
-async function fetchJson(url) {
+async function fetchJsonRequest(url, options = {}) {
   const response = await fetch(url, {
-    headers: { "User-Agent": "SteamPulseWeb/1.0" }
+    ...options,
+    headers: options.headers || { "User-Agent": "SteamPulseWeb/1.0" },
+    signal: options.signal || AbortSignal.timeout(STEAM_REQUEST_TIMEOUT_MS)
   });
   if (!response.ok) {
-    throw new Error(`Steam request failed (${response.status})`);
+    const error = new Error(`Steam request failed (${response.status})`);
+    error.status = response.status;
+    error.retryAfter = response.headers.get("retry-after");
+    throw error;
   }
   return response.json();
 }
 
+// Share identical simultaneous requests so repeated UI actions don't multiply Steam traffic.
+function fetchJson(url, options = {}) {
+  const key = `${String(url)}|json|${options.headers ? JSON.stringify(options.headers) : ""}`;
+  if (inflightRequests.has(key)) return inflightRequests.get(key);
+  const request = fetchJsonRequest(url, options).finally(() => inflightRequests.delete(key));
+  inflightRequests.set(key, request);
+  return request;
+}
+
 async function fetchJsonWithOptions(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    throw new Error(`Steam request failed (${response.status})`);
+  return fetchJson(url, options);
+}
+
+async function mapWithConcurrency(items, concurrency, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      try {
+        results[index] = { status: "fulfilled", value: await mapper(items[index], index) };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
   }
-  return response.json();
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
 }
 
 function cached(key) {
@@ -174,11 +204,24 @@ app.get("/api/game/:appid", async (req, res) => {
       ? storeResult.value?.[appid]
       : null;
 
+    if (storeResult.status === "rejected") {
+      const reason = storeResult.reason;
+      const status = reason?.status === 429 ? 503 : 502;
+      console.warn(`Steam appdetails request failed for AppID ${appid} (region ${cc}): ${reason?.message || reason}`);
+      return res.status(status).json({
+        error: reason?.status === 429
+          ? "Steam is rate-limiting requests. Please wait a little and try again."
+          : "Steam appdetails is temporarily unavailable.",
+        detail: reason?.message || "Unknown upstream error",
+        ...(reason?.retryAfter ? { retry_after: reason.retryAfter } : {})
+      });
+    }
+
     if (!storeEnvelope?.success || !storeEnvelope.data) {
-      const reason = storeResult.status === "rejected" ? storeResult.reason?.message : null;
+      console.warn(`Steam returned no appdetails data for AppID ${appid} (region ${cc}); success=${String(storeEnvelope?.success)}`);
       return res.status(404).json({
         error: "Steam did not return details for this AppID.",
-        ...(reason ? { detail: reason } : {})
+        detail: "Steam returned success=false or an empty data field. The AppID may be invalid, unavailable in this region, or Steam may be temporarily having issues."
       });
     }
 
@@ -257,7 +300,7 @@ app.get("/api/game/:appid", async (req, res) => {
 
     const dlcIds = Array.isArray(d.dlc) ? d.dlc.map(Number).filter(Number.isFinite) : [];
     const dlcIdsToFetch = dlcIds.slice(0, 24);
-    const dlcResults = await Promise.allSettled(dlcIdsToFetch.map(async (dlcId) => {
+    const dlcResults = await mapWithConcurrency(dlcIdsToFetch, 4, async (dlcId) => {
       const dlcUrl = new URL("https://store.steampowered.com/api/appdetails");
       dlcUrl.searchParams.set("appids", String(dlcId));
       dlcUrl.searchParams.set("cc", cc);
@@ -267,7 +310,7 @@ app.get("/api/game/:appid", async (req, res) => {
       if (!envelope?.success || !envelope.data) return null;
       const item = envelope.data;
       return { appid: dlcId, name: item.name || `DLC ${dlcId}`, image: item.header_image || "", price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)), url: `https://store.steampowered.com/app/${dlcId}/` };
-    }));
+    });
     const dlc = dlcResults.filter((r) => r.status === "fulfilled" && r.value).map((r) => r.value);
     const bundles = bundlesResult.status === "fulfilled" ? bundlesResult.value : [];
 
@@ -340,7 +383,7 @@ app.get("/api/game/:appid/dlc", async (req, res) => {
 
     const allIds = Array.isArray(parent.data.dlc) ? [...new Set(parent.data.dlc.map(Number).filter(Number.isFinite))] : [];
     const ids = allIds.slice(offset, offset + limit);
-    const results = await Promise.allSettled(ids.map(async (dlcId) => {
+    const results = await mapWithConcurrency(ids, 4, async (dlcId) => {
       const url = new URL("https://store.steampowered.com/api/appdetails");
       url.searchParams.set("appids", String(dlcId));
       url.searchParams.set("cc", cc);
@@ -356,7 +399,7 @@ app.get("/api/game/:appid/dlc", async (req, res) => {
         price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)),
         url: `https://store.steampowered.com/app/${dlcId}/`
       };
-    }));
+    });
     const items = results.filter((item) => item.status === "fulfilled" && item.value).map((item) => item.value);
     res.json({ items, total: allIds.length, nextOffset: offset + ids.length, hasMore: offset + ids.length < allIds.length });
   } catch (error) {
