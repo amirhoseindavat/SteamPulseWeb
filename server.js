@@ -556,6 +556,73 @@ app.get("/api/game/:appid/dlc", async (req, res) => {
   }
 });
 
+
+app.post("/api/ownership-check", async (req, res) => {
+  const apiKey = process.env.STEAM_API_KEY;
+  if (!apiKey) {
+    return res.status(503).json({ error: "Steam library checking is not configured yet. Add STEAM_API_KEY to the server environment and restart the API." });
+  }
+
+  const profile = String(req.body?.profile || "").trim();
+  const appids = [...new Set((Array.isArray(req.body?.appids) ? req.body.appids : [])
+    .map((value) => Number(value))
+    .filter((value) => Number.isSafeInteger(value) && value > 0))].slice(0, 100);
+  if (!profile) return res.status(400).json({ error: "Enter a Steam profile URL or SteamID64." });
+  if (!appids.length) return res.status(400).json({ error: "No valid game or DLC AppIDs were supplied." });
+
+  try {
+    let steamId = "";
+    const profileUrlMatch = profile.match(/steamcommunity\.com\/profiles\/(\d{17})(?:\/|$|\?)/i);
+    const numericMatch = profile.match(/^\d{17}$/);
+    const vanityMatch = profile.match(/steamcommunity\.com\/id\/([^/?#]+)/i);
+    if (numericMatch) steamId = numericMatch[0];
+    else if (profileUrlMatch) steamId = profileUrlMatch[1];
+    else if (vanityMatch) {
+      const vanityUrl = new URL("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/");
+      vanityUrl.searchParams.set("key", apiKey);
+      vanityUrl.searchParams.set("vanityurl", decodeURIComponent(vanityMatch[1]));
+      const vanityData = await fetchJson(vanityUrl);
+      if (Number(vanityData?.response?.success) !== 1 || !vanityData?.response?.steamid) {
+        return res.status(400).json({ error: "Could not resolve that Steam vanity profile. Check the URL and try a /profiles/ SteamID64 link instead." });
+      }
+      steamId = String(vanityData.response.steamid);
+    } else {
+      return res.status(400).json({ error: "Use a Steam profile URL (/profiles/… or /id/…) or a 17-digit SteamID64." });
+    }
+
+    const ownedUrl = new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/");
+    ownedUrl.searchParams.set("key", apiKey);
+    ownedUrl.searchParams.set("steamid", steamId);
+    ownedUrl.searchParams.set("include_appinfo", "true");
+    ownedUrl.searchParams.set("include_played_free_games", "true");
+    const libraryData = await fetchJson(ownedUrl);
+    const response = libraryData?.response;
+    if (!response || !Array.isArray(response.games)) {
+      return res.status(403).json({ error: "Steam did not return an owned-games list. Make sure your profile's Game details privacy is set to Public." });
+    }
+
+    const ownedApps = new Map(response.games.map((item) => [Number(item.appid), item]));
+    const details = await mapWithConcurrency(appids, 5, async (id) => {
+      const url = new URL("https://store.steampowered.com/api/appdetails");
+      url.searchParams.set("appids", String(id));
+      url.searchParams.set("l", "english");
+      const data = await fetchJson(url);
+      return { appid: id, name: data?.[id]?.data?.name || \`App \${id}\`, owned: ownedApps.has(id) };
+    });
+    const items = details.filter((item) => item.status === "fulfilled" && item.value).map((item) => item.value);
+    res.json({ steamId, totalOwnedGames: Number(response.game_count || response.games.length), items });
+  } catch (error) {
+    console.error("Steam ownership check failed:", error);
+    const status = error?.status === 429 ? 503 : 502;
+    res.status(status).json({
+      error: error?.status === 401 || error?.status === 403
+        ? "Steam rejected the library request. Check the API key and make sure Game details are public."
+        : "Could not check this Steam library right now.",
+      detail: error.message
+    });
+  }
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
