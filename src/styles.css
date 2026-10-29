@@ -690,3 +690,25 @@
 .app-shell[data-theme="light"] .hero-description{color:#fff}
 .app-shell[data-theme="light"] .game-hero{box-shadow:0 18px 42px rgba(29,42,73,.1)}
 .app-shell[data-theme="light"] .search-panel .primary-button{color:#fff}
+
+
+/* DLC pages: make the parent-game requirement clear without the regular game stats. */
+.dlc-parent-notice{display:flex;align-items:center;gap:18px;margin:18px 0 22px;padding:20px 23px;border:1px solid rgba(255,190,90,.24);border-radius:15px;background:linear-gradient(120deg,rgba(255,177,71,.09),rgba(139,108,255,.05))}
+.dlc-parent-icon{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:12px;background:rgba(255,177,71,.12);color:#ffbd69}
+.dlc-parent-copy{min-width:0;flex:1}
+.dlc-parent-copy .section-kicker{color:#eab36a}
+.dlc-parent-copy h3{margin:6px 0;font-size:16px;color:#f0f3ff}
+.dlc-parent-copy>p{margin:0;color:#a8b2ca;font-size:12px;line-height:1.7}
+.dlc-parent-copy>a{display:flex;align-items:center;gap:12px;width:fit-content;max-width:100%;margin-top:13px;padding:8px 12px 8px 8px;border:1px solid var(--line);border-radius:10px;background:rgba(8,13,27,.38);color:#d9d0ff;text-decoration:none}
+.dlc-parent-copy>a img{width:100px;max-height:48px;object-fit:cover;border-radius:5px}
+.dlc-parent-copy>a span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dlc-parent-copy>a strong{font-size:12px;overflow-wrap:anywhere}
+.dlc-parent-copy>a small{font-size:10px;color:#a8b2ca}
+.dlc-parent-copy>a>svg{flex-shrink:0}
+.dlc-parent-copy .dlc-parent-unknown{margin-top:8px;font-size:11px}
+.app-shell[data-theme="light"] .dlc-parent-notice{background:linear-gradient(120deg,#fff8e9,#f8f6ff);border-color:#f0d9ad}
+.app-shell[data-theme="light"] .dlc-parent-copy h3{color:#28314a}
+.app-shell[data-theme="light"] .dlc-parent-copy>p{color:#65718a}
+.app-shell[data-theme="light"] .dlc-parent-copy>a{background:#fff;color:#5946b5;border-color:#e0e4ef}
+.app-shell[data-theme="light"] .dlc-parent-copy>a small{color:#68738a}
+@media(max-width:560px){.dlc-parent-notice{align-items:flex-start;gap:12px;padding:15px}.dlc-parent-icon{width:38px;height:38px;flex-basis:38px}.dlc-parent-copy h3{font-size:14px}.dlc-parent-copy>a img{width:76px}}
