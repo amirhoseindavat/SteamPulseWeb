@@ -234,11 +234,16 @@ app.get("/api/discover", async (req, res) => {
     url.searchParams.set("cc", cc);
     url.searchParams.set("l", "english");
     const data = await fetchJson(url);
-    // The featured-categories feed can contain hardware and other non-game products.
-    // Keep explicitly typed games, reject known non-game types, and verify ambiguous entries
-    // against appdetails before showing them in the discovery UI.
+    // Steam's featured-categories feed can contain hardware and other non-game products.
+    // Exclude known Steam/Valve hardware by name as a lightweight fallback when appdetails
+    // is rate-limited, so hardware listings never leak into game discovery.
+    const nonGameHardwareName = /\\b(?:steam\\s*(?:deck|frame|controller|machine|link)|valve\\s*index|index\\s*(?:vr|controllers?))\\b/i;
     const normalize = async (items, badge) => {
-      const candidates = (items || []).filter((item) => Number(item.id) > 0 && item.name);
+      const candidates = (items || []).filter((item) =>
+        Number(item.id) > 0 &&
+        item.name &&
+        !nonGameHardwareName.test(String(item.name))
+      );
       const checked = await mapWithConcurrency(candidates, 4, async (item) => {
         const type = String(item.type || "").toLowerCase();
         if (type && type !== "game") return null;
