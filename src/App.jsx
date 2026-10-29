@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple,
-  Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2,
+  Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX
 } from "lucide-react";
 
@@ -66,6 +66,9 @@ export default function App() {
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
   const [discoveryTab, setDiscoveryTab] = useState("trending");
+  const [freeGames, setFreeGames] = useState([]);
+  const [freeGamesLoading, setFreeGamesLoading] = useState(true);
+  const [freeGamesError, setFreeGamesError] = useState("");
   const calculatorRef = useRef(null);
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
@@ -222,6 +225,22 @@ export default function App() {
     return () => { cancelled = true; };
   }, [region]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setFreeGamesLoading(true);
+    setFreeGamesError("");
+    fetch(`/api/free-games?cc=${region}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load free Steam games.");
+        return data;
+      })
+      .then((data) => { if (!cancelled) setFreeGames(data.items || []); })
+      .catch((e) => { if (!cancelled) setFreeGamesError(e.message || "Free promotions are temporarily unavailable."); })
+      .finally(() => { if (!cancelled) setFreeGamesLoading(false); });
+    return () => { cancelled = true; };
+  }, [region]);
+
   const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
@@ -316,6 +335,36 @@ export default function App() {
           {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
           <div className="discovery-sources"><span>Want deeper trend data?</span><a href="https://steamdb.info/stats/mostwished/?displayOnly=Game" target="_blank" rel="noreferrer">Most wishlisted <ExternalLink size={11} /></a><a href="https://steamdb.info/stats/wishlistactivity/?upcoming_only=1" target="_blank" rel="noreferrer">Rising wishlist activity <ExternalLink size={11} /></a><a href="https://steamdb.info/upcoming/" target="_blank" rel="noreferrer">Upcoming releases <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
+        </section>
+
+        <section className="free-games-section">
+          <div className="discovery-heading">
+            <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
+            <button className="discovery-refresh" onClick={() => {
+              setFreeGamesLoading(true); setFreeGamesError("");
+              fetch(`/api/free-games?cc=${region}&refresh=1`)
+                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+                .then((data) => setFreeGames(data.items || []))
+                .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
+                .finally(() => setFreeGamesLoading(false));
+            }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
+          </div>
+          {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
+          {freeGamesLoading && !freeGames.length
+            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
+            : freeGames.length
+              ? <div className="discovery-grid">
+                  {freeGames.map((item) => <article className="free-game-card" key={item.id}>
+                    <button className="free-game-main" onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
+                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">Expires {item.expires || "soon"}</span></span>
+                    </button>
+                    <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
+                  </article>)}
+                </div>
+              : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
+          <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
+          <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
         </section>
 
         {error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
