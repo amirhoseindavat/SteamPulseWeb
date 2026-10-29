@@ -420,8 +420,13 @@ app.get("/api/game/:appid", async (req, res) => {
       // Newer Steam titles use hash-based asset paths; the old AppID-only
       // URLs return 404 for many games. Prefer the exact URLs from StoreBrowse.
       const resolveAssetUrl = (assetPath, fallbackPath) => {
-        if (assetPath && assetUrlFormat.includes("${FILENAME}")) {
-          return `https://shared.steamstatic.com/store_item_assets/${assetUrlFormat.replace("${FILENAME}", assetPath)}`;
+        if (!assetPath) return fallbackPath;
+        if (assetUrlFormat.includes("${FILENAME}")) {
+          // Steam may return either a complete URL template or a path template.
+          // Avoid prefixing a complete URL with another store_item_assets path.
+          const resolved = assetUrlFormat.replace("${FILENAME}", assetPath);
+          if (/^https?:\/\//i.test(resolved)) return resolved;
+          return `https://shared.akamai.steamstatic.com/store_item_assets/${resolved.replace(/^\/+/, "")}`;
         }
         return fallbackPath;
       };
@@ -431,7 +436,7 @@ app.get("/api/game/:appid", async (req, res) => {
         `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`
       );
 
-      const logoAsset = itemAssets.logo || itemAssets.library_logo;
+      const logoAsset = itemAssets.logo || itemAssets.logo_2x || itemAssets.library_logo || itemAssets.library_logo_2x;
       gameLogo = resolveAssetUrl(
         logoAsset,
         `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`
