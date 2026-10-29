@@ -814,12 +814,44 @@ const TF2_MARKET_REGIONS = [
   { code: "JP", label: "Japan", flag: "🇯🇵", country: "JP", currency: 8, currencyCode: "JPY" }
 ];
 
+let tf2KeyItemNameIdCache = null;
+let tf2KeyItemNameIdCacheAt = 0;
+
+async function getTf2KeyItemNameId() {
+  // item_nameid is an internal catalog ID, not the currency ID. Discover it from
+  // the exact TF2 key listing page instead of assuming it is 1.
+  if (tf2KeyItemNameIdCache && Date.now() - tf2KeyItemNameIdCacheAt < 6 * 60 * 60 * 1000) {
+    return tf2KeyItemNameIdCache;
+  }
+
+  const listingUrl = "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/";
+  const response = await fetch(listingUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9"
+    },
+    signal: AbortSignal.timeout(STEAM_REQUEST_TIMEOUT_MS)
+  });
+  if (!response.ok) throw new Error(`Steam TF2 key listing page request failed (${response.status})`);
+  const html = await response.text();
+  const match = html.match(/Market_LoadOrderSpread\s*\(\s*(\d+)\s*\)/);
+  if (!match) {
+    throw new Error("Could not find Market_LoadOrderSpread item_nameid on the TF2 key listing page. Steam may have returned a challenge page or changed its markup.");
+  }
+
+  tf2KeyItemNameIdCache = match[1];
+  tf2KeyItemNameIdCacheAt = Date.now();
+  return tf2KeyItemNameIdCache;
+}
+
 app.get("/api/market-regions", async (_req, res) => {
   try {
-    // Keep using Steam's classic histogram endpoint. Include norender=1 to request JSON.
-    const itemNameId = "1";
+    const itemNameId = await getTf2KeyItemNameId();
     const results = await mapWithConcurrency(TF2_MARKET_REGIONS, 2, async (region) => {
       const url = new URL("https://steamcommunity.com/market/itemordershistogram");
+      // Steam uses an ISO-3166-1 alpha-2 country code AND a separate numeric
+      // Steam wallet currency ID. Never mix these two identifiers.
       url.searchParams.set("country", region.country);
       url.searchParams.set("language", "english");
       url.searchParams.set("currency", String(region.currency));
@@ -838,7 +870,7 @@ app.get("/api/market-regions", async (_req, res) => {
       });
 
       if (Number(data?.success) !== 1) {
-        throw new Error(`Steam histogram returned success=${String(data?.success ?? "missing")} for ${region.code}`);
+        throw new Error(`Steam histogram returned success=${String(data?.success ?? "missing")} for ${region.code} (country=${region.country}, currency=${region.currency})`);
       }
 
       const lowest = Number(data.lowest_sell_order);
