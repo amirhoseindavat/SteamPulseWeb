@@ -245,7 +245,8 @@ app.get("/api/game/:appid", async (req, res) => {
       type: d.type || "game",
       short_description: d.short_description || "",
       about_the_game: d.about_the_game || "",
-      header_image: hero,
+      header_image: d.header_image || "",
+      header_image_2x: hero,
       library_hero: libraryHero,
       background: d.background || "",
       developers: d.developers || [],
@@ -318,7 +319,7 @@ app.get("/api/game/:appid/dlc", async (req, res) => {
       return {
         appid: dlcId,
         name: item.name || `DLC ${dlcId}`,
-        image: (item.header_image || "").replace(/\\/header\\.jpg(?=\\?|$)/, "/header_2x.jpg"),
+        image: item.header_image || "",
         price: item.price_overview?.final_formatted || (item.price_overview ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.price_overview.currency || "USD" }).format(item.price_overview.final / 100) : (item.is_free ? "Free" : null)),
         url: `https://store.steampowered.com/app/${dlcId}/`
       };
