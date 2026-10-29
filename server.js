@@ -607,7 +607,7 @@ app.post("/api/ownership-check", async (req, res) => {
       url.searchParams.set("appids", String(id));
       url.searchParams.set("l", "english");
       const data = await fetchJson(url);
-      return { appid: id, name: data?.[id]?.data?.name || \`App \${id}\`, owned: ownedApps.has(id) };
+      return { appid: id, name: data?.[id]?.data?.name || ("App " + id), owned: ownedApps.has(id) };
     });
     const items = details.filter((item) => item.status === "fulfilled" && item.value).map((item) => item.value);
     res.json({ steamId, totalOwnedGames: Number(response.game_count || response.games.length), items });
