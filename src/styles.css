@@ -480,3 +480,66 @@
  .purchase-layout .usd-price-field{grid-column:1/-1;min-height:0}
  .purchase-layout .calculator-result{min-height:100px}
 }
+
+
+/* Give the options column its own panel and make editions compact horizontal rows. */
+.purchase-options-column{
+  align-self:stretch;
+  padding:22px;
+  border:1px solid rgba(199,213,232,.13);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(20,29,49,.98),rgba(13,21,37,.96));
+  box-sizing:border-box;
+}
+.purchase-layout{align-items:stretch}
+.purchase-layout>.key-calculator{height:100%;box-sizing:border-box}
+.purchase-options-column .extra-content-section{background:transparent;border:0;padding:0;box-shadow:none}
+.purchase-options-column .editions-grid{gap:8px}
+.purchase-options-column .edition-card{background:rgba(7,14,27,.48);border-color:rgba(199,213,232,.1)}
+.purchase-options-column .edition-card:hover{background:rgba(32,54,75,.6)}
+.purchase-options-column .edition-select{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"top top" "name price" "desc price" "calc calc";
+  align-items:center;
+  column-gap:14px;
+  row-gap:3px;
+  padding:10px 13px;
+}
+.purchase-options-column .edition-top{grid-area:top;min-height:17px}
+.purchase-options-column .edition-card h3{grid-area:name;margin:2px 0 0;font-size:13px;line-height:1.3}
+.purchase-options-column .edition-card .edition-select>p{grid-area:desc;margin:0;color:#9db0c1;font-size:10px;line-height:1.35}
+.purchase-options-column .edition-bottom{
+  grid-area:price;
+  align-self:center;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:3px;
+  margin:0;
+  padding:0;
+  border:0;
+  white-space:nowrap;
+}
+.purchase-options-column .edition-bottom strong{font-size:13px}
+.purchase-options-column .edition-prices{align-items:flex-end}
+.purchase-options-column .edition-save-label{font-size:9px}
+.purchase-options-column .edition-calculate{
+  grid-area:calc;
+  justify-content:flex-start;
+  margin-top:5px;
+  padding-top:5px;
+  font-size:9px;
+}
+.purchase-options-column .edition-external-link{padding:7px 12px 8px;font-size:10px}
+@media(max-width:900px){
+  .purchase-options-column{padding:15px}
+  .purchase-options-column .edition-select{column-gap:8px;padding:9px 10px}
+  .purchase-options-column .edition-card h3{font-size:12px}
+  .purchase-options-column .edition-bottom strong{font-size:12px}
+}
+@media(max-width:680px){
+  .purchase-options-column{padding:17px}
+  .purchase-layout>.key-calculator{height:auto}
+}
