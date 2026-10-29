@@ -179,25 +179,43 @@ app.get("/api/discover", async (req, res) => {
     url.searchParams.set("cc", cc);
     url.searchParams.set("l", "english");
     const data = await fetchJson(url);
-    const normalize = (items, badge) => (items || [])
-      .filter((item) => Number(item.id) > 0 && item.name)
-      .map((item) => ({
+    // The featured-categories feed can contain hardware and other non-game products.
+    // Keep explicitly typed games, reject known non-game types, and verify ambiguous entries
+    // against appdetails before showing them in the discovery UI.
+    const normalize = async (items, badge) => {
+      const candidates = (items || []).filter((item) => Number(item.id) > 0 && item.name);
+      const checked = await mapWithConcurrency(candidates, 4, async (item) => {
+        const type = String(item.type || "").toLowerCase();
+        if (type && type !== "game") return null;
+        if (type === "game") return item;
+        const detailUrl = new URL("https://store.steampowered.com/api/appdetails");
+        detailUrl.searchParams.set("appids", String(item.id));
+        detailUrl.searchParams.set("cc", cc);
+        detailUrl.searchParams.set("l", "english");
+        const details = await fetchJson(detailUrl);
+        const envelope = details?.[item.id] || details?.[String(item.id)];
+        return envelope?.success && String(envelope.data?.type || "").toLowerCase() === "game" ? item : null;
+      });
+      return checked.filter((entry) => entry.status === "fulfilled" && entry.value).map(({ value: item }) => ({
         id: Number(item.id),
         name: item.name,
+        type: "game",
         image: item.large_capsule_image || item.header_image || item.small_capsule_image || "",
         price: item.final_price != null
           ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.currency || "USD" }).format(Number(item.final_price) / 100)
           : (item.final_formatted || ""),
-        releaseDate: item.release_date?.date || "",
+        releaseDate: item.release_date?.date || item.release_date || "",
         subtitle: item.discount_percent ? `${item.discount_percent}% off` : "",
         badge
       }));
-
-    const result = {
-      newReleases: normalize(data?.new_releases?.items, "NEW"),
-      upcoming: normalize(data?.coming_soon?.items, "UPCOMING"),
-      topSellers: normalize(data?.top_sellers?.items, "TRENDING")
     };
+
+    const [newReleases, upcoming, topSellers] = await Promise.all([
+      normalize(data?.new_releases?.items, "NEW"),
+      normalize(data?.coming_soon?.items, "UPCOMING"),
+      normalize(data?.top_sellers?.items, "TRENDING")
+    ]);
+    const result = { newReleases, upcoming, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
     }
