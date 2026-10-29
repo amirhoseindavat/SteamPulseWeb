@@ -475,6 +475,17 @@ export default function App() {
                 <div className="steam-profile-name"><span className="section-kicker"><UserRound size={13} /> STEAM ACCOUNT</span><h1>{steamProfileData.profile.name || "Steam user"}</h1><p>{steamProfileData.profile.realName || "Steam community member"}{steamProfileData.profile.country ? ` · ${steamProfileData.profile.country}` : ""}</p><span className={steamProfileData.profile.online ? "steam-online" : "steam-offline"}><i />{steamProfileData.profile.status || "Offline"}</span></div>
                 <a className="profile-steam-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> View on Steam</a>
               </div>
+              <div className="steam-profile-badges">
+                <div className="steam-level-display" title={`Steam Level ${steamProfileData.stats.level ?? "unavailable"}`}>
+                  <span className="steam-level-frame"><span>{steamProfileData.stats.level == null ? "—" : formatNumber(steamProfileData.stats.level)}</span></span>
+                  <span className="steam-level-caption">Steam Level</span>
+                </div>
+                {steamProfileData.yearOfService && <div className="steam-service-badge" title={`Years of Service · Level ${steamProfileData.yearOfService.level}`}>
+                  <img src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" />
+                  <span><strong>Years of Service</strong><small>{steamProfileData.yearOfService.level} {steamProfileData.yearOfService.level === 1 ? "year" : "years"} on Steam</small></span>
+                </div>}
+                <div className="steam-badge-count"><Trophy size={16} /><span><strong>{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong><small>Badges earned</small></span></div>
+              </div>
               {steamProfileData.profile.summary && <p className="steam-profile-summary">{steamProfileData.profile.summary}</p>}
             </section>
             <section className="profile-stats-grid">
