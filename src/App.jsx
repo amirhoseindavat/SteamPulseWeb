@@ -218,7 +218,18 @@ export default function App() {
             <div className="hero-content">
               <div className="hero-topline"><span className="game-label"><Gamepad2 size={13} /> STEAM TITLE</span><span className="app-tag">APP/{game.appid}</span></div>
               <h2>{game.name}</h2><p className="hero-description">{game.short_description || "No short description is available for this title."}</p>
-              <div className="hero-meta"><span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span><span><Monitor size={15} /> {systemNames.join(" · ") || "Platform data unavailable"}</span></div>
+              <div className="hero-meta">
+                <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
+                <div className="hero-platforms" aria-label="Supported platforms">
+                  {systemNames.length ? systemNames.map((platform) => <span className="platform-icon" key={platform} title={platform} aria-label={platform}>
+                    {platform.toLowerCase() === "windows" ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.2 10.5 4v7.7H2V5.2Zm10-1.4L22 2v9.7H12V3.8ZM2 12.9h8.5v7.7L2 19.4v-6.5Zm10 0h10V22l-10-1.4v-7.7Z" fill="currentColor"/></svg> : platform.toLowerCase() === "mac" || platform.toLowerCase() === "macos" ? <span className="platform-letter platform-apple">●</span> : platform.toLowerCase() === "linux" ? <span className="platform-letter platform-linux">♟</span> : <Monitor size={15} />}
+                  </span>) : <span className="platform-unavailable">Platform data unavailable</span>}
+                </div>
+                <span className={`hero-deck-status deck-status-${game.steam_deck?.status || "unknown"}`} title={game.steam_deck?.summary || "Steam Deck compatibility unknown"}>
+                  {game.steam_deck?.status === "verified" ? <CheckCircle2 size={17} /> : game.steam_deck?.status === "playable" ? <AlertTriangle size={17} /> : game.steam_deck?.status === "unsupported" ? <CircleX size={17} /> : <CircleHelp size={17} />}
+                  <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
+                </span>
+              </div>
               <div className="hero-actions"><a className="primary-button" href={game.steam_url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={15} /></a><button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button></div>
             </div>
             <div className="hero-corner">STEAMPULSE <span>01 / GAME PROFILE</span></div>
