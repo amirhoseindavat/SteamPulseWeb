@@ -583,7 +583,6 @@
 .app-shell[data-theme="light"]{
   color:#20283a;
   background-color:#f4f6fb;
-  background-image:radial-gradient(ellipse at 80% 0%,rgba(132,112,230,.12),transparent 36%)!important;
   --muted:#667085;
   --line:rgba(61,75,105,.17);
   --panel:rgba(255,255,255,.9);
