@@ -305,7 +305,9 @@
 .steam-profile-name h1{margin:8px 0 4px;font-size:clamp(23px,3vw,34px);letter-spacing:-.8px;overflow-wrap:anywhere}
 .steam-profile-name p{margin:0 0 8px;color:#98a5c0;font-size:12px}
 .steam-online,.steam-offline{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:#8f9cb8}
-.steam-online i,.steam-offline i{width:7px;height:7px;border-radius:50%;background:#4adea2}
+.steam-online i,.steam-in-game i,.steam-offline i{width:7px;height:7px;border-radius:50%}
+.steam-online i{background:#1a9fff}
+.steam-in-game i{background:#5cba3c}
 .steam-offline i{background:#64708a}
 .profile-steam-link{display:inline-flex;align-items:center;gap:7px;margin-bottom:6px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:#dfe6fa;text-decoration:none;font-size:11px;white-space:nowrap}
 .steam-profile-summary{position:relative;margin:20px 26px 24px;color:#9aa7c2;font-size:13px;line-height:1.8;white-space:pre-wrap}
