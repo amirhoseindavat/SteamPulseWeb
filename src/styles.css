@@ -325,3 +325,56 @@
 .api-key-guide ol{margin:12px 0 14px;padding-left:20px;color:#929fba;font-size:12px;line-height:1.9}
 .api-key-guide a{display:inline-flex;align-items:center;gap:7px;color:#b9a8ff;font-size:12px;text-decoration:none}
 .api-key-guide a:hover{text-decoration:underline}
+
+
+/* UX polish: prioritize purchase options and keep game detail usable on phones */
+.title-ownership-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 4px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);width:fit-content}
+.title-ownership-status .section-kicker{display:flex;align-items:center;gap:5px;margin:0}
+.title-ownership-status strong{font-size:12px}
+.title-ownership-status .owned{color:#72e3a1}
+.title-ownership-status .not-owned{color:#ff929b}
+.calculator-region{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}
+.calculator-region>span{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.calculator-region select{max-width:60%;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#151b2b;color:var(--text)}
+@media(max-width:700px){
+  .app-shell,.app-container,.main-content{width:100%;max-width:100%;min-width:0}
+  .topbar{padding:10px 14px;gap:10px}
+  .main-nav{gap:4px;overflow-x:auto;scrollbar-width:none}
+  .main-nav::-webkit-scrollbar{display:none}
+  .main-nav button{padding:9px 10px;white-space:nowrap;font-size:12px}
+  .intro{padding:30px 18px 22px}
+  .intro h1{font-size:clamp(38px,11vw,56px);line-height:1.02}
+  .search-panel,.game-hero,.detail-card,.key-calculator,.extra-content-section,.deck-compatibility,.stats-strip,.detail-section{margin-left:12px;margin-right:12px}
+  .search-controls{grid-template-columns:minmax(0,1fr)}
+  .search-controls>.primary-button{width:100%;justify-content:center}
+  .game-hero{min-height:0;padding:22px 18px;border-radius:16px}
+  .hero-content{width:100%;max-width:100%}
+  .hero-game-logo{max-width:72%;margin-bottom:12px}
+  .hero-content h2{font-size:clamp(28px,8vw,40px);line-height:1.08;overflow-wrap:anywhere}
+  .hero-description{font-size:13px;line-height:1.65}
+  .hero-meta{gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .hero-actions{display:grid;grid-template-columns:1fr;gap:8px}
+  .hero-actions>*{width:100%;justify-content:center}
+  .stats-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}
+  .stats-strip>*{min-width:0}
+  .detail-header,.calculator-heading{align-items:flex-start;gap:12px}
+  .detail-header h2,.calculator-heading h2{font-size:22px;line-height:1.2}
+  .tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .tabs button{white-space:nowrap;flex:0 0 auto}
+  .overview-grid,.editions-grid,.screenshots-grid,.profile-content-grid{grid-template-columns:minmax(0,1fr)}
+  .edition-card,.edition-select{min-width:0;width:100%}
+  .edition-select{padding:16px}
+  .edition-bottom{gap:8px;flex-wrap:wrap}
+  .calculator-content{grid-template-columns:1fr}
+  .calculator-result{min-height:0;padding:16px}
+  .calculator-result strong{font-size:clamp(24px,7vw,34px)}
+  .calculator-region{align-items:stretch;flex-direction:column;gap:9px}
+  .calculator-region select{max-width:none;width:100%}
+  .about-copy{font-size:13px;line-height:1.75}
+  .people-grid{grid-template-columns:1fr;gap:12px}
+  .hero-corner{display:none}
+  .detail-section{padding-top:8px}
+  .detail-card{padding:16px}
+  .calculator-heading{margin-bottom:16px}
+  .key-calculator{padding:18px}
+}
