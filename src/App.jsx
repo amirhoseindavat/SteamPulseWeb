@@ -90,6 +90,7 @@ export default function App() {
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       setRegionalPriceInput(data.price_overview?.final != null ? (data.price_overview.final / 100).toFixed(2) : "");
       setAppid(String(id));
       setInputId(String(id));
