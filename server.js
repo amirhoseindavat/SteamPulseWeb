@@ -164,51 +164,87 @@ function cleanEditionName(value) {
 
 async function fetchSteamBundles(appid, cc) {
   const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "TR" ? "TRY" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "AR" ? "ARS" : "USD";
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/json, */*",
+    "Accept-Language": "en-US,en;q=0.9"
+  };
 
-  // Bundles are optional. Retry transient network failures without blocking game details.
+  // Steam's app page is the source of truth for which bundles are actually
+  // advertised for this game. Resolve only bundle IDs found in that page.
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/json, */*",
-        "Accept-Language": "en-US,en;q=0.9"
-      };
       const pageUrl = new URL(`https://store.steampowered.com/app/${appid}/`);
       pageUrl.searchParams.set("cc", cc);
       pageUrl.searchParams.set("l", "english");
 
-      const response = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(12000) });
+      const response = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error(`Steam app page request failed (${response.status})`);
-
       const html = await response.text();
-      const bundleIds = [...new Set([
-        ...[...html.matchAll(/(?:store\.steampowered\.com)?\/bundle\/(\d+)/g)].map((m) => Number(m[1])),
-        ...[...html.matchAll(/(?:bundleid|bundle_id|bundleid=)["':=\s]+(\d+)/gi)].map((m) => Number(m[1]))
-      ])].filter((id) => Number.isSafeInteger(id) && id > 0).slice(0, 30);
 
+      const foundIds = new Set();
+      const addIds = (matches) => {
+        for (const match of matches) {
+          const id = Number(match);
+          if (Number.isSafeInteger(id) && id > 0) foundIds.add(id);
+        }
+      };
+
+      // Standard bundle links, including absolute and relative Steam URLs.
+      addIds([...html.matchAll(/(?:https?:\\/\\/(?:store\\.)?steampowered\\.com)?\\/bundle\\/(\\d+)(?:[/?#"'\\s]|$)/gi)].map((match) => match[1]));
+      // Steam page metadata and inline bundle payloads use several attribute/key names.
+      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\s*(?:=|:)\\s*["']?(\\d+)/gi)].map((match) => match[1]));
+
+      const bundleIds = [...foundIds].slice(0, 40);
       if (!bundleIds.length) return [];
 
       const bundleUrl = new URL("https://store.steampowered.com/actions/ajaxresolvebundles");
       bundleUrl.searchParams.set("bundleids", bundleIds.join(","));
       bundleUrl.searchParams.set("cc", cc);
       bundleUrl.searchParams.set("l", "english");
-      const bundles = await fetchJsonWithOptions(bundleUrl, {
+      const resolved = await fetchJsonWithOptions(bundleUrl, {
         headers: { ...headers, "Referer": pageUrl.toString(), "X-Requested-With": "XMLHttpRequest" },
-        signal: AbortSignal.timeout(12000)
+        signal: AbortSignal.timeout(15000)
       });
 
-      return (Array.isArray(bundles) ? bundles : [])
-        .filter((bundle) => Number(bundle.bundleid) > 0 && (bundle.appids || []).map(Number).includes(Number(appid)))
-        .map((bundle) => ({
-          id: Number(bundle.bundleid),
-          name: bundle.name || "Steam Bundle",
-          image: bundle.header_image_url || bundle.main_capsule || "",
-          priceValue: bundle.final_price != null ? Number(bundle.final_price) / 100 : null,
-          price: bundle.formatted_final_price || (bundle.final_price != null ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(Number(bundle.final_price) / 100) : null),
-          savings: bundle.discount_percent ? String(bundle.discount_percent) : "",
-          appCount: (bundle.appids || []).length,
-          url: `https://store.steampowered.com/bundle/${Number(bundle.bundleid)}/`
-        }));
+      // Steam has returned both arrays and objects keyed by bundle ID.
+      const rawBundles = Array.isArray(resolved)
+        ? resolved
+        : resolved && typeof resolved === "object"
+          ? Object.entries(resolved).map(([id, bundle]) => ({ ...(bundle || {}), bundleid: bundle?.bundleid || bundle?.id || id }))
+          : [];
+
+      const byId = new Map();
+      for (const bundle of rawBundles) {
+        const id = Number(bundle?.bundleid || bundle?.bundle_id || bundle?.id);
+        if (!bundle || !bundleIds.includes(id)) continue;
+        byId.set(id, bundle);
+      }
+
+      return bundleIds
+        .filter((id) => byId.has(id))
+        .map((id) => {
+          const bundle = byId.get(id);
+          const finalPrice = bundle.final_price ?? bundle.price;
+          const originalPrice = bundle.original_price ?? bundle.initial_price;
+          const finalValue = finalPrice != null && Number.isFinite(Number(finalPrice)) ? Number(finalPrice) / 100 : null;
+          const originalValue = originalPrice != null && Number.isFinite(Number(originalPrice)) ? Number(originalPrice) / 100 : null;
+          return {
+            id,
+            name: bundle.name || bundle.bundle_name || "Steam Bundle",
+            image: bundle.header_image_url || bundle.header_image || bundle.main_capsule || "",
+            priceValue: finalValue,
+            price: bundle.formatted_final_price || bundle.price_formatted || (finalValue != null
+              ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(finalValue)
+              : null),
+            originalPrice: bundle.formatted_original_price || (originalValue != null
+              ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(originalValue)
+              : null),
+            savings: bundle.discount_percent != null ? String(bundle.discount_percent) : "",
+            appCount: Array.isArray(bundle.appids) ? bundle.appids.length : null,
+            url: `https://store.steampowered.com/bundle/${id}/`
+          };
+        });
     } catch (error) {
       if (attempt === 1) {
         console.warn(`Steam bundles request failed for AppID ${appid}; retrying: ${error.message}`);
