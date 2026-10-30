@@ -608,7 +608,7 @@ export default function App() {
             ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Loading Steam top sellers…</div>
             : discovery.topSellers.length
               ? <div className="browse-games-grid">
-                  {discovery.topSellers.slice(0, 8).map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                  {discovery.topSellers.slice(0, 20).map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                     <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
                     <span><strong>{item.name}</strong><small>{item.price || "View game details"} <ChevronRight size={12} /></small></span>
                   </button>)}
