@@ -622,16 +622,16 @@ app.get("/api/game/:appid", async (req, res) => {
     const mapNewsItems = (items, fallbackLabel) => (items || []).map((item) => {
       const rawContents = String(item.contents || "");
       const imageCandidates = [
-        /<img\\b[^>]*?src\\s*=\\s*["']([^"']+)["']/i,
-        /\\[img\\](https?:\\/\\/[^\\[]+)\\[\\/img\\]/i,
-        /\\[img\\s+src\\s*=\\s*["']?(https?:\\/\\/[^\\s"'\\]]+)/i,
-        /https?:\\/\\/[^\\s"'<>\\]]+\\.(?:png|jpe?g|webp|gif)(?:\\?[^\\s"'<>\\]]*)?/i
+        /<img\b[^>]*?src\s*=\s*["']([^"']+)["']/i,
+        /\[img\](https?:\/\/[^\[]+)\[\/img\]/i,
+        /\[img\s+src\s*=\s*["']?(https?:\/\/[^\s"'\]]+)/i,
+        /https?:\/\/[^\s"'<>\]]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>\]]*)?/i
       ];
       let image = "";
       for (const pattern of imageCandidates) {
         const match = rawContents.match(pattern);
         if (match) {
-          image = String(match[1] || match[0]).replace(/[\\]\\s]*$/, "");
+          image = String(match[1] || match[0]).replace(/\]$/, "");
           break;
         }
       }
@@ -642,7 +642,7 @@ app.get("/api/game/:appid", async (req, res) => {
         date: Number(item.date) || 0,
         feedlabel: item.feedlabel || fallbackLabel,
         image,
-        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\\[\\/?(?:img|url)[^\\]]*\\]/gi, " ").replace(/\\s+/g, " ").trim().slice(0, 420)
+        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\[\/?(?:img|url)[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 420)
       };
     });
 
