@@ -608,9 +608,16 @@ export default function App() {
             ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Loading Steam top sellers…</div>
             : discovery.topSellers.length
               ? <div className="browse-games-grid">
-                  {discovery.topSellers.slice(0, 20).map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                  {discovery.topSellers.filter((item) => item.priceValue !== 0 && !/^(free|free to play)$/i.test(String(item.price || "").trim())).slice(0, 20).map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                     <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
-                    <span><strong>{item.name}</strong><small>{item.price || "View game details"} <ChevronRight size={12} /></small></span>
+                    <span className="browse-game-info">
+                      <strong>{item.name}</strong>
+                      <span className="browse-game-price-row">
+                        <strong className="browse-game-price">{item.price || "Price unavailable"}</strong>
+                        {item.discountPercent > 0 && <span className="browse-game-discount">-{item.discountPercent}%</span>}
+                      </span>
+                    </span>
+                    <span className="browse-game-view">View <ChevronRight size={15} /></span>
                   </button>)}
                 </div>
               : <div className="discovery-message">{discoveryError || "Top sellers are temporarily unavailable. Try again shortly."}</div>}
