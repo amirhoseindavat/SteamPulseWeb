@@ -954,7 +954,7 @@ app.get("/api/game/:appid", async (req, res) => {
 
 app.get("/api/game/:appid/bundles", async (req, res) => {
   const appid = String(req.params.appid);
-  if (!/^\\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
+  if (!/^\d+$/.test(appid)) return res.status(400).json({ error: "AppID must be numeric." });
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
   const key = `bundles:${appid}:${cc}`;
   const hit = cached(key);
@@ -1390,8 +1390,9 @@ app.get("/api/shop-data", async (_req, res) => {
     });
     if (!response.ok) return res.status(502).json({ error: `Shop data API returned ${response.status}.` });
     const data = await response.json();
-    if (!data || !Number.isFinite(Number(data.Key)) || !Number.isFinite(Number(data.KeyBuy))) {
-      return res.status(502).json({ error: "Shop data API returned invalid key price data." });
+    const keyPrice = Number(String(data?.Key ?? "").replace(/[\\s,٬]/g, ""));
+    if (!data || !Number.isFinite(keyPrice) || keyPrice <= 0) {
+      return res.status(502).json({ error: "Shop data API returned an invalid Key price." });
     }
 
     // Fetch the live USD price for Mann Co. Supply Crate Key from Steam Community Market.
@@ -1420,6 +1421,7 @@ app.get("/api/shop-data", async (_req, res) => {
     res.set("Cache-Control", "no-store");
     res.json({
       ...data,
+      Key: keyPrice,
       steamKeyPriceUsd,
       steamKeyPriceUpdatedAt
     });
