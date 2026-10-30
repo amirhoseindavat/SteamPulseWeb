@@ -262,35 +262,44 @@ async function fetchSteamTopSellers(cc) {
   if (!response.ok) throw new Error("Steam Top Sellers search failed (" + response.status + ")");
   const payload = await response.json();
   const html = String(payload.results_html || "");
-  const rows = html.match(/<a\\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\\s\\S]*?<\\/a>/gi) || [];
+  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
 
   const getClassContent = (source, className) => {
-    const escaped = className.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&");
-    const match = source.match(new RegExp("<(?:div|span)\\\\b(?=[^>]*class=[\\\"'][^\\\"']*\\\\b" + escaped + "\\\\b[^\\\"']*[\\\"'])[^>]*>([\\\\s\\\\S]*?)<\\\\/(?:div|span)>", "i"));
-    return match?.[1] || "";
+    const elements = source.match(/<(?:div|span)\b[^>]*class=["'][^"']*["'][^>]*>[\s\S]*?<\/(?:div|span)>/gi) || [];
+    const element = elements.find((part) => {
+      const classAttr = part.match(/\bclass=["']([^"']*)["']/i)?.[1] || "";
+      return classAttr.split(/\s+/).includes(className);
+    });
+    if (!element) {
+      const openingTag = source.match(new RegExp("<(?:div|span)\\b(?=[^>]*\\bclass=[\\"'][^\\"']*\\b" + className + "\\b)[^>]*>", "i"))?.[0];
+      if (!openingTag) return "";
+      const start = source.indexOf(openingTag) + openingTag.length;
+      const tag = openingTag.match(/^<([a-z]+)/i)?.[1] || "div";
+      const close = new RegExp("</" + tag + "\\s*>", "ig");
+      close.lastIndex = start;
+      const match = close.exec(source);
+      return match ? source.slice(start, match.index) : "";
+    }
+    return element.replace(/^<(?:div|span)\b[^>]*>/i, "").replace(/<\/(?:div|span)>$/i, "");
   };
 
   return rows.map((row) => {
-    const attr = (name) => row.match(new RegExp(name + "=[\\\"']([^\\\"']*)[\\\"']", "i"))?.[1] || "";
+    const attr = (name) => row.match(new RegExp(name + "=[\\"']([^\\"']*)[\\"']", "i"))?.[1] || "";
     const id = Number(attr("data-ds-appid").split(",")[0]);
-    const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
 
-    // Do not stop at the first nested </div>: Steam wraps sale prices in
-    // discount_block > discount_prices > discount_final_price.
     const finalPriceHtml = getClassContent(row, "discount_final_price");
     const originalPriceHtml = getClassContent(row, "discount_original_price");
     const discountPercentHtml = getClassContent(row, "discount_pct");
-    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/a>/i)?.[1] || "";
+    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*<\/a>/i)?.[1] || "";
     const discountPercent = Number(decodeSteamHtml(discountPercentHtml).replace(/[^0-9]/g, "")) || 0;
     const finalPriceText = decodeSteamHtml(finalPriceHtml);
     const containerText = decodeSteamHtml(priceContainer);
-    const currencyPricePattern = /(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*\\d|\\d[\\d.,\\s]*\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i;
-    const isFree = /\\bfree(?: to play)?\\b/i.test(containerText);
+    const currencyPricePattern = /(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*\d|\d[\d.,\s]*\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i;
+    const isFree = /\bfree(?: to play)?\b/i.test(containerText);
     if (!Number.isFinite(id) || id <= 0 || !title || isFree) return null;
 
-    // Labels such as "Pre-Purchase" are availability states, not prices.
-    // Never display them as currency or show a discount without a valid final price.
     const price = currencyPricePattern.test(finalPriceText)
       ? finalPriceText
       : currencyPricePattern.test(containerText) && !/pre[ -]?purchase/i.test(containerText)
