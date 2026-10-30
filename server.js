@@ -271,7 +271,7 @@ async function fetchSteamTopSellers(cc) {
       return classAttr.split(/\s+/).includes(className);
     });
     if (!element) {
-      const openingTag = source.match(new RegExp("<(?:div|span)\\b(?=[^>]*\\bclass=[\\"'][^\\"']*\\b" + className + "\\b)[^>]*>", "i"))?.[0];
+      const openingTag = source.match(new RegExp('<(?:div|span)\\b(?=[^>]*\\bclass="[^"]*\\b' + className + '\\b)[^>]*>', "i"))?.[0];
       if (!openingTag) return "";
       const start = source.indexOf(openingTag) + openingTag.length;
       const tag = openingTag.match(/^<([a-z]+)/i)?.[1] || "div";
@@ -284,7 +284,11 @@ async function fetchSteamTopSellers(cc) {
   };
 
   return rows.map((row) => {
-    const attr = (name) => row.match(new RegExp(name + "=[\\"']([^\\"']*)[\\"']", "i"))?.[1] || "";
+    const attr = (name) => {
+      const doubleQuoted = row.match(new RegExp(name + '="([^"]*)"', "i"));
+      const singleQuoted = row.match(new RegExp(name + "='([^']*)'", "i"));
+      return doubleQuoted?.[1] || singleQuoted?.[1] || "";
+    };
     const id = Number(attr("data-ds-appid").split(",")[0]);
     const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
