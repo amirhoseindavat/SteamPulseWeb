@@ -619,6 +619,26 @@ app.get("/api/game/:appid", async (req, res) => {
       }
     }
 
+    let gameNews = [];
+    try {
+      const newsUrl = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/");
+      newsUrl.searchParams.set("appid", String(appid));
+      newsUrl.searchParams.set("count", "8");
+      newsUrl.searchParams.set("maxlength", "600");
+      newsUrl.searchParams.set("format", "json");
+      const newsData = await fetchJson(newsUrl);
+      gameNews = (newsData?.appnews?.newsitems || []).map((item) => ({
+        gid: item.gid,
+        title: item.title || "Game update",
+        url: item.url || `https://store.steampowered.com/news/app/${appid}`,
+        date: Number(item.date) || 0,
+        feedlabel: item.feedlabel || "STEAM NEWS",
+        contents: String(item.contents || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 420)
+      }));
+    } catch (error) {
+      console.warn(`Could not load Steam news for AppID ${appid}: ${error.message}`);
+    }
+
     const result = {
       appid: Number(appid),
       name: d.name || "Unknown game",
@@ -647,6 +667,7 @@ app.get("/api/game/:appid", async (req, res) => {
       metacritic: d.metacritic || null,
       recommendations: d.recommendations?.total ?? null,
       screenshots: (d.screenshots || []).map((s) => s.path_full).filter(Boolean),
+      news: gameNews,
       movies: (d.movies || []).map((m) => ({
         name: m.name,
         thumbnail: m.thumbnail,
