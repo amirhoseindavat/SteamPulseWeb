@@ -265,7 +265,7 @@ async function fetchSteamTopSellers(cc) {
   const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
 
   return rows.map((row) => {
-    const attr = (name) => row.match(new RegExp(name + '=["\\']([^"\\']*)["\\']', "i"))?.[1] || "";
+    const attr = (name) => row.match(new RegExp(name + "=[\"']([^\"']*)[\"']", "i"))?.[1] || "";
     const id = Number(attr("data-ds-appid").split(",")[0]);
     const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
