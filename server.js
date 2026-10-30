@@ -653,7 +653,7 @@ app.get("/api/game/:appid", async (req, res) => {
       newsUrl.searchParams.set("appid", String(appid));
       newsUrl.searchParams.set("count", "8");
       newsUrl.searchParams.set("feeds", "steam_community_announcements");
-      newsUrl.searchParams.set("maxlength", "600");
+      newsUrl.searchParams.set("maxlength", "0");
       newsUrl.searchParams.set("format", "json");
       const newsData = await fetchJson(newsUrl);
       gameNews = mapNewsItems(newsData?.appnews?.newsitems, "STEAM NEWS");
