@@ -330,8 +330,8 @@ export default function App() {
     setDiscoveryError("");
     fetch(`/api/discover?cc=${region}`)
       .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load game discovery.");
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.error || data.detail || "Could not load game discovery.");
         return data;
       })
       .then((data) => {
@@ -631,7 +631,7 @@ export default function App() {
             <button className="discovery-refresh" onClick={() => {
               setDiscoveryLoading(true); setDiscoveryError("");
               fetch(`/api/discover?cc=${region}&refresh=1`)
-                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+                .then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || data.detail || "Refresh failed."); return data; })
                 .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], topSellers: data.topSellers || [] }))
                 .catch((e) => setDiscoveryError(e.message || "Refresh failed."))
                 .finally(() => setDiscoveryLoading(false));
