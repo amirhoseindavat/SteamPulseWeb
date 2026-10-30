@@ -600,16 +600,20 @@ export default function App() {
             <button className="primary-button" onClick={() => /^\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
             <div className="app-id-box"><label htmlFor="appid">APP ID</label><input id="appid" value={inputId} onChange={(e) => setInputId(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadGame(inputId)} /><button onClick={() => loadGame(inputId)} aria-label="Load AppID"><ChevronRight size={18} /></button></div>
           </div>
-          <div className="popular-line"><span>TRY A QUICK LOOK</span>{[{ name:"Cyberpunk 2077",id:"1091500"},{name:"Elden Ring",id:"1245620"},{name:"Baldur's Gate 3",id:"1086940"},{name:"Hades II",id:"1145350"}].map((g) => <button key={g.id} onClick={() => {setQuery(g.name);loadGame(g.id);}}>{g.name}</button>)}</div>
+          <div className="popular-line"><span>POPULAR NEW RELEASES</span>{discoveryLoading && !discovery.newReleases.length ? <small>Loading Steam releases…</small> : discovery.newReleases.slice(0, 6).map((g) => <button key={g.id} onClick={() => {setQuery(g.name);setInputId(String(g.id));loadGame(g.id, region);}}>{g.name}</button>)}{!discoveryLoading && !discovery.newReleases.length && <small>{discoveryError || "No new releases available right now."}</small>}</div>
         </section>
         {currentPage === "games" && <section className="browse-games-section">
-          <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Browse games</h2><p>Jump into a popular title or search the full Steam catalog above.</p></div></div>
-          <div className="browse-games-grid">
-            {[{id:"1091500",name:"Cyberpunk 2077"},{id:"1245620",name:"Elden Ring"},{id:"1086940",name:"Baldur’s Gate 3"},{id:"1145350",name:"Hades II"}].map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(item.id); loadGame(item.id, region); }}>
-              <img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
-              <span><strong>{item.name}</strong><small>OPEN GAME PROFILE <ChevronRight size={12} /></small></span>
-            </button>)}
-          </div>
+          <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Top Sellers</h2><p>The most popular games players are buying on Steam right now.</p></div><span className="section-count">{discovery.topSellers.length ? `${discovery.topSellers.length} GAMES` : ""}</span></div>
+          {discoveryLoading && !discovery.topSellers.length
+            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Loading Steam top sellers…</div>
+            : discovery.topSellers.length
+              ? <div className="browse-games-grid">
+                  {discovery.topSellers.slice(0, 8).map((item) => <button className="browse-game-card" key={item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                    <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
+                    <span><strong>{item.name}</strong><small>{item.price || "View game details"} <ChevronRight size={12} /></small></span>
+                  </button>)}
+                </div>
+              : <div className="discovery-message">{discoveryError || "Top sellers are temporarily unavailable. Try again shortly."}</div>}
         </section>}
         </>}
         
