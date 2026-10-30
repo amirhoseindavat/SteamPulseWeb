@@ -619,32 +619,78 @@ app.get("/api/game/:appid", async (req, res) => {
       }
     }
 
-    const mapNewsItems = (items, fallbackLabel) => (items || []).map((item) => {
-      const rawContents = String(item.contents || "");
-      const imageCandidates = [
-        /<img\b[^>]*?src\s*=\s*["']([^"']+)["']/i,
+    const decodeNewsText = (value) => String(value || "")
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+      .replace(/<\s*br\s*\/?\s*>|<\s*\/(?:p|div|li|h[1-6])\s*>/gi, " ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\[(?:\/)?(?:img|url|b|i|u|h[1-6]|list|\*|quote|code|strike|spoiler)[^\]]*\]/gi, " ")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
+      .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+      .replace(/&#x([\da-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+      .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+      .replace(/\s+/g, " ").trim();
+
+    const extractNewsImage = (contents) => {
+      const source = String(contents || "");
+      const patterns = [
+        /<img\b[^>]*(?:src|data-src)\s*=\s*["']([^"']+)["']/i,
+        /<img\b[^>]*(?:src|data-src)\s*=\s*([^\s>]+)/i,
         /\[img\](https?:\/\/[^\[]+)\[\/img\]/i,
         /\[img\s+src\s*=\s*["']?(https?:\/\/[^\s"'\]]+)/i,
         /https?:\/\/[^\s"'<>\]]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>\]]*)?/i
       ];
-      let image = "";
-      for (const pattern of imageCandidates) {
-        const match = rawContents.match(pattern);
+      for (const pattern of patterns) {
+        const match = source.match(pattern);
         if (match) {
-          image = String(match[1] || match[0]).replace(/\]$/, "");
-          break;
+          const url = String(match[1] || match[0]).replace(/&amp;/gi, "&").replace(/["'\]>]+$/, "");
+          if (/^https?:\/\//i.test(url)) return url;
         }
       }
+      return "";
+    };
+
+    const mapNewsItems = (items, fallbackLabel, rssImages = new Map()) => (items || []).map((item) => {
+      const rawContents = String(item.contents || "");
+      const image = extractNewsImage(rawContents) || rssImages.get(String(item.title || "").trim().toLowerCase()) || "";
       return {
         gid: item.gid,
-        title: item.title || "Game update",
+        title: decodeNewsText(item.title || "Game update"),
         url: item.url || `https://store.steampowered.com/news/app/${appid}`,
         date: Number(item.date) || 0,
-        feedlabel: item.feedlabel || fallbackLabel,
+        feedlabel: decodeNewsText(item.feedlabel || fallbackLabel),
         image,
-        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\[\/?(?:img|url)[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 420)
+        contents: decodeNewsText(rawContents).slice(0, 420)
       };
     });
+
+    const fetchSteamNewsRssImages = async () => {
+      try {
+        const rssUrl = new URL(`https://store.steampowered.com/feeds/news/app/${appid}/`);
+        rssUrl.searchParams.set("cc", cc);
+        rssUrl.searchParams.set("l", "english");
+        const response = await fetch(rssUrl, {
+          headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "application/rss+xml, application/xml, text/xml" },
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!response.ok) return new Map();
+        const xml = await response.text();
+        const images = new Map();
+        for (const match of xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)) {
+          const block = match[1];
+          const title = decodeNewsText(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "").toLowerCase();
+          const image = block.match(/<enclosure\b[^>]*\burl=["']([^"']+)["']/i)?.[1]
+            || block.match(/<media:content\b[^>]*\burl=["']([^"']+)["']/i)?.[1]
+            || extractNewsImage(block);
+          if (title && image && /^https?:\/\//i.test(image)) images.set(title, image.replace(/&amp;/gi, "&"));
+        }
+        return images;
+      } catch (error) {
+        console.warn(`Could not load Steam news RSS images for AppID ${appid}: ${error.message}`);
+        return new Map();
+      }
+    };
 
     let gameNews = [];
     let externalNews = [];
@@ -653,10 +699,12 @@ app.get("/api/game/:appid", async (req, res) => {
       newsUrl.searchParams.set("appid", String(appid));
       newsUrl.searchParams.set("count", "8");
       newsUrl.searchParams.set("feeds", "steam_community_announcements");
-      newsUrl.searchParams.set("maxlength", "0");
+      // Steam returns full HTML/BBCode when maxlength=0. UINT32_MAX keeps the
+      // full text while asking Steam to strip its formatting markup.
+      newsUrl.searchParams.set("maxlength", "4294967295");
       newsUrl.searchParams.set("format", "json");
-      const newsData = await fetchJson(newsUrl);
-      gameNews = mapNewsItems(newsData?.appnews?.newsitems, "STEAM NEWS");
+      const [newsData, rssImages] = await Promise.all([fetchJson(newsUrl), fetchSteamNewsRssImages()]);
+      gameNews = mapNewsItems(newsData?.appnews?.newsitems, "STEAM NEWS", rssImages);
     } catch (error) {
       console.warn(`Could not load Steam news for AppID ${appid}: ${error.message}`);
     }
