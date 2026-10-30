@@ -94,6 +94,7 @@ export default function App() {
   const [regionalMarketError, setRegionalMarketError] = useState("");
   const [regionalMarketUpdatedAt, setRegionalMarketUpdatedAt] = useState(null);
   const calculatorRef = useRef(null);
+  const gameRequestRef = useRef(0);
   const searchRef = useRef(null);
   const headerSearchRef = useRef(null);
   const debounceRef = useRef(null);
@@ -125,6 +126,7 @@ export default function App() {
     }
     setCurrentPage("game");
     if (window.location.hash !== `#/game/${id}`) window.history.pushState(null, "", `#/game/${id}`);
+    const requestId = ++gameRequestRef.current;
     setLoading(true);
     setError("");
     setSearchOpen(false);
@@ -143,7 +145,8 @@ export default function App() {
           .then((response) => response.ok ? response.json() : null)
           .then((bundleData) => {
             if (!bundleData || !Array.isArray(bundleData.bundles)) return;
-            setGame((current) => String(current?.appid) === String(id) && String(region) === String(cc)
+            if (requestId !== gameRequestRef.current) return;
+            setGame((current) => String(current?.appid) === String(id)
               ? { ...current, bundles: bundleData.bundles }
               : current);
           })
@@ -358,8 +361,9 @@ export default function App() {
         const response = await fetch("/api/shop-data");
         const data = await readApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
-        if (!Number.isFinite(Number(data.Key)) || !Number.isFinite(Number(data.KeyBuy))) throw new Error("The shop API returned an unexpected price format.");
-        if (!cancelled) { setShopData(data); setShopDataUpdatedAt(new Date()); }
+        const keyPrice = Number(String(data.Key ?? "").replace(/[\\s,٬]/g, ""));
+        if (!Number.isFinite(keyPrice) || keyPrice <= 0) throw new Error("The shop API returned an invalid key price.");
+        if (!cancelled) { setShopData({ ...data, Key: keyPrice }); setShopDataUpdatedAt(new Date()); }
       } catch (error) {
         if (!cancelled) setShopDataError(error.message || "Live key prices are temporarily unavailable.");
       } finally {
