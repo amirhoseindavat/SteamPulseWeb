@@ -619,7 +619,24 @@ app.get("/api/game/:appid", async (req, res) => {
       }
     }
 
+    const mapNewsItems = (items, fallbackLabel) => (items || []).map((item) => {
+      const rawContents = String(item.contents || "");
+      const imageMatch = rawContents.match(/<img[^>]+src=["']([^"']+)["']/i)
+        || rawContents.match(/\[img\](https?:\/\/[^\[]+)\[\/img\]/i)
+        || rawContents.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>]*)?/i);
+      return {
+        gid: item.gid,
+        title: item.title || "Game update",
+        url: item.url || `https://store.steampowered.com/news/app/${appid}`,
+        date: Number(item.date) || 0,
+        feedlabel: item.feedlabel || fallbackLabel,
+        image: imageMatch ? imageMatch[1].replace(/\[\/img\]$/, "") : d.header_image || "",
+        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\[\/?(?:img|url)[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 420)
+      };
+    });
+
     let gameNews = [];
+    let externalNews = [];
     try {
       const newsUrl = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/");
       newsUrl.searchParams.set("appid", String(appid));
@@ -628,16 +645,23 @@ app.get("/api/game/:appid", async (req, res) => {
       newsUrl.searchParams.set("maxlength", "600");
       newsUrl.searchParams.set("format", "json");
       const newsData = await fetchJson(newsUrl);
-      gameNews = (newsData?.appnews?.newsitems || []).map((item) => ({
-        gid: item.gid,
-        title: item.title || "Game update",
-        url: item.url || `https://store.steampowered.com/news/app/${appid}`,
-        date: Number(item.date) || 0,
-        feedlabel: item.feedlabel || "STEAM NEWS",
-        contents: String(item.contents || "").replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 420)
-      }));
+      gameNews = mapNewsItems(newsData?.appnews?.newsitems, "STEAM NEWS");
     } catch (error) {
       console.warn(`Could not load Steam news for AppID ${appid}: ${error.message}`);
+    }
+
+    try {
+      const externalUrl = new URL("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/");
+      externalUrl.searchParams.set("appid", String(appid));
+      externalUrl.searchParams.set("count", "12");
+      externalUrl.searchParams.set("maxlength", "600");
+      externalUrl.searchParams.set("format", "json");
+      const externalData = await fetchJson(externalUrl);
+      const externalItems = (externalData?.appnews?.newsitems || [])
+        .filter((item) => String(item.feedname || "").toLowerCase() !== "steam_community_announcements");
+      externalNews = mapNewsItems(externalItems, "EXTERNAL NEWS");
+    } catch (error) {
+      console.warn(`Could not load external news for AppID ${appid}: ${error.message}`);
     }
 
     const result = {
@@ -669,6 +693,7 @@ app.get("/api/game/:appid", async (req, res) => {
       recommendations: d.recommendations?.total ?? null,
       screenshots: (d.screenshots || []).map((s) => s.path_full).filter(Boolean),
       news: gameNews,
+      external_news: externalNews,
       movies: (d.movies || []).map((m) => ({
         name: m.name,
         thumbnail: m.thumbnail,
