@@ -70,7 +70,7 @@
 .dlc-copy>span{font-size:11px;color:#c4cce0}
 .dlc-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
 .dlc-open-button,.dlc-store-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #ffffff1e;border-radius:5px;padding:6px 8px;background:#ffffff08;color:#cfd7eb;font-size:10px;font-weight:600;text-decoration:none;cursor:pointer}
-.dlc-open-button{background:#7657e90f;border-color:#8b6cff55;color:#c6b9ff}
+.dlc-open-button{background:#7657e90f;border-color:#8b6cff55;color:#c6b9ff;text-decoration:none}
 .dlc-open-button:hover,.dlc-store-button:hover{border-color:#9e8bff;color:#fff}
 @media(max-width:520px){.dlc-card>img{width:88px;min-width:88px;height:50px}.dlc-actions{gap:5px}.dlc-open-button,.dlc-store-button{padding:6px;font-size:9px}}
 
@@ -153,7 +153,7 @@
 .discovery-tabs button:hover{color:#e7eaff;background:#ffffff07}
 .discovery-tabs button.active{color:#c7baff;border-color:#8b6cff50;background:#8b6cff16}
 .discovery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
-.discovery-card{display:flex;flex-direction:column;min-width:0;padding:0;overflow:hidden;text-align:left;border:1px solid #ffffff13;border-radius:11px;background:#080e1d80;color:inherit;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
+.discovery-card{display:flex;text-decoration:none;flex-direction:column;min-width:0;padding:0;overflow:hidden;text-align:left;border:1px solid #ffffff13;border-radius:11px;background:#080e1d80;color:inherit;cursor:pointer;transition:transform .18s,border-color .18s,background .18s}
 .discovery-card:hover{transform:translateY(-3px);border-color:#8b6cff80;background:#111a30}
 .discovery-image-wrap{position:relative;display:block;aspect-ratio:460/215;overflow:hidden;background:#202943}
 .discovery-image-wrap img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .25s}
@@ -180,7 +180,7 @@
 .free-games-section{margin-top:22px;padding:25px;border:1px solid #75e0b126;border-radius:17px;background:linear-gradient(135deg,rgba(18,35,43,.94),rgba(11,18,34,.96))}
 .free-games-section .section-kicker{color:#82e6bd}
 .free-game-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #75e0b126;border-radius:11px;background:#080e1d99}
-.free-game-main{display:flex;flex:1;flex-direction:column;min-width:0;padding:0;border:0;text-align:left;background:transparent;color:inherit;cursor:pointer}
+.free-game-main{display:flex;text-decoration:none;flex:1;flex-direction:column;min-width:0;padding:0;border:0;text-align:left;background:transparent;color:inherit;cursor:pointer}
 .free-game-main .discovery-image-wrap{width:100%}
 .free-game-main .discovery-badge{color:#9af0c7;border-color:#75e0b144}
 .free-game-main .discovery-card-copy{width:100%;box-sizing:border-box}
@@ -224,7 +224,7 @@
 .browse-games-section .discovery-heading{margin-bottom:18px}
 .browse-games-section .section-kicker{display:flex;align-items:center;gap:7px}
 .browse-games-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
-.browse-game-card{display:grid;grid-template-columns:24px 132px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-width:0;min-height:82px;padding:10px 11px;border:1px solid transparent;border-radius:5px;background:rgba(103,193,245,.035);color:inherit;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
+.browse-game-card{display:grid;text-decoration:none;grid-template-columns:24px 132px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-width:0;min-height:82px;padding:10px 11px;border:1px solid transparent;border-radius:5px;background:rgba(103,193,245,.035);color:inherit;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
 .browse-game-card:hover{border-color:rgba(102,192,244,.28);background:linear-gradient(90deg,rgba(102,192,244,.15),rgba(102,192,244,.055))}
 .browse-game-rank{color:#8b9bad;font:500 13px/1 "DM Mono",monospace;text-align:center}
 .browse-game-card>img{display:block;width:132px;aspect-ratio:460/215;object-fit:contain;border-radius:2px;background:transparent}
