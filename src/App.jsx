@@ -137,6 +137,7 @@ export default function App() {
     try {
       const response = await fetch(`/api/game/${id}?cc=${cc}`);
       const data = await readApiResponse(response);
+      if (requestId !== gameRequestRef.current) return;
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
       // Bundle discovery can be slow on some Steam pages; load it after the main game details.
@@ -741,7 +742,7 @@ export default function App() {
               <div className="calculator-content">
                 <label className="usd-price-field"><span>Steam price ({selectedRegion.currency})</span><div><span>{selectedRegion.currency}</span><input type="number" min="0" step="0.01" value={regionalPriceInput} onChange={(e) => setRegionalPriceInput(e.target.value)} placeholder="48.00" aria-label={`Steam price in ${selectedRegion.currency}`} /></div></label>
                 <div className="calculator-result"><small>KEYS REQUIRED</small><strong>{keyCount ? formatNumber(keyCount) : "—"} <span>Keys</span></strong><p>{keyCount && regionalKeyPriceForCalculation > 0 ? `${keyCount} × ${formatNumber(regionalKeyPriceForCalculation)} ${selectedRegion.currency} net/key` : regionalKeyPrice?.error || "Loading live Steam key price for this region…"}</p></div>
-                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : regionalKeyPrice?.error || "Loading live shop key price…"}</p></div>
+                <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : shopDataError || regionalKeyPrice?.error || "Loading live shop key price…"}</p></div>
               </div>
             </section>
           </div>
