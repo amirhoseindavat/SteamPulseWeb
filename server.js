@@ -190,10 +190,11 @@ async function fetchSteamBundles(appid, cc) {
         }
       };
 
-      // Standard bundle links, including absolute and relative Steam URLs.
-      addIds([...html.matchAll(/(?:https?:\/\/(?:store\.)?steampowered\.com)?\/bundle\/(\d+)(?:[/?#"' \s]|$)/gi)].map((match) => match[1]));
-      // Steam page metadata and inline bundle payloads use several attribute/key names.
-      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)].map((match) => match[1]));
+      // Steam markup may contain normal, HTML-escaped, or JSON-escaped bundle URLs.
+      addIds([...html.matchAll(/bundle\\?\\?\/(?:\\?\\?)?(\d+)/gi)].map((match) => match[1]));
+      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\?s*(?:=|:)\\?s*["']?(\d+)/gi)].map((match) => match[1]));
+      // Bundle IDs are also embedded in the app's purchase-option payload.
+      addIds([...html.matchAll(/["']bundleid["']\\?s*:\\?s*(\d+)/gi)].map((match) => match[1]));
 
       const bundleIds = [...foundIds].slice(0, 40);
       if (!bundleIds.length) return [];
@@ -208,10 +209,16 @@ async function fetchSteamBundles(appid, cc) {
       });
 
       // Steam has returned both arrays and objects keyed by bundle ID.
-      const rawBundles = Array.isArray(resolved)
-        ? resolved
-        : resolved && typeof resolved === "object"
-          ? Object.entries(resolved).map(([id, bundle]) => ({ ...(bundle || {}), bundleid: bundle?.bundleid || bundle?.id || id }))
+      const bundlePayload = Array.isArray(resolved) ? resolved
+        : Array.isArray(resolved?.bundles) ? resolved.bundles
+          : Array.isArray(resolved?.bundle_data) ? resolved.bundle_data
+            : Array.isArray(resolved?.data) ? resolved.data
+              : resolved;
+      const rawBundles = Array.isArray(bundlePayload)
+        ? bundlePayload
+        : bundlePayload && typeof bundlePayload === "object"
+          ? Object.entries(bundlePayload).filter(([, value]) => value && typeof value === "object")
+            .map(([id, bundle]) => ({ ...bundle, bundleid: bundle.bundleid || bundle.bundle_id || bundle.id || id }))
           : [];
 
       const byId = new Map();
