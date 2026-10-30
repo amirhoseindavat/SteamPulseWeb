@@ -221,6 +221,67 @@ async function fetchSteamBundles(appid, cc) {
   return [];
 }
 
+function decodeSteamHtml(value = "") {
+  return String(value)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchSteamTopSellers(cc) {
+  const url = new URL("https://store.steampowered.com/search/results/");
+  url.searchParams.set("query", "");
+  url.searchParams.set("start", "0");
+  url.searchParams.set("count", "50");
+  url.searchParams.set("dynamic_data", "");
+  url.searchParams.set("sort_by", "_ASC");
+  url.searchParams.set("snr", "1_7_7_7000_7");
+  url.searchParams.set("filter", "topsellers");
+  url.searchParams.set("category1", "998");
+  url.searchParams.set("os", "win");
+  url.searchParams.set("cc", cc.toLowerCase());
+  url.searchParams.set("l", "english");
+  url.searchParams.set("infinite", "1");
+
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/javascript, */*; q=0.01",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    signal: AbortSignal.timeout(12000)
+  });
+  if (!response.ok) throw new Error("Steam Top Sellers search failed (" + response.status + ")");
+  const payload = await response.json();
+  const html = String(payload.results_html || "");
+  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
+
+  return rows.map((row) => {
+    const attr = (name) => row.match(new RegExp(name + '=["\\']([^"\\']*)["\\']', "i"))?.[1] || "";
+    const id = Number(attr("data-ds-appid").split(",")[0]);
+    const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+    const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
+    const price = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
+    if (!Number.isFinite(id) || id <= 0 || !title) return null;
+    return {
+      id,
+      name: decodeSteamHtml(title),
+      type: "game",
+      image: image.replace(/&amp;/g, "&"),
+      price: decodeSteamHtml(price),
+      badge: "TOP SELLER"
+    };
+  }).filter(Boolean);
+}
+
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
   const key = `discover:${cc}`;
@@ -281,11 +342,26 @@ app.get("/api/discover", async (req, res) => {
       }));
     };
 
-    const [newReleases, upcoming, topSellers] = await Promise.all([
+    const [newReleases, upcoming, featuredTopSellers, fullTopSellers] = await Promise.all([
       normalize(data?.new_releases?.items, "NEW"),
       normalize(data?.coming_soon?.items, "UPCOMING"),
-      normalize(data?.top_sellers?.items, "TRENDING")
+      normalize(data?.top_sellers?.items, "TOP SELLER"),
+      fetchSteamTopSellers(cc).catch((error) => {
+        console.warn("Could not load the full Steam Top Sellers list:", error.message);
+        return [];
+      })
     ]);
+    // The homepage featured-categories API only returns a short Top Sellers
+    // selection. The search-results endpoint exposes the full ranked list.
+    // Merge both sources by AppID so valid titles are not lost if one source
+    // omits an item or temporarily returns an incomplete page.
+    const topSellerMap = new Map();
+    for (const item of [...fullTopSellers, ...featuredTopSellers]) {
+      if (item?.id && !topSellerMap.has(Number(item.id))) {
+        topSellerMap.set(Number(item.id), { ...item, badge: "TOP SELLER" });
+      }
+    }
+    const topSellers = [...topSellerMap.values()].slice(0, 50);
     const result = { newReleases, upcoming, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
