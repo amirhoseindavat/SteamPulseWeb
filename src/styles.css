@@ -1158,3 +1158,36 @@
 @media (max-width: 620px) {
   .free-games-section .discovery-grid { margin-top: 18px; }
 }
+
+
+/* Consistent card surfaces for DLC and Game Intel. */
+.dlc-section-card { margin-top: 30px; }
+.dlc-section-card .detail-header { margin-bottom: 20px; }
+.game-intel-card { margin-top: 30px; padding: 24px; }
+.game-intel-card > .detail-header { margin-bottom: 22px; }
+.game-intel-card .screenshots-grid,
+.game-intel-card .videos-grid,
+.game-intel-card .game-news-grid { min-width: 0; }
+.videos-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.video-card { min-width:0; overflow:hidden; border:1px solid var(--line); border-radius:11px; background:#ffffff05; }
+.video-thumb { display:block; position:relative; aspect-ratio:16/9; overflow:hidden; background:#10182a; }
+.video-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.video-thumb>span { position:absolute; inset:0; display:grid; place-items:center; color:white; background:#0003; }
+.video-thumb>span svg { width:42px; height:42px; padding:11px; border-radius:50%; background:#8b6cffd9; }
+.video-copy { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px; }
+.video-copy strong { font-size:11px; color:#dce4f7; }
+.video-copy a,.game-news-card>a { display:inline-flex; align-items:center; gap:6px; color:#b7a6ff; font-size:10px; white-space:nowrap; }
+.game-news-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+.game-news-card { min-width:0; padding:17px; border:1px solid var(--line); border-radius:11px; background:#ffffff05; }
+.game-news-meta { display:flex; justify-content:space-between; gap:10px; color:#8e7bda; font:9px 'DM Mono',monospace; text-transform:uppercase; }
+.game-news-meta time { color:#74809b; }
+.game-news-card h3 { margin:12px 0 8px; font-size:13px; line-height:1.5; color:#e0e6f6; }
+.game-news-card p { margin:0 0 14px; color:#929fba; font-size:10px; line-height:1.7; }
+.game-news-card>a { white-space:normal; }
+.game-intel-card .detail-header { flex-wrap:wrap; }
+@media(max-width:700px) {
+  .videos-grid,.game-news-grid { grid-template-columns:1fr; }
+  .game-intel-card { padding:16px; }
+  .game-intel-card .tabs { max-width:100%; overflow-x:auto; }
+  .game-intel-card .tabs button { padding:8px 10px; white-space:nowrap; }
+}
