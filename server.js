@@ -191,9 +191,9 @@ async function fetchSteamBundles(appid, cc) {
       };
 
       // Standard bundle links, including absolute and relative Steam URLs.
-      addIds([...html.matchAll(/(?:https?:\\/\\/(?:store\\.)?steampowered\\.com)?\\/bundle\\/(\\d+)(?:[/?#"'\\s]|$)/gi)].map((match) => match[1]));
+      addIds([...html.matchAll(/(?:https?:\/\/(?:store\.)?steampowered\.com)?\/bundle\/(\d+)(?:[/?#"' \s]|$)/gi)].map((match) => match[1]));
       // Steam page metadata and inline bundle payloads use several attribute/key names.
-      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\s*(?:=|:)\\s*["']?(\\d+)/gi)].map((match) => match[1]));
+      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)].map((match) => match[1]));
 
       const bundleIds = [...foundIds].slice(0, 40);
       if (!bundleIds.length) return [];
