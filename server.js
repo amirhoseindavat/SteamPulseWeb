@@ -377,9 +377,10 @@ app.get("/api/discover", async (req, res) => {
         name: item.name,
         type: "game",
         image: item.large_capsule_image || item.header_image || item.small_capsule_image || "",
-        price: item.final_price != null
+        priceValue: item.final_price != null ? Number(item.final_price) / 100 : null,
+        price: item.final_formatted || (item.final_price != null
           ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.currency || "USD" }).format(Number(item.final_price) / 100)
-          : (item.final_formatted || ""),
+          : ""),
         releaseDate: item.release_date?.date || item.release_date || "",
         subtitle: item.discount_percent ? `${item.discount_percent}% off` : "",
         badge
@@ -405,7 +406,18 @@ app.get("/api/discover", async (req, res) => {
         topSellerMap.set(Number(item.id), { ...item, badge: "TOP SELLER" });
       }
     }
-    const topSellers = [...topSellerMap.values()].slice(0, 50);
+    const hasPaidPrice = (item) => {
+      if (item.priceValue != null && Number.isFinite(Number(item.priceValue))) {
+        return Number(item.priceValue) > 0;
+      }
+      const price = String(item.price || "").trim();
+      if (!price || /\bfree(?:\s+to\s+play)?\b|price unavailable|not available/i.test(price)) return false;
+      const match = price.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*([\d.,]+)|([\d.,]+)\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+      return Boolean(match && Number((match[1] || match[2]).replace(/[.,]/g, "")) > 0);
+    };
+    // Top Sellers must contain purchasable games only; featured-category
+    // entries can otherwise leak in with a zero or missing price.
+    const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
     const result = { newReleases, upcoming, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
