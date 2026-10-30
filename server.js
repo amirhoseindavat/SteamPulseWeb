@@ -296,7 +296,8 @@ async function fetchSteamTopSellers(cc) {
     const finalPriceHtml = getClassContent(row, "discount_final_price");
     const originalPriceHtml = getClassContent(row, "discount_original_price");
     const discountPercentHtml = getClassContent(row, "discount_pct");
-    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>\s*<\/a>/i)?.[1] || "";
+    const releaseDateHtml = getClassContent(row, "search_released");
+    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^"']*>([\s\S]*?)<\/div>\s*<\/a>/i)?.[1] || "";
     const discountPercent = Number(decodeSteamHtml(discountPercentHtml).replace(/[^0-9]/g, "")) || 0;
     const finalPriceText = decodeSteamHtml(finalPriceHtml);
     const containerText = decodeSteamHtml(priceContainer);
@@ -315,6 +316,7 @@ async function fetchSteamTopSellers(cc) {
       name: decodeSteamHtml(title),
       type: "game",
       image: image.replace(/&amp;/g, "&"),
+      releaseDate: decodeSteamHtml(releaseDateHtml),
       price,
       originalPrice: decodeSteamHtml(originalPriceHtml || ""),
       discountPercent: hasValidPrice ? discountPercent : 0,
