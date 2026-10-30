@@ -269,10 +269,10 @@ async function fetchSteamTopSellers(cc) {
     const id = Number(attr("data-ds-appid").split(",")[0]);
     const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
-    const priceBlock = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "";
-    const discountPercent = Number(decodeSteamHtml(priceBlock.match(/discount_pct[^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "").replace(/[^0-9]/g, "")) || 0;
-    const finalPriceHtml = priceBlock.match(/discount_final_price[^>]*>([\\s\\S]*?)<\\/div>/i)?.[1];
-    const originalPriceHtml = priceBlock.match(/discount_original_price[^>]*>([\\s\\S]*?)<\\/div>/i)?.[1];
+    const priceBlock = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
+    const discountPercent = Number(decodeSteamHtml(priceBlock.match(/discount_pct[^>]*>([\s\S]*?)<\/div>/i)?.[1] || "").replace(/[^0-9]/g, "")) || 0;
+    const finalPriceHtml = priceBlock.match(/discount_final_price[^>]*>([\s\S]*?)<\/div>/i)?.[1];
+    const originalPriceHtml = priceBlock.match(/discount_original_price[^>]*>([\s\S]*?)<\/div>/i)?.[1];
     const price = decodeSteamHtml(finalPriceHtml || priceBlock);
     const priceValue = /free(?: to play)?/i.test(price) ? 0 : null;
     if (!Number.isFinite(id) || id <= 0 || !title || priceValue === 0) return null;
