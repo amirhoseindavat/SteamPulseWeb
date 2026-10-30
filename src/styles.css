@@ -227,7 +227,7 @@
 .browse-game-card{display:grid;grid-template-columns:24px 132px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-width:0;min-height:82px;padding:10px 11px;border:1px solid transparent;border-radius:5px;background:rgba(103,193,245,.035);color:inherit;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
 .browse-game-card:hover{border-color:rgba(102,192,244,.28);background:linear-gradient(90deg,rgba(102,192,244,.15),rgba(102,192,244,.055))}
 .browse-game-rank{color:#8b9bad;font:500 13px/1 "DM Mono",monospace;text-align:center}
-.browse-game-card>img{display:block;width:132px;aspect-ratio:460/215;object-fit:contain;border-radius:2px;background:#202943}
+.browse-game-card>img{display:block;width:132px;aspect-ratio:460/215;object-fit:contain;border-radius:2px;background:transparent}
 .browse-game-info{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:6px}
 .browse-game-info>strong{overflow:hidden;color:#dce7f2;font-size:14px;font-weight:600;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}
 .browse-game-release{overflow:hidden;color:#8b9bad;font-size:11px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
