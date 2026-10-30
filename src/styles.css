@@ -223,20 +223,21 @@
 .browse-games-section{margin-top:24px;padding:25px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(135deg,rgba(20,29,51,.96),rgba(11,18,34,.95))}
 .browse-games-section .discovery-heading{margin-bottom:18px}
 .browse-games-section .section-kicker{display:flex;align-items:center;gap:7px}
-.browse-games-list{display:flex;flex-direction:column;gap:3px}
-.browse-game-card{display:grid;grid-template-columns:30px 150px minmax(0,1fr) auto;align-items:center;gap:15px;width:100%;min-width:0;min-height:82px;padding:10px 13px;border:1px solid transparent;border-radius:5px;background:rgba(103,193,245,.035);color:inherit;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
+.browse-games-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.browse-game-card{display:grid;grid-template-columns:24px 132px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-width:0;min-height:82px;padding:10px 11px;border:1px solid transparent;border-radius:5px;background:rgba(103,193,245,.035);color:inherit;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
 .browse-game-card:hover{border-color:rgba(102,192,244,.28);background:linear-gradient(90deg,rgba(102,192,244,.15),rgba(102,192,244,.055))}
 .browse-game-rank{color:#8b9bad;font:500 13px/1 "DM Mono",monospace;text-align:center}
-.browse-game-card>img{display:block;width:150px;aspect-ratio:460/215;object-fit:cover;border-radius:2px;background:#202943}
-.browse-game-info{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:7px}
+.browse-game-card>img{display:block;width:132px;aspect-ratio:460/215;object-fit:cover;border-radius:2px;background:#202943}
+.browse-game-info{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:6px}
 .browse-game-info>strong{overflow:hidden;color:#dce7f2;font-size:14px;font-weight:600;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}
-.browse-game-meta{color:#7f96a9;font-size:10px;font-weight:600;letter-spacing:.055em}
+.browse-game-release{overflow:hidden;color:#8b9bad;font-size:11px;line-height:1.35;text-overflow:ellipsis;white-space:nowrap}
 .browse-game-price-area{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:145px}
 .browse-game-price{color:#dce7f2;font:600 13px/1.25 "DM Mono",monospace;white-space:nowrap}
 .browse-game-discount{display:inline-flex;align-items:center;padding:5px 7px;border-radius:2px;background:#4c6b22;color:#d2efa1;font:700 11px/1 "DM Mono",monospace;white-space:nowrap}
 .browse-game-arrow{flex-shrink:0;color:#7892a5;opacity:.65;transition:transform .16s,color .16s}
 .browse-game-card:hover .browse-game-arrow{transform:translateX(3px);color:#c7e8fa;opacity:1}
-@media(max-width:760px){.browse-games-section{padding:18px 13px}.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr);gap:10px;min-height:72px;padding:8px}.browse-game-card>img{width:112px}.browse-game-price-area{grid-column:3;justify-content:flex-start;min-width:0;margin-top:-2px}.browse-game-info{gap:4px}.browse-game-info>strong{font-size:12px}.browse-game-meta{font-size:9px}.browse-game-price{font-size:12px}.browse-game-discount{padding:4px 6px;font-size:10px}.browse-game-arrow{display:none}}
+@media(max-width:1100px){.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr) auto;gap:10px}.browse-game-card>img{width:112px}}
+@media(max-width:760px){.browse-games-section{padding:18px 13px}.browse-games-list{grid-template-columns:1fr}.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr);gap:10px;min-height:72px;padding:8px}.browse-game-card>img{width:112px}.browse-game-price-area{grid-column:3;justify-content:flex-start;min-width:0;margin-top:-2px}.browse-game-info{gap:4px}.browse-game-info>strong{font-size:12px}.browse-game-release{font-size:10px}.browse-game-price{font-size:12px}.browse-game-discount{padding:4px 6px;font-size:10px}.browse-game-arrow{display:none}}
 @media(max-width:420px){.browse-game-card{grid-template-columns:18px 96px minmax(0,1fr);gap:8px}.browse-game-card>img{width:96px}.browse-game-price-area{gap:7px}}
 
 /* Give About this game more room and show its full description */
