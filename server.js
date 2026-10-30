@@ -190,11 +190,12 @@ async function fetchSteamBundles(appid, cc) {
         }
       };
 
-      // Steam markup may contain normal, HTML-escaped, or JSON-escaped bundle URLs.
-      addIds([...html.matchAll(/bundle\\?\\?\/(?:\\?\\?)?(\d+)/gi)].map((match) => match[1]));
-      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\?s*(?:=|:)\\?s*["']?(\d+)/gi)].map((match) => match[1]));
-      // Bundle IDs are also embedded in the app's purchase-option payload.
-      addIds([...html.matchAll(/["']bundleid["']\\?s*:\\?s*(\d+)/gi)].map((match) => match[1]));
+      // Steam markup may contain normal or JSON-escaped bundle URLs.
+      addIds([...html.matchAll(/\/bundle\/(\d+)/gi)].map((match) => match[1]));
+      addIds([...html.matchAll(/\\\/bundle\\\/(\d+)/gi)].map((match) => match[1]));
+      // Steam page metadata and inline purchase payloads use several key names.
+      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)].map((match) => match[1]));
+      addIds([...html.matchAll(/["']bundleid["']\s*:\s*(\d+)/gi)].map((match) => match[1]));
 
       const bundleIds = [...foundIds].slice(0, 40);
       if (!bundleIds.length) return [];
