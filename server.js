@@ -197,6 +197,24 @@ async function fetchSteamBundles(appid, cc) {
       addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)].map((match) => match[1]));
       addIds([...html.matchAll(/["']bundleid["']\s*:\s*(\d+)/gi)].map((match) => match[1]));
 
+      // Steam shows at most three bundles on the main app page. The dedicated
+      // listing page exposes the full set when more bundles are available.
+      try {
+        const listingUrl = new URL("https://store.steampowered.com/app/" + appid + "/bundles/");
+        listingUrl.searchParams.set("cc", cc);
+        listingUrl.searchParams.set("l", "english");
+        const listingResponse = await fetch(listingUrl, { headers, signal: AbortSignal.timeout(12000) });
+        if (listingResponse.ok) {
+          const listingHtml = await listingResponse.text();
+          addIds([...listingHtml.matchAll(new RegExp("\\/bundle\\/(\\d+)", "gi"))].map((match) => match[1]));
+          addIds([...listingHtml.matchAll(new RegExp("\\\\\\/bundle\\\\\\/(\\d+)", "gi"))].map((match) => match[1]));
+          addIds([...listingHtml.matchAll(new RegExp("(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\s*(?:=|:)\\s*[\\\"']?(\\d+)", "gi"))].map((match) => match[1]));
+          addIds([...listingHtml.matchAll(new RegExp("[\\\"']bundleid[\\\"']\\s*:\\s*(\\d+)", "gi"))].map((match) => match[1]));
+        }
+      } catch (listingError) {
+        console.warn("Steam full bundle listing unavailable for AppID " + appid + ": " + listingError.message);
+      }
+
       const bundleIds = [...foundIds].slice(0, 40);
       if (!bundleIds.length) return [];
 
