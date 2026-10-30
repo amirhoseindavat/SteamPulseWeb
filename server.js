@@ -621,17 +621,28 @@ app.get("/api/game/:appid", async (req, res) => {
 
     const mapNewsItems = (items, fallbackLabel) => (items || []).map((item) => {
       const rawContents = String(item.contents || "");
-      const imageMatch = rawContents.match(/<img[^>]+src=["']([^"']+)["']/i)
-        || rawContents.match(/\[img\](https?:\/\/[^\[]+)\[\/img\]/i)
-        || rawContents.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>]*)?/i);
+      const imageCandidates = [
+        /<img\\b[^>]*?src\\s*=\\s*["']([^"']+)["']/i,
+        /\\[img\\](https?:\\/\\/[^\\[]+)\\[\\/img\\]/i,
+        /\\[img\\s+src\\s*=\\s*["']?(https?:\\/\\/[^\\s"'\\]]+)/i,
+        /https?:\\/\\/[^\\s"'<>\\]]+\\.(?:png|jpe?g|webp|gif)(?:\\?[^\\s"'<>\\]]*)?/i
+      ];
+      let image = "";
+      for (const pattern of imageCandidates) {
+        const match = rawContents.match(pattern);
+        if (match) {
+          image = String(match[1] || match[0]).replace(/[\\]\\s]*$/, "");
+          break;
+        }
+      }
       return {
         gid: item.gid,
         title: item.title || "Game update",
         url: item.url || `https://store.steampowered.com/news/app/${appid}`,
         date: Number(item.date) || 0,
         feedlabel: item.feedlabel || fallbackLabel,
-        image: imageMatch ? imageMatch[1].replace(/\[\/img\]$/, "") : d.header_image || "",
-        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\[\/?(?:img|url)[^\]]*\]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 420)
+        image,
+        contents: rawContents.replace(/<[^>]*>/g, " ").replace(/\\[\\/?(?:img|url)[^\\]]*\\]/gi, " ").replace(/\\s+/g, " ").trim().slice(0, 420)
       };
     });
 
