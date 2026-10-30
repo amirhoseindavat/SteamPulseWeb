@@ -1354,12 +1354,63 @@ const TF2_KEY_PRICE_CURRENCIES = {
   BR: 7   // BRL
 };
 
+// Keep the last valid regional price even after its fresh-cache window expires.
+// This lets the calculator continue working while Steam is rate-limiting requests.
+const REGIONAL_KEY_PRICE_CACHE_TTL = 10 * 60 * 1000;
+const REGIONAL_KEY_PRICE_RETRY_DELAY = 60 * 1000;
+const regionalKeyPriceCache = new Map();
+const regionalKeyPriceInFlight = new Map();
+const regionalKeyPriceRetryAfter = new Map();
+
 app.get("/api/key-price", async (req, res) => {
   const region = String(req.query.region || "US").toUpperCase();
   const currency = TF2_KEY_PRICE_CURRENCIES[region];
   if (!currency) return res.status(400).json({ error: "Unsupported Steam region." });
 
-  try {
+  const now = Date.now();
+  const cachedPrice = regionalKeyPriceCache.get(region);
+
+  // Serve a fresh cached value without contacting Steam.
+  if (cachedPrice && now - cachedPrice.cachedAt < REGIONAL_KEY_PRICE_CACHE_TTL) {
+    return res.json({ ...cachedPrice.value, cached: true, stale: false });
+  }
+
+  // If Steam recently failed, avoid hammering it. Use stale data if available.
+  const retryAt = regionalKeyPriceRetryAfter.get(region) || 0;
+  if (now < retryAt) {
+    if (cachedPrice) {
+      return res.json({
+        ...cachedPrice.value,
+        cached: true,
+        stale: true,
+        warning: "Steam is temporarily limiting requests; showing the last valid cached price."
+      });
+    }
+    return res.status(502).json({
+      error: `Steam price is temporarily unavailable for ${region}.`,
+      retryAfter: new Date(retryAt).toISOString()
+    });
+  }
+
+  // Reuse an in-progress request for the same region.
+  if (regionalKeyPriceInFlight.has(region)) {
+    try {
+      const value = await regionalKeyPriceInFlight.get(region);
+      return res.json(value);
+    } catch (error) {
+      if (cachedPrice) {
+        return res.json({
+          ...cachedPrice.value,
+          cached: true,
+          stale: true,
+          warning: "Steam is temporarily unavailable; showing the last valid cached price."
+        });
+      }
+      return res.status(502).json({ error: error.message || `Could not load Steam key price for ${region}.` });
+    }
+  }
+
+  const request = (async () => {
     const url = new URL("https://steamcommunity.com/market/priceoverview/");
     url.searchParams.set("appid", "440");
     url.searchParams.set("currency", String(currency));
@@ -1373,30 +1424,63 @@ app.get("/api/key-price", async (req, res) => {
       },
       signal: AbortSignal.timeout(10000)
     });
-    if (!response.ok) return res.status(502).json({ error: `Steam price API returned ${response.status} for ${region}.` });
+
+    if (!response.ok) {
+      const error = new Error(`Steam price API returned ${response.status} for ${region}.`);
+      error.status = response.status;
+      throw error;
+    }
 
     const data = await response.json();
     const rawPrice = String(data?.lowest_price || "");
-    const grossPrice = Number(rawPrice.replace(/[^0-9.,]/g, "").replace(/,(?=\d{3}(?:\D|$))/g, "").replace(",", "."));
+    const grossPrice = Number(rawPrice.replace(/[^0-9.,]/g, "").replace(/,(?=\\d{3}(?:\\D|$))/g, "").replace(",", "."));
     if (!data?.success || !Number.isFinite(grossPrice) || grossPrice <= 0) {
-      return res.status(502).json({ error: `Steam did not return a valid key price for ${region}.` });
+      throw new Error(`Steam did not return a valid key price for ${region}.`);
     }
 
     // Steam Market's seller fee is approximately 13%; use the net proceeds.
     const netPrice = Number((grossPrice * 0.87).toFixed(2));
-    res.set("Cache-Control", "no-store");
-    res.json({
+    const value = {
       region,
       currency,
       lowestPrice: rawPrice,
       grossPrice,
       feeRate: 0.13,
       netPrice,
-      fetchedAt: new Date().toISOString()
-    });
+      fetchedAt: new Date().toISOString(),
+      cached: false,
+      stale: false
+    };
+    regionalKeyPriceCache.set(region, { value, cachedAt: Date.now() });
+    regionalKeyPriceRetryAfter.delete(region);
+    return value;
+  })();
+
+  regionalKeyPriceInFlight.set(region, request);
+  try {
+    const value = await request;
+    res.set("Cache-Control", "no-store");
+    return res.json(value);
   } catch (error) {
     console.error(`Steam key price request failed for ${region}:`, error);
-    res.status(502).json({ error: `Could not load Steam key price for ${region}.`, detail: error.message });
+    regionalKeyPriceRetryAfter.set(region, Date.now() + REGIONAL_KEY_PRICE_RETRY_DELAY);
+
+    if (cachedPrice) {
+      res.set("Cache-Control", "no-store");
+      return res.json({
+        ...cachedPrice.value,
+        cached: true,
+        stale: true,
+        warning: error.message || "Steam is temporarily unavailable; showing the last valid cached price."
+      });
+    }
+
+    return res.status(502).json({
+      error: error.message || `Could not load Steam key price for ${region}.`,
+      retryAfter: new Date(Date.now() + REGIONAL_KEY_PRICE_RETRY_DELAY).toISOString()
+    });
+  } finally {
+    regionalKeyPriceInFlight.delete(region);
   }
 });
 
