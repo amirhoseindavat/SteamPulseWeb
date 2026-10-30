@@ -441,7 +441,7 @@ export default function App() {
   const liveKeyPriceToman = Number(shopData?.Key);
   const totalToman = keyCount * (Number.isFinite(liveKeyPriceToman) && liveKeyPriceToman > 0 ? liveKeyPriceToman : 0);
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
-  const tabNames = ["overview", "screenshots", "videos", "requirements", "news"];
+  const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
 
   return (
     <div className="app-shell" data-theme={theme} style={game?.background ? { backgroundImage: theme === "dark" ? `linear-gradient(180deg, rgba(8,13,27,.84) 0%, rgba(8,13,27,.94) 34rem, #080d1b 85%), url("${game.background}")` : `linear-gradient(180deg, rgba(245,247,252,.78) 0%, rgba(245,247,252,.94) 34rem, #f5f7fc 85%), url("${game.background}")` } : undefined}>
@@ -751,7 +751,14 @@ export default function App() {
             </div>}
             {activeTab === "screenshots" && <div className="screenshots-grid">{(game.screenshots || []).length ? game.screenshots.map((src, i) => <a href={src} target="_blank" rel="noreferrer" key={src} className="screenshot-card"><img src={src} loading="lazy" alt={`${game.name} screenshot ${i + 1}`} /><span><ImageIcon size={14} /> SCREENSHOT {String(i + 1).padStart(2,"0")} <ExternalLink size={13} /></span></a>) : <div className="empty-card">No screenshots are available for this title.</div>}</div>}
             {activeTab === "videos" && <div className="videos-grid">{(game.movies || []).length ? game.movies.map((movie, i) => <article className="video-card" key={`${movie.webm || movie.mp4}-${i}`}><a href={movie.mp4 || movie.webm} target="_blank" rel="noreferrer" className="video-thumb"><img src={movie.thumbnail} loading="lazy" alt="" /><span><Gamepad2 size={18} /></span></a><div className="video-copy"><strong>{movie.name || `${game.name} video ${i + 1}`}</strong><a href={movie.mp4 || movie.webm} target="_blank" rel="noreferrer">Watch video <ExternalLink size={13} /></a></div></article>) : <div className="empty-card">No videos are available for this title.</div>}</div>}
-             {activeTab === "news" && <div className="game-news-grid">{(game.news || []).length ? game.news.map((item, i) => <article className="game-news-card" key={item.gid || i}><div className="game-news-meta"><span>{item.feedlabel || "STEAM NEWS"}</span><time>{item.date ? new Date(item.date * 1000).toLocaleDateString() : ""}</time></div><h3>{item.title}</h3><p>{item.contents || "Open the article to read the full update."}</p><a href={item.url} target="_blank" rel="noreferrer">Read on Steam <ExternalLink size={13} /></a></article>) : <div className="empty-card">No recent news is available for this title.</div>}</div>}
+             {(activeTab === "steam news" || activeTab === "external news") && (() => {
+              const isSteamNews = activeTab === "steam news";
+              const items = isSteamNews ? (game.news || []) : (game.external_news || []);
+              return <div className="game-news-grid">{items.length ? items.map((item, i) => <article className="game-news-card" key={item.gid || i}>
+                {item.image && <a className="game-news-image" href={item.url} target="_blank" rel="noreferrer"><img src={item.image} loading="lazy" alt="" /></a>}
+                <div className="game-news-body"><div className="game-news-meta"><span>{item.feedlabel || (isSteamNews ? "STEAM NEWS" : "EXTERNAL NEWS")}</span><time>{item.date ? new Date(item.date * 1000).toLocaleDateString() : ""}</time></div><h3>{item.title}</h3><p>{item.contents || "Open the article to read the full update."}</p><a href={item.url} target="_blank" rel="noreferrer">{isSteamNews ? "Read on Steam" : "Read article"} <ExternalLink size={13} /></a></div>
+              </article>) : <div className="empty-card">No recent {isSteamNews ? "Steam" : "external"} news is available for this title.</div>}</div>;
+            })()}
              {activeTab === "requirements" && <div className="detail-card requirements-card"><div className="card-title"><Monitor size={17} /><h3>PC system requirements</h3></div>{game.pc_requirements?.minimum ? <div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.minimum}} /> : <p>Steam has not provided minimum PC requirements for this title.</p>}{game.pc_requirements?.recommended && <><h4>Recommended</h4><div className="requirements-copy" dangerouslySetInnerHTML={{__html: game.pc_requirements.recommended.replace(/^\s*(?:<h[1-6][^>]*>\s*Recommended\s*<\/h[1-6]>|<(?:strong|b)[^>]*>\s*Recommended\s*:?\s*<\/(?:strong|b)>|Recommended\s*:?)(?:\s|&nbsp;|<br\s*\/?>)*/i, "")}} /></>}</div>}
             </div>
           </section>
