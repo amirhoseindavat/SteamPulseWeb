@@ -1191,3 +1191,8 @@
   .game-intel-card .tabs { max-width:100%; overflow-x:auto; }
   .game-intel-card .tabs button { padding:8px 10px; white-space:nowrap; }
 }
+
+.game-news-card { padding:0; overflow:hidden; }
+.game-news-image { display:block; width:100%; aspect-ratio:16/9; overflow:hidden; background:#10182a; }
+.game-news-image img { display:block; width:100%; height:100%; object-fit:cover; }
+.game-news-body { padding:15px 17px 17px; }
