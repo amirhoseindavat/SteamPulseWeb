@@ -613,7 +613,7 @@ export default function App() {
                     <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
                     <span className="browse-game-info">
                       <strong>{item.name}</strong>
-                      <span className="browse-game-meta">STEAM TOP SELLER · APP ID {item.id}</span>
+                      <span className="browse-game-release">{item.releaseDate || "Release date unavailable"}</span>
                     </span>
                     <span className="browse-game-price-area">
                       {item.discountPercent > 0 && <span className="browse-game-discount">-{item.discountPercent}%</span>}
