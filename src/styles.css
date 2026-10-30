@@ -1203,3 +1203,15 @@
 .game-news-image { display:block; width:100%; aspect-ratio:16/9; overflow:hidden; background:#10182a; }
 .game-news-image img { display:block; width:100%; height:100%; object-fit:cover; }
 .game-news-body { padding:15px 17px 17px; }
+
+
+/* Preserve the original Steam bundle artwork proportions and show both prices. */
+.edition-image{height:auto!important;aspect-ratio:460/215;min-height:0;}
+.edition-image img{width:100%;height:100%;object-fit:contain!important;object-position:center;}
+.edition-prices{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;}
+.edition-prices s{color:#8995ad;font-size:11px;line-height:1.2;text-decoration-thickness:1px;}
+.edition-prices strong{font-size:15px;line-height:1.25;}
+.purchase-options-column .edition-prices{align-items:flex-end;}
+.purchase-options-column .edition-prices s{font-size:9px;}
+.purchase-options-column .edition-prices strong{font-size:13px;}
+@media(max-width:900px){.purchase-options-column .edition-prices strong{font-size:12px;}}
