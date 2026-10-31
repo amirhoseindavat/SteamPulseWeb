@@ -2057,3 +2057,9 @@
 }
 
 .edition-top-status{margin-left:auto;margin-right:9px;font-size:9px;font-weight:700;color:var(--muted);white-space:nowrap}.edition-top-status:has(+ .edition-discount){margin-left:0}.edition-top-status:first-of-type{color:#40c98a}
+
+/* Steam package identifiers */
+.edition-card{position:relative}
+.edition-package-id{display:inline-flex;align-items:center;margin-top:10px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:#ffffff08;color:#8f9bb7;font:8px "DM Mono",monospace;letter-spacing:.55px}
+.edition-card-owned{border-color:#50d5a355;background:linear-gradient(145deg,#12332dc9,#10182c)}
+.edition-card-owned .edition-top-status{color:#68dfb4}
