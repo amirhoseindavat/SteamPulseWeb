@@ -660,6 +660,26 @@ export default function App() {
               {steamProfileData.yearOfService && <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Years of Service</span></div><span className="profile-badge-art"><img className="profile-badge-image" src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" /></span></div>}
               <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Badges earned</span></div><strong className="profile-stat-value">{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong></div>
             </section>
+            <section className="detail-card profile-bans-card" style={{ marginBottom: 18 }}>
+              <div className="card-title"><ShieldCheck size={18} /><h3>Account ban status</h3><span style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted, #9aa3b2)" }}>STEAM PLAYER BANS</span></div>
+              {!steamProfileData.bans?.available ? <p className="profile-muted">Ban information is currently unavailable from Steam. Try refreshing the profile in a moment.</p> : <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: 10 }}>
+                  {[
+                    { label: "VAC status", value: steamProfileData.bans.vacBanned ? "VAC banned" : "No VAC ban", flagged: steamProfileData.bans.vacBanned },
+                    { label: "Game bans", value: steamProfileData.bans.numberOfGameBans ? `${formatNumber(steamProfileData.bans.numberOfGameBans)} ban(s)` : "No game bans", flagged: steamProfileData.bans.numberOfGameBans > 0 },
+                    { label: "Community", value: steamProfileData.bans.communityBanned ? "Community banned" : "No ban", flagged: steamProfileData.bans.communityBanned },
+                    { label: "Economy", value: steamProfileData.bans.economyBan === "none" ? "No ban" : steamProfileData.bans.economyBan, flagged: steamProfileData.bans.economyBan !== "none" }
+                  ].map((item) => <div key={item.label} style={{ padding: "13px 14px", borderRadius: 12, border: "1px solid var(--border, rgba(255,255,255,.1))", background: "var(--surface-2, rgba(255,255,255,.035))" }}>
+                    <div style={{ color: "var(--muted, #9aa3b2)", fontSize: 12, marginBottom: 7 }}>{item.label}</div>
+                    <strong style={{ color: item.flagged ? "#ff7373" : "#65d6a1", fontSize: 14 }}>{item.value}</strong>
+                  </div>)}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 18px", marginTop: 13, color: "var(--muted, #9aa3b2)", fontSize: 12 }}>
+                  <span>{formatNumber(steamProfileData.bans.numberOfVACBans)} VAC ban(s)</span>
+                  <span>{steamProfileData.bans.daysSinceLastBan > 0 ? `Last ban ${formatNumber(steamProfileData.bans.daysSinceLastBan)} days ago` : "No previous ban date reported"}</span>
+                </div>
+              </>}
+            </section>
             <section className="profile-content-grid">
               {steamProfileData.profile.currentGame && <div className="detail-card profile-current-game">
                 <div className="card-title"><Gamepad2 size={17} /><h3>Currently playing</h3>{steamProfileData.profile.currentGame && <span className="current-game-live"><i /> IN-GAME</span>}</div>
