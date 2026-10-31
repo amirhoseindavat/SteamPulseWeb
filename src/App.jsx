@@ -350,15 +350,21 @@ export default function App() {
       const ownedIds = [...new Set((account.rgOwnedApps || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
       const fetchDetails = async (ids) => {
         const selected = ids.slice(0, 36);
-        const results = await Promise.all(selected.map(async (id) => {
-          try {
-            const response = await fetch(`/api/game/${id}?cc=${region}`);
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data?.appid ? data : null;
-          } catch { return null; }
-        }));
-        return results.filter(Boolean);
+        const results = [];
+        let cursor = 0;
+        const workers = Array.from({ length: Math.min(4, selected.length) }, async () => {
+          while (cursor < selected.length) {
+            const id = selected[cursor++];
+            try {
+              const response = await fetch(`/api/game/${id}?cc=${region}`);
+              if (!response.ok) continue;
+              const data = await response.json();
+              if (data?.appid) results.push(data);
+            } catch { /* Keep the rest of the library usable if one Steam item fails. */ }
+          }
+        });
+        await Promise.all(workers);
+        return results;
       };
       const [wishlist, owned] = await Promise.all([fetchDetails(wishlistIds), fetchDetails(ownedIds)]);
       setLibraryItems({ wishlist, owned });
@@ -824,7 +830,7 @@ export default function App() {
             <div className="hero-header-image"><img src={game.header_image || hero || ""} alt={`${game.name} header`} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></div>
             <div className="hero-content">
               <div className="hero-topline game-hero-topline"></div>
-              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> STEAM ACCOUNT</span>{steamAccountConnected ? <div className="steam-account-statuses"><strong className={gameIsOwned ? "owned" : "not-owned"}>{gameIsOwned ? "✓ Owned" : "Not owned"}</strong><strong className={gameIsWishlisted ? "wishlisted" : "not-wishlisted"}>{gameIsWishlisted ? "♥ Wishlisted" : "Not wishlisted"}</strong></div> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamAccountSnapshot?.loginStatus === "disconnected" ? "Open Steam and sign in" : "Install SteamPulse Connect and open Steam"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
+              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> STEAM ACCOUNT</span>{steamAccountConnected ? <div className="steam-account-statuses"><strong className={gameIsOwned ? "owned" : "not-owned"}>{gameIsOwned ? (steamOwnedApps.has(Number(game.appid)) ? "✓ Owned" : "✓ Owned via package") : "Not owned"}</strong><strong className={gameIsWishlisted ? "wishlisted" : "not-wishlisted"}>{gameIsWishlisted ? "♥ Wishlisted" : "Not wishlisted"}</strong></div> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamAccountSnapshot?.loginStatus === "disconnected" ? "Open Steam and sign in" : "Install SteamPulse Connect and open Steam"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
               <div className="hero-meta">
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
                 <div className="hero-platforms" aria-label="Supported platforms">
