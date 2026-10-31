@@ -43,6 +43,15 @@
       }
 
       const data = await userdataResponse.json();
+      const bundleIds = new Set((Array.isArray(data.rgBundlesInCart) ? data.rgBundlesInCart : []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0));
+      if (/^\\/cart\\/?$/i.test(window.location.pathname)) {
+        document.querySelectorAll('[data-ds-bundleid], [data-bundleid], a[href*="/bundle/"]').forEach((element) => {
+          const raw = element.getAttribute("data-ds-bundleid") || element.getAttribute("data-bundleid") || element.getAttribute("href") || "";
+          const match = String(raw).match(/(?:bundle\\/|^)(\\d+)/i);
+          if (match) bundleIds.add(Number(match[1]));
+        });
+      }
+      data.rgBundlesInCart = [...bundleIds];
       const accountPath = new URL(accountResponse.url || ACCOUNT_URL).pathname;
       const loginStatus = /(^|\/)login\/?$/i.test(accountPath) ? "disconnected" : "connected";
 
