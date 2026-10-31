@@ -512,15 +512,6 @@ export default function App() {
     return () => { cancelled = true; };
   }, [steamAccountConnected, steamCartApps.join(","), steamCartPackages.join(","), region]);
 
-  const cartCurrency = steamCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
-  const cartTotalMinor = steamCartDetails.reduce((sum, item) => sum + (Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
-  const cartPricedItems = steamCartDetails.filter((item) => Number.isFinite(Number(item.price)));
-  const cartTotalFormatted = cartPricedItems.length
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartTotalMinor / 100)
-    : "—";
-  const cartKeyCount = regionalKeyPriceForCalculation > 0 && cartPricedItems.length
-    ? Math.ceil((cartTotalMinor / 100) / regionalKeyPriceForCalculation)
-    : null;
 
 
   const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
@@ -541,6 +532,16 @@ export default function App() {
   const numericRegionalPrice = Number(regionalPriceInput);
   const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
   const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
+  const cartCurrency = steamCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
+  const cartTotalMinor = steamCartDetails.reduce((sum, item) => sum + (Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
+  const cartPricedItems = steamCartDetails.filter((item) => Number.isFinite(Number(item.price)));
+  const cartTotalFormatted = cartPricedItems.length
+    ? new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartTotalMinor / 100)
+    : "—";
+  const cartKeyCount = regionalKeyPriceForCalculation > 0 && cartPricedItems.length
+    ? Math.ceil((cartTotalMinor / 100) / regionalKeyPriceForCalculation)
+    : null;
+
   const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPriceForCalculation > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPriceForCalculation) : 0;
   const liveKeyPriceToman = Number(shopData?.Key);
   const conversionValue = Number(conversionAmount);
