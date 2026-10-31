@@ -58,17 +58,13 @@ export default function App() {
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
-  const [libraryTab, setLibraryTab] = useState("wishlist");
-  const [libraryItems, setLibraryItems] = useState({ wishlist: [], owned: [] });
-  const [libraryLoading, setLibraryLoading] = useState(false);
-  const [libraryError, setLibraryError] = useState("");
   const [ownership, setOwnership] = useState(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|settings|profile|library)$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
@@ -256,7 +252,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|settings|profile|library)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -336,49 +332,6 @@ export default function App() {
     }
   }
 
-  async function loadSteamLibrary() {
-    const account = steamAccountSnapshot?.data;
-    if (steamAccountSnapshot?.loginStatus !== "connected" || !account) {
-      setLibraryItems({ wishlist: [], owned: [] });
-      setLibraryError("Open Steam Store in this browser while signed in, then refresh SteamPulse. SteamPulse Connect will sync your library.");
-      return;
-    }
-    setLibraryLoading(true);
-    setLibraryError("");
-    try {
-      const wishlistIds = [...new Set((account.rgWishlist || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-      const ownedIds = [...new Set((account.rgOwnedApps || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-      const fetchDetails = async (ids) => {
-        const selected = ids.slice(0, 36);
-        const results = new Array(selected.length);
-        let cursor = 0;
-        const workers = Array.from({ length: Math.min(4, selected.length) }, async () => {
-          while (cursor < selected.length) {
-            const index = cursor++;
-            const id = selected[index];
-            try {
-              const response = await fetch(`/api/game/${id}?cc=${region}`);
-              if (!response.ok) continue;
-              const data = await response.json();
-              if (data?.appid) results[index] = data;
-            } catch { /* Keep the rest of the library usable if one Steam item fails. */ }
-          }
-        });
-        await Promise.all(workers);
-        return results.filter(Boolean);
-      };
-      const [wishlist, owned] = await Promise.all([fetchDetails(wishlistIds), fetchDetails(ownedIds)]);
-      setLibraryItems({ wishlist, owned });
-    } catch (error) {
-      setLibraryError(error.message || "Could not load your Steam library.");
-    } finally {
-      setLibraryLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (currentPage === "library") loadSteamLibrary();
-  }, [currentPage, steamAccountSnapshot, region]);
 
   async function checkOwnership() {
     if (!steamProfile.trim() || !game) {
@@ -552,7 +505,7 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["library","Library"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "library" ? <Library size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
           <div className="header-search-box" ref={headerSearchRef}>
             <Search size={16} className="header-search-icon" />
@@ -587,6 +540,22 @@ export default function App() {
               {steamProfileData.yearOfService && <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Years of Service</span></div><span className="profile-badge-art"><img className="profile-badge-image" src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" /></span></div>}
               <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Badges earned</span></div><strong className="profile-stat-value">{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong></div>
             </section>
+            <section className="profile-library-preview">
+              <div className="profile-library-heading"><div><span className="section-kicker"><Library size={13} /> STEAM LIBRARY</span><h2>Your games</h2><p>A quick snapshot of your Steam account — no huge game lists or extra loading.</p></div><span className={steamAccountConnected ? "library-connection is-connected" : "library-connection"}><i />{steamAccountConnected ? "Steam connected" : "Connect Steam"}</span></div>
+              <div className="profile-library-grid">
+                <div className="profile-library-card detail-card">
+                  <div className="card-title"><Heart size={17} /><h3>Wishlist</h3><span>{formatNumber(steamWishlist.size)}</span></div>
+                  {steamWishlist.size ? <div className="profile-library-games">{[...steamWishlist].slice(0, 5).map((id) => <a key={id} href={`https://store.steampowered.com/app/${id}/`} target="_blank" rel="noreferrer" title={`Steam App ${id}`}><img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></a>)}</div> : <p className="profile-muted">{steamAccountConnected ? "Your wishlist is empty." : "Open Steam Store while signed in to sync your wishlist."}</p>}
+                  {steamWishlist.size > 5 && <small className="profile-library-more">Showing 5 of {formatNumber(steamWishlist.size)}</small>}
+                </div>
+                <div className="profile-library-card detail-card">
+                  <div className="card-title"><Gamepad2 size={17} /><h3>Owned games</h3><span>{formatNumber(steamOwnedApps.size)}</span></div>
+                  {steamOwnedApps.size ? <div className="profile-library-games">{[...steamOwnedApps].slice(0, 5).map((id) => <a key={id} href={`https://store.steampowered.com/app/${id}/`} target="_blank" rel="noreferrer" title={`Steam App ${id}`}><img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></a>)}</div> : <p className="profile-muted">{steamAccountConnected ? "No owned apps were synced." : "Sign in to Steam Store to sync owned games."}</p>}
+                  {steamOwnedApps.size > 5 && <small className="profile-library-more">Showing 5 of {formatNumber(steamOwnedApps.size)}</small>}
+                </div>
+              </div>
+              <div className="profile-library-footer"><span><PackageOpen size={14} /> {formatNumber(steamOwnedPackages.size)} package licenses synced</span><a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noreferrer">Manage licenses <ExternalLink size={13} /></a><button className="secondary-button" onClick={() => window.postMessage({ source: "STEAMPULSE_PAGE", type: "GET_ACCOUNT_SNAPSHOT" }, window.location.origin)}><RefreshCw size={13} /> Sync status</button></div>
+            </section>
             <section className="profile-content-grid">
               {steamProfileData.profile.currentGame && <div className="detail-card profile-current-game">
                 <div className="card-title"><Gamepad2 size={17} /><h3>Currently playing</h3>{steamProfileData.profile.currentGame && <span className="current-game-live"><i /> IN-GAME</span>}</div>
@@ -604,21 +573,6 @@ export default function App() {
           </>}
         </section>}
 
-        {currentPage === "library" && <section className="steam-library-page">
-          <div className="library-heading"><div><span className="section-kicker"><Library size={13} /> STEAM ACCOUNT SYNC</span><h1>Your library</h1><p>Wishlist, owned games and package ownership synced from your signed-in Steam Store session.</p></div><div className="library-heading-actions"><span className={steamAccountConnected ? "library-connection is-connected" : "library-connection"}><i />{steamAccountConnected ? "Steam connected" : "Waiting for Steam"}</span><button className="secondary-button" onClick={loadSteamLibrary} disabled={libraryLoading}><RefreshCw size={14} className={libraryLoading ? "spin" : ""} /> Refresh</button></div></div>
-          <div className="library-summary-grid">
-            <div className="library-summary-card detail-card"><span><Heart size={17} /> Wishlist</span><strong>{formatNumber(steamWishlist.size)}</strong><small>Games saved on Steam</small></div>
-            <div className="library-summary-card detail-card"><span><Gamepad2 size={17} /> Owned apps</span><strong>{formatNumber(steamOwnedApps.size)}</strong><small>Apps in your Steam library</small></div>
-            <div className="library-summary-card detail-card"><span><PackageOpen size={17} /> Owned packages</span><strong>{formatNumber(steamOwnedPackages.size)}</strong><small>Steam package licenses</small></div>
-          </div>
-          <div className="library-tabs"><button className={libraryTab === "wishlist" ? "active" : ""} onClick={() => setLibraryTab("wishlist")}><Heart size={15} /> Wishlist <span>{formatNumber(steamWishlist.size)}</span></button><button className={libraryTab === "owned" ? "active" : ""} onClick={() => setLibraryTab("owned")}><Library size={15} /> Owned games <span>{formatNumber(steamOwnedApps.size)}</span></button><a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noreferrer"><PackageOpen size={15} /> Package licenses <ExternalLink size={13} /></a></div>
-          {libraryError && <div className="library-message"><Info size={17} /><span>{libraryError}</span></div>}
-          {libraryLoading ? <div className="library-loading detail-card"><LoaderCircle size={21} className="spin" /> Loading games from your Steam account…</div> : <>
-            <div className="library-list-heading"><div><h2>{libraryTab === "wishlist" ? "Your Steam wishlist" : "Games you own"}</h2><p>{libraryTab === "wishlist" ? "Live wishlist entries from your Steam account." : "Owned apps from your Steam account. Package ownership is also checked on individual game pages."}</p></div><span>{formatNumber(libraryItems[libraryTab].length)} loaded</span></div>
-            {libraryItems[libraryTab].length ? <div className="library-game-grid">{libraryItems[libraryTab].map((item) => <article className="library-game-card detail-card" key={item.appid}><button className="library-game-open" onClick={() => loadGame(item.appid)}><img src={item.header_image || item.header_image_2x || ""} alt="" loading="lazy" /><span className="library-game-info"><strong>{item.name}</strong><small>{money(item.price_overview)} · {item.release_date || "Release date unknown"}</small></span><ChevronRight size={17} /></button><div className="library-game-footer"><span className={libraryTab === "wishlist" ? "library-state is-wishlisted" : "library-state is-owned"}>{libraryTab === "wishlist" ? <><Heart size={13} /> Wishlisted</> : <><CheckCircle2 size={13} /> Owned</>}</span><a href={item.steam_url} target="_blank" rel="noreferrer">Steam Store <ExternalLink size={12} /></a></div></article>)}</div> : <div className="library-empty detail-card"><Library size={26} /><strong>{steamAccountConnected ? "Nothing to show here" : "Connect your Steam account"}</strong><p>{steamAccountConnected ? "This section is empty, or Steam did not return any public entries." : "Sign in to Steam Store in this browser, then refresh this page."}</p></div>}
-            {(libraryTab === "wishlist" ? steamWishlist.size : steamOwnedApps.size) > libraryItems[libraryTab].length && <p className="library-limit-note">Showing the first {libraryItems[libraryTab].length} of {formatNumber(libraryTab === "wishlist" ? steamWishlist.size : steamOwnedApps.size)} entries to keep Steam requests responsive.</p>}
-          </>}
-        </section>}
 
         {currentPage === "market" && <section className="market-page">
           <div className="market-heading"><div><span className="section-kicker"><Tag size={13} /> STEAMPULSE MARKET</span><h1>Steam key market</h1><p>Live Iranian shop prices, stock and purchase links.</p></div><button className="market-refresh" onClick={() => { setShopDataLoading(true); setShopDataError(""); fetch("/api/shop-data").then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || "Could not load live key prices."); return data; }).then((data) => { setShopData(data); setShopDataUpdatedAt(new Date()); }).catch((error) => setShopDataError(error.message || "Refresh failed.")).finally(() => setShopDataLoading(false)); }} disabled={shopDataLoading}><RefreshCw size={14} className={shopDataLoading ? "spin" : ""} /> Refresh prices</button></div>
