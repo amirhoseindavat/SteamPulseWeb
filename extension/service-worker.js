@@ -1,55 +1,61 @@
-const SNAPSHOT_KEY = "steamPulseAccountSnapshot";
-const USERDATA_URL = "https://store.steampowered.com/dynamicstore/userdata/";
+var SNAPSHOT_KEY = "steamPulseAccountSnapshot";
+var USERDATA_URL = "https://store.steampowered.com/dynamicstore/userdata/";
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === "STEAMPULSE_SAVE_SNAPSHOT" && message.snapshot) {
-    chrome.storage.local.set({ [SNAPSHOT_KEY]: message.snapshot })
-      .then(() => sendResponse({ ok: true }))
-      .catch((error) => sendResponse({ ok: false, error: error.message }));
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (!message || !message.type) return false;
+
+  if (message.type === "STEAMPULSE_SAVE_SNAPSHOT" && message.snapshot) {
+    chrome.storage.local.set({ steamPulseAccountSnapshot: message.snapshot }, function () {
+      if (chrome.runtime.lastError) sendResponse({ ok: false, error: chrome.runtime.lastError.message });
+      else sendResponse({ ok: true });
+    });
     return true;
   }
 
-  if (message?.type === "STEAMPULSE_GET_SNAPSHOT") {
-    chrome.storage.local.get(SNAPSHOT_KEY)
-      .then((result) => sendResponse({ snapshot: result[SNAPSHOT_KEY] || null }))
-      .catch((error) => sendResponse({ snapshot: null, error: error.message }));
+  if (message.type === "STEAMPULSE_GET_SNAPSHOT") {
+    chrome.storage.local.get(SNAPSHOT_KEY, function (result) {
+      if (chrome.runtime.lastError) sendResponse({ snapshot: null, error: chrome.runtime.lastError.message });
+      else sendResponse({ snapshot: result[SNAPSHOT_KEY] || null });
+    });
     return true;
   }
 
-  if (message?.type === "STEAMPULSE_REFRESH_SNAPSHOT") {
+  if (message.type === "STEAMPULSE_REFRESH_SNAPSHOT") {
     fetch(USERDATA_URL + "?v=" + Date.now(), {
       credentials: "include",
       cache: "no-store",
       headers: { Accept: "application/json" }
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Steam account request failed (" + response.status + ").");
-        const data = await response.json();
-        const existing = await chrome.storage.local.get(SNAPSHOT_KEY);
-        const previousData = existing[SNAPSHOT_KEY]?.data || {};
-        // Preserve bundle IDs discovered from the rendered Steam cart page.
+    }).then(function (response) {
+      if (!response.ok) throw new Error("Steam account request failed (" + response.status + ").");
+      return response.json();
+    }).then(function (data) {
+      chrome.storage.local.get(SNAPSHOT_KEY, function (result) {
+        var previous = result[SNAPSHOT_KEY] && result[SNAPSHOT_KEY].data ? result[SNAPSHOT_KEY].data : {};
         if (!Array.isArray(data.rgBundlesInCart) || data.rgBundlesInCart.length === 0) {
-          data.rgBundlesInCart = Array.isArray(previousData.rgBundlesInCart)
-            ? previousData.rgBundlesInCart
-            : [];
+          data.rgBundlesInCart = Array.isArray(previous.rgBundlesInCart) ? previous.rgBundlesInCart : [];
         }
-        const snapshot = {
+        var snapshot = {
           source: "steam-dynamicstore-userdata",
           loginStatus: "connected",
           updatedAt: new Date().toISOString(),
-          data
+          data: data
         };
-        await chrome.storage.local.set({ [SNAPSHOT_KEY]: snapshot });
-        sendResponse({ ok: true });
-      })
-      .catch((error) => sendResponse({ ok: false, error: error.message }));
+        chrome.storage.local.set({ steamPulseAccountSnapshot: snapshot }, function () {
+          if (chrome.runtime.lastError) sendResponse({ ok: false, error: chrome.runtime.lastError.message });
+          else sendResponse({ ok: true });
+        });
+      });
+    }).catch(function (error) {
+      sendResponse({ ok: false, error: error && error.message ? error.message : String(error) });
+    });
     return true;
   }
 
-  if (message?.type === "STEAMPULSE_CLEAR_SNAPSHOT") {
-    chrome.storage.local.remove(SNAPSHOT_KEY)
-      .then(() => sendResponse({ ok: true }))
-      .catch((error) => sendResponse({ ok: false, error: error.message }));
+  if (message.type === "STEAMPULSE_CLEAR_SNAPSHOT") {
+    chrome.storage.local.remove(SNAPSHOT_KEY, function () {
+      if (chrome.runtime.lastError) sendResponse({ ok: false, error: chrome.runtime.lastError.message });
+      else sendResponse({ ok: true });
+    });
     return true;
   }
 
