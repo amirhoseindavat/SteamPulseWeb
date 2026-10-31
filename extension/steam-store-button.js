@@ -18,11 +18,16 @@
     const purchaseArea = document.querySelector("#game_area_purchase");
     if (!purchaseArea) return null;
 
-    const firstPackage = purchaseArea.querySelector(
-      ":scope > .game_area_purchase_game_wrapper, :scope > .dynamic_bundle_description, .game_area_purchase_game_wrapper, .dynamic_bundle_description"
+    // insertBefore only accepts a direct child of purchaseArea.
+    // Steam sometimes nests/rebuilds package elements, so resolve the
+    // direct child that contains the first package instead of returning
+    // a potentially nested descendant.
+    const packageSelector = ".game_area_purchase_game_wrapper, .dynamic_bundle_description";
+    const firstPackage = Array.from(purchaseArea.children).find((child) =>
+      child.matches(packageSelector) || child.querySelector(packageSelector)
     );
 
-    return firstPackage ? { purchaseArea, firstPackage } : { purchaseArea, firstPackage: null };
+    return { purchaseArea, firstPackage: firstPackage || null };
   }
 
   function addButton() {
@@ -104,6 +109,11 @@
     if (label.textContent !== gameLabel) label.textContent = gameLabel;
 
     if (target.firstPackage) {
+      // Steam can replace purchase nodes while the page is being updated.
+      // Re-check the reference immediately before insertBefore so a stale
+      // node can never trigger NotFoundError.
+      if (target.firstPackage.parentNode !== target.purchaseArea) return;
+
       if (banner.parentElement !== target.purchaseArea || banner.nextElementSibling !== target.firstPackage) {
         target.purchaseArea.insertBefore(banner, target.firstPackage);
       }
