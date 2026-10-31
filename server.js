@@ -614,94 +614,54 @@ app.get("/api/free-games", async (req, res) => {
 app.get("/api/cart-details", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
   const appids = [...new Set(String(req.query.apps || "").split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 50);
-  const packageIds = [...new Set(String(req.query.packages || "").split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 50);
-  const cacheKey = `cart-details:${cc}:a=${appids.join(".")}:p=${packageIds.join(".")}`;
+  if (!appids.length) return res.json({ region: cc, items: [] });
+
+  const cacheKey = `cart-details:${cc}:a=${appids.join(".")}`;
   const hit = cached(cacheKey);
   if (hit) return res.json(hit);
 
   try {
-    const [apps, packages] = await Promise.all([
-      mapWithConcurrency(appids, 5, async (id) => {
-        const url = new URL("https://store.steampowered.com/api/appdetails");
-        url.searchParams.set("appids", String(id));
-        url.searchParams.set("cc", cc);
-        url.searchParams.set("l", "english");
-        const envelope = (await fetchJson(url))?.[id];
-        if (!envelope?.success || !envelope.data) return { id, type: "app", name: `App ${id}`, image: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`, price: null, currency: null, url: `https://store.steampowered.com/app/${id}/` };
-        const d = envelope.data;
-        const price = d.price_overview || null;
-        return { id, type: "app", name: d.name || `App ${id}`, image: d.header_image || d.capsule_image || "", price: d.is_free ? 0 : (price?.final ?? null), initialPrice: price?.initial ?? null, formattedPrice: d.is_free ? "Free" : (price?.final_formatted || (price ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100) : "Price unavailable")), currency: price?.currency || null, url: `https://store.steampowered.com/app/${id}/`, free: Boolean(d.is_free) || Number(price?.final) === 0 };
-      }),
-      mapWithConcurrency(packageIds, 5, async (id) => {
-        const url = new URL("https://store.steampowered.com/api/packagedetails/");
-        url.searchParams.set("packageids", String(id));
-        url.searchParams.set("cc", cc);
-        url.searchParams.set("l", "english");
-        const envelope = (await fetchJson(url))?.[id];
-        if (!envelope?.success || !envelope.data) return { id, type: "package", name: `Package ${id}`, image: "", price: null, currency: null, url: `https://store.steampowered.com/sub/${id}/` };
-        const d = envelope.data;
-        const price = d.price || null;
-        const finalPrice = price?.final ?? null;
-        const packageAppIds = Array.isArray(d.apps) ? d.apps.map((app) => Number(app.id)).filter((appId) => Number.isSafeInteger(appId) && appId > 0) : [];
-        return { id, type: "package", name: d.name || `Package ${id}`, image: d.header_image || d.small_logo || "", price: finalPrice, initialPrice: price?.initial ?? null, formattedPrice: price?.final_formatted || (finalPrice != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(finalPrice) / 100) : "Price unavailable"), currency: price?.currency || null, appIds: packageAppIds, url: `https://store.steampowered.com/sub/${id}/`, free: Number(finalPrice) === 0 };
-      })
-    ]);
+    const apps = await mapWithConcurrency(appids, 5, async (id) => {
+      const url = new URL("https://store.steampowered.com/api/appdetails");
+      url.searchParams.set("appids", String(id));
+      url.searchParams.set("cc", cc);
+      url.searchParams.set("l", "english");
+      const envelope = (await fetchJson(url))?.[id];
+      const fallbackImage = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`;
+
+      if (!envelope?.success || !envelope.data) {
+        return {
+          id, type: "app", name: `App ${id}`, image: fallbackImage,
+          price: null, currency: null, url: `https://store.steampowered.com/app/${id}/`
+        };
+      }
+
+      const d = envelope.data;
+      const price = d.price_overview || null;
+      return {
+        id,
+        type: "app",
+        name: d.name || `App ${id}`,
+        image: d.header_image || d.capsule_image || fallbackImage,
+        price: d.is_free ? 0 : (price?.final ?? null),
+        initialPrice: price?.initial ?? null,
+        formattedPrice: d.is_free ? "Free" : (price?.final_formatted || (price
+          ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100)
+          : "Price unavailable")),
+        currency: price?.currency || null,
+        url: `https://store.steampowered.com/app/${id}/`,
+        free: Boolean(d.is_free) || Number(price?.final) === 0
+      };
+    });
+
     const result = {
       region: cc,
-      items: [
-        ...apps.filter((entry) => entry.status === "fulfilled").map((entry) => entry.value),
-        ...packages.filter((entry) => entry.status === "fulfilled").map((entry) => entry.value)
-      ]
+      items: apps.filter((entry) => entry.status === "fulfilled").map((entry) => entry.value)
     };
     res.json(saveCache(cacheKey, result));
   } catch (error) {
     console.error("Steam cart details failed:", error);
     res.status(502).json({ error: "Could not load Steam cart item details.", detail: error.message });
-  }
-});
-
-app.get("/api/cart-bundle-details", async (req, res) => {
-  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const ids = [...new Set(String(req.query.bundles || "").split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 30);
-  if (!ids.length) return res.json({ items: [] });
-  const key = `cart-bundles:${cc}:${ids.join(".")}`;
-  const hit = cached(key);
-  if (hit) return res.json(hit);
-  try {
-    const url = new URL("https://store.steampowered.com/actions/ajaxresolvebundles");
-    url.searchParams.set("bundleids", ids.join(","));
-    url.searchParams.set("cc", cc);
-    url.searchParams.set("l", "english");
-    const resolved = await fetchJsonWithOptions(url, {
-      headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "application/json, text/javascript, */*; q=0.01", "X-Requested-With": "XMLHttpRequest" }
-    });
-    const payload = Array.isArray(resolved) ? resolved
-      : Array.isArray(resolved?.bundles) ? resolved.bundles
-        : Array.isArray(resolved?.bundle_data) ? resolved.bundle_data
-          : Array.isArray(resolved?.data) ? resolved.data : resolved;
-    const raw = Array.isArray(payload) ? payload : payload && typeof payload === "object"
-      ? Object.entries(payload).filter(([, value]) => value && typeof value === "object").map(([id, value]) => ({ ...value, bundleid: value.bundleid || value.bundle_id || value.id || id })) : [];
-    const items = raw.map((bundle) => {
-      const id = Number(bundle?.bundleid || bundle?.bundle_id || bundle?.id);
-      if (!ids.includes(id)) return null;
-      const final = bundle.final_price ?? bundle.price;
-      const original = bundle.original_price ?? bundle.initial_price;
-      const finalValue = final != null && Number.isFinite(Number(final)) ? Number(final) / 100 : null;
-      const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "TR" ? "TRY" : cc === "AR" ? "ARS" : "USD";
-      return {
-        id, type: "bundle", name: bundle.name || bundle.bundle_name || `Steam Bundle ${id}`,
-        image: bundle.header_image_url || bundle.header_image || bundle.main_capsule || "",
-        price: finalValue == null ? null : Math.round(finalValue * 100),
-        initialPrice: original == null ? null : Number(original),
-        formattedPrice: bundle.formatted_final_price || bundle.price_formatted || (finalValue == null ? "Price unavailable" : new Intl.NumberFormat("en-US", { style: "currency", currency }).format(finalValue)),
-        currency, url: `https://store.steampowered.com/bundle/${id}/`,
-        appIds: Array.isArray(bundle.appids) ? bundle.appids.map(Number).filter((appId) => Number.isSafeInteger(appId) && appId > 0) : []
-      };
-    }).filter(Boolean);
-    res.json(saveCache(key, { items }));
-  } catch (error) {
-    console.error("Steam cart bundle details failed:", error);
-    res.status(502).json({ error: "Could not load Steam cart bundles.", detail: error.message });
   }
 });
 
