@@ -1810,3 +1810,49 @@
   backdrop-filter:none !important;
   outline:0;
 }
+
+
+/* Match the Steam region selector tile to the app's Liquid Glass surfaces. */
+.app-shell:not([data-theme="light"]) .calculator-region{
+  background:linear-gradient(145deg,rgba(255,255,255,.105),rgba(255,255,255,.045) 58%,rgba(255,255,255,.025));
+  border:1px solid rgba(255,255,255,.19);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),inset 0 -1px 0 rgba(255,255,255,.035),0 7px 22px rgba(0,0,0,.10);
+  -webkit-backdrop-filter:blur(18px) saturate(155%);
+  backdrop-filter:blur(18px) saturate(155%);
+}
+.app-shell:not([data-theme="light"]) .calculator-region select{
+  color:var(--text);
+  background:rgba(8,14,29,.30);
+  border-color:rgba(255,255,255,.17);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+.app-shell[data-theme="light"] .calculator-region{
+  background:linear-gradient(145deg,rgba(255,255,255,.43),rgba(255,255,255,.20) 62%,rgba(255,255,255,.13));
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 7px 20px rgba(65,75,110,.06);
+  -webkit-backdrop-filter:blur(18px) saturate(145%);
+  backdrop-filter:blur(18px) saturate(145%);
+}
+.app-shell[data-theme="light"] .calculator-region select{
+  color:#26324b;
+  background:rgba(255,255,255,.48);
+  border-color:rgba(150,164,194,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* Put the Steam price first, with the currency as a smaller suffix. */
+.app-shell .purchase-layout .usd-price-field .usd-price-display{gap:8px}
+.app-shell .purchase-layout .usd-price-field .usd-price-display>strong{
+  order:0;
+  font-size:24px;
+  font-weight:750;
+  letter-spacing:-.7px;
+}
+.app-shell .purchase-layout .usd-price-field .usd-price-display>span{
+  order:1;
+  font-size:11px;
+  font-weight:600;
+}
+@media(max-width:620px){
+  .app-shell .purchase-layout .usd-price-field .usd-price-display>strong{font-size:24px}
+}
