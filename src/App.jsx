@@ -531,7 +531,7 @@ export default function App() {
     : 0;
   const totalDlcCount = Math.max(Number(game?.dlc_total) || 0, visibleDlc.length);
   const dlcSectionCount = ownedDlcCount > 0
-    ? `${totalDlcCount} DLCs · `${ownedDlcCount} owned`
+    ? `${totalDlcCount} DLCs · ${ownedDlcCount} owned`
     : `${totalDlcCount} DLCs`;
   const gameIsWishlisted = Boolean(game && steamAccountConnected && steamWishlist.has(Number(game.appid)));
   const gameIsOwned = Boolean(game && steamAccountConnected && (
