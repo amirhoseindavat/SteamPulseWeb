@@ -2312,3 +2312,70 @@
   .conversion-region .region-select-control{width:100%}
   .conversion-region .region-select-control select{width:100%;min-width:0}
 }
+
+
+/* Region selectors: keep the flag above the control and use theme-aware glass surfaces. */
+.region-select-control{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border:1px solid rgba(146,164,207,.22);
+  border-radius:9px;
+  background:rgba(8,14,29,.48);
+  -webkit-backdrop-filter:blur(16px) saturate(145%);
+  backdrop-filter:blur(16px) saturate(145%);
+}
+.region-select-flag{
+  z-index:3;
+  left:13px;
+  width:24px;
+  height:18px;
+  border-radius:3px;
+  object-fit:cover;
+  display:block;
+}
+.region-select-control select,
+.region-select-control select:focus{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:100%;
+  min-height:42px;
+  padding:0 38px 0 48px !important;
+  border:0 !important;
+  border-radius:inherit;
+  outline:none;
+  color:#e8edfc !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color-scheme:dark;
+  cursor:pointer;
+}
+.region-select-control select option{
+  color:#e8edfc;
+  background:#10182b;
+}
+.app-shell[data-theme="light"] .region-select-control{
+  border-color:rgba(150,164,194,.34);
+  background:rgba(255,255,255,.72);
+}
+.app-shell[data-theme="light"] .region-select-control select,
+.app-shell[data-theme="light"] .region-select-control select:focus{
+  color:#26324b !important;
+  color-scheme:light;
+  background:transparent !important;
+}
+.app-shell[data-theme="light"] .region-select-control select option{
+  color:#26324b;
+  background:#fff;
+}
+.settings-form .region-select-control,
+.conversion-region .region-select-control,
+.calculator-region .region-select-control{
+  min-width:0;
+}
+.conversion-region .region-select-control{flex:0 1 60%;max-width:60%}
+.conversion-region .region-select-control select{min-width:0}
+@media(max-width:620px){
+  .conversion-region .region-select-control{width:100%;max-width:100%}
+}
