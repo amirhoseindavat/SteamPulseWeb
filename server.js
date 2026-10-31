@@ -1120,7 +1120,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const summariesUrl = new URL("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/");
     summariesUrl.searchParams.set("key", apiKey);
     summariesUrl.searchParams.set("steamids", steamId);
-    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult, equippedItemsResult, animatedAvatarResult, avatarFrameResult] = await Promise.allSettled([
+    const [summaryResult, gamesResult, levelResult, badgesResult, favoriteBadgeResult, friendsResult, recentResult, backgroundResult, customizationResult, equippedItemsResult, animatedAvatarResult, avatarFrameResult, bansResult] = await Promise.allSettled([
       fetchJson(summariesUrl),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId) + "&include_appinfo=true&include_played_free_games=true")),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
@@ -1132,7 +1132,8 @@ app.get("/api/steam-profile", async (req, res) => {
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
       fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetAnimatedAvatar/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
-      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetAvatarFrame/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId)))
+      fetchJson(new URL("https://api.steampowered.com/IPlayerService/GetAvatarFrame/v1/?key=" + encodeURIComponent(apiKey) + "&steamid=" + encodeURIComponent(steamId))),
+      fetchJson(new URL("https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=" + encodeURIComponent(apiKey) + "&steamids=" + encodeURIComponent(steamId)))
     ]);
     const player = summaryResult.status === "fulfilled" ? summaryResult.value?.response?.players?.[0] : null;
     const backgroundData = backgroundResult.status === "fulfilled" ? backgroundResult.value?.response?.profile_background : null;
@@ -1192,6 +1193,16 @@ app.get("/api/steam-profile", async (req, res) => {
       lastLogoff: player.lastlogoff ? new Date(Number(player.lastlogoff) * 1000).toLocaleString("en-US") : "",
       visibility: visibility === 3 ? "Public" : visibility === 2 ? "Friends only" : visibility === 1 ? "Private" : "Unknown"
     };
+    const banPlayer = bansResult.status === "fulfilled" ? bansResult.value?.players?.[0] : null;
+    const bans = banPlayer ? {
+      available: true,
+      communityBanned: Boolean(banPlayer.CommunityBanned),
+      vacBanned: Boolean(banPlayer.VACBanned),
+      numberOfVACBans: Number(banPlayer.NumberOfVACBans) || 0,
+      daysSinceLastBan: Number(banPlayer.DaysSinceLastBan) || 0,
+      numberOfGameBans: Number(banPlayer.NumberOfGameBans) || 0,
+      economyBan: String(banPlayer.EconomyBan || "none").toLowerCase()
+    } : { available: false, error: bansResult.status === "rejected" ? (bansResult.reason?.message || "Steam ban data is unavailable.") : "Steam did not return ban data." };
     const friends = friendsResult.status === "fulfilled" && Array.isArray(friendsResult.value?.friendslist?.friends) ? friendsResult.value.friendslist.friends.length : null;
     const badgeList = badges && Array.isArray(badges.badges) ? badges.badges : [];
     const totalBadges = badges ? badgeList.length : null;
@@ -1209,6 +1220,7 @@ app.get("/api/steam-profile", async (req, res) => {
     } : null;
     res.json({
       profile: { ...profile, background: backgroundImage, backgroundVideo, theme: customization?.profile_theme || "" },
+      bans,
       profileCustomization: customization ? { theme: customization.profile_theme || "", showcaseCount: Array.isArray(customization.slots) ? customization.slots.length : 0 } : null,
       favoriteBadge,
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
