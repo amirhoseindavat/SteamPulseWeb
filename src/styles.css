@@ -2025,3 +2025,33 @@
  .library-game-grid{grid-template-columns:1fr}
  .library-tabs a{margin-left:0}
 }
+
+
+/* Compact library snapshot integrated into the Steam profile. */
+.profile-library-preview{display:flex;flex-direction:column;gap:16px;margin:22px 0}
+.profile-library-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}
+.profile-library-heading h2{font-size:22px;letter-spacing:-.5px;margin:7px 0 5px}
+.profile-library-heading p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.profile-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.profile-library-card{min-width:0;padding:16px;display:flex;flex-direction:column;gap:14px}
+.profile-library-card .card-title{display:flex;align-items:center;gap:9px}
+.profile-library-card .card-title h3{margin:0;font-size:14px}
+.profile-library-card .card-title>span{margin-left:auto;color:var(--muted);font-size:12px;font-weight:700}
+.profile-library-games{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.profile-library-games a{display:block;min-width:0;overflow:hidden;border-radius:7px;background:var(--surface);aspect-ratio:460/215}
+.profile-library-games img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .2s}
+.profile-library-games a:hover img{transform:scale(1.06)}
+.profile-library-card .profile-muted{margin:0;font-size:12px;line-height:1.6}
+.profile-library-more{color:var(--muted);font-size:10px}
+.profile-library-footer{display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:11px}
+.profile-library-footer>span,.profile-library-footer>a{display:inline-flex;align-items:center;gap:7px}
+.profile-library-footer>a{color:var(--muted);text-decoration:none}
+.profile-library-footer>a:hover{color:var(--text)}
+.profile-library-footer .secondary-button{margin-left:auto;padding:8px 11px;font-size:11px}
+@media(max-width:760px){
+ .profile-library-heading{align-items:flex-start;flex-direction:column}
+ .profile-library-grid{grid-template-columns:1fr}
+ .profile-library-games{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+ .profile-library-footer{gap:12px}
+ .profile-library-footer .secondary-button{margin-left:0}
+}
