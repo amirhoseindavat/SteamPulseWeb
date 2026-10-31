@@ -1353,3 +1353,18 @@
 .app-shell[data-theme="light"] .conversion-result>strong{color:#30265b;}
 .app-shell[data-theme="light"] .conversion-result p{color:#68738d;}
 @media(max-width:620px){.conversion-heading{align-items:flex-start;flex-direction:column;}.conversion-card{padding:18px;}.conversion-region{align-items:flex-start;flex-direction:column;}.conversion-region select{width:100%;min-width:0;}.conversion-mode-grid{gap:8px;}.conversion-mode-grid button{padding:12px;}.conversion-mode-grid button strong{font-size:11px;}.conversion-mode-grid button small{font-size:9px;}.conversion-rate-grid{grid-template-columns:1fr;}}
+
+
+/* External game database shortcuts in the game hero. */
+.game-external-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:18px;}
+.game-external-actions .primary-button,.game-external-actions .external-site-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:9px 12px;font-size:11px;text-decoration:none;white-space:nowrap;}
+.game-external-actions .external-site-button{border:1px solid var(--line);background:#ffffff08;color:#c2cbe0;transition:background .18s,border-color .18s,color .18s,transform .18s;}
+.game-external-actions .external-site-button:hover{background:#8b6cff18;border-color:#9b83ff88;color:#e4dcff;transform:translateY(-1px);}
+.external-site-mark{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;font-size:9px;font-weight:900;letter-spacing:-.4px;}
+.steam-mark{background:#183b5b;color:#b9d9f4;}
+.steamdb-mark{background:#25364c;color:#9ecbff;font-size:8px;}
+.proton-mark{background:#4c7c35;color:#d6ffb7;}
+.pcgw-mark{background:#6c4c25;color:#ffe0a6;}
+.app-shell[data-theme="light"] .game-external-actions .external-site-button{background:#ffffffb8;color:#48536b;border-color:#dce2ef;}
+.app-shell[data-theme="light"] .game-external-actions .external-site-button:hover{background:#eee9ff;color:#5139ae;border-color:#a18aff;}
+@media(max-width:620px){.game-external-actions{gap:7px;}.game-external-actions .primary-button,.game-external-actions .external-site-button{min-height:35px;padding:8px 9px;font-size:10px;}.game-external-actions button{flex:0 0 auto;}}
