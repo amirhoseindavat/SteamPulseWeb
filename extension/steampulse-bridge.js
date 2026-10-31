@@ -12,9 +12,9 @@
 
   window.addEventListener("message", (event) => {
     if (event.source !== window || event.origin !== window.location.origin) return;
-    if (event.data?.source !== "STEAMPULSE_PAGE" || event.data?.type !== "GET_ACCOUNT_SNAPSHOT") return;
+    if (event.data?.source !== "STEAMPULSE_PAGE" || !["GET_ACCOUNT_SNAPSHOT", "REFRESH_ACCOUNT_SNAPSHOT"].includes(event.data?.type)) return;
 
-    chrome.runtime.sendMessage({ type: "STEAMPULSE_GET_SNAPSHOT" }, (response) => {
+    const sendSnapshot = () => chrome.runtime.sendMessage({ type: "STEAMPULSE_GET_SNAPSHOT" }, (response) => {
       const snapshot = response?.snapshot || null;
       window.postMessage({
         source: "STEAMPULSE_CONNECT",
@@ -22,5 +22,14 @@
         snapshot
       }, window.location.origin);
     });
+
+    if (event.data.type === "REFRESH_ACCOUNT_SNAPSHOT") {
+      chrome.runtime.sendMessage({ type: "STEAMPULSE_REFRESH_SNAPSHOT" }, () => {
+        void chrome.runtime.lastError;
+        window.setTimeout(sendSnapshot, 1200);
+      });
+    } else {
+      sendSnapshot();
+    }
   });
 })();
