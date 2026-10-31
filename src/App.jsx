@@ -274,11 +274,12 @@ export default function App() {
       if (event.source !== window || event.data?.source !== "STEAMPULSE_CONNECT" || event.data?.type !== "ACCOUNT_SNAPSHOT") return;
       setSteamAccountSnapshot(event.data.snapshot || null);
     };
-    const requestSteamAccount = () => {
-      window.postMessage({ source: "STEAMPULSE_PAGE", type: "GET_ACCOUNT_SNAPSHOT" }, window.location.origin);
+    const requestSteamAccount = (refresh = false) => {
+      window.postMessage({ source: "STEAMPULSE_PAGE", type: refresh ? "REFRESH_ACCOUNT_SNAPSHOT" : "GET_ACCOUNT_SNAPSHOT" }, window.location.origin);
     };
     window.addEventListener("message", receiveSteamAccount);
     requestSteamAccount();
+    requestSteamAccount(true);
     const syncTimer = window.setInterval(() => requestSteamAccount(true), 60000);
     return () => {
       window.removeEventListener("message", receiveSteamAccount);
