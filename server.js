@@ -630,7 +630,7 @@ app.get("/api/cart-details", async (req, res) => {
         if (!envelope?.success || !envelope.data) return { id, type: "app", name: `App ${id}`, image: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`, price: null, currency: null, url: `https://store.steampowered.com/app/${id}/` };
         const d = envelope.data;
         const price = d.price_overview || null;
-        return { id, type: "app", name: d.name || `App ${id}`, image: d.header_image || d.capsule_image || "", price: price?.final ?? null, initialPrice: price?.initial ?? null, formattedPrice: price?.final_formatted || (price ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100) : "Price unavailable"), currency: price?.currency || null, url: `https://store.steampowered.com/app/${id}/`, free: Boolean(d.is_free) || Number(price?.final) === 0 };
+        return { id, type: "app", name: d.name || `App ${id}`, image: d.header_image || d.capsule_image || "", price: d.is_free ? 0 : (price?.final ?? null), initialPrice: price?.initial ?? null, formattedPrice: d.is_free ? "Free" : (price?.final_formatted || (price ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100) : "Price unavailable")), currency: price?.currency || null, url: `https://store.steampowered.com/app/${id}/`, free: Boolean(d.is_free) || Number(price?.final) === 0 };
       }),
       mapWithConcurrency(packageIds, 5, async (id) => {
         const url = new URL("https://store.steampowered.com/api/packagedetails/");
