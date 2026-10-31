@@ -1362,7 +1362,7 @@ const TF2_KEY_PRICE_CURRENCIES = {
 
 // Keep the last valid regional price even after its fresh-cache window expires.
 // This lets the calculator continue working while Steam is rate-limiting requests.
-const REGIONAL_KEY_PRICE_CACHE_TTL = 10 * 60 * 1000;
+const REGIONAL_KEY_PRICE_CACHE_TTL = 60 * 60 * 1000;
 const REGIONAL_KEY_PRICE_RETRY_DELAY = 60 * 1000;
 const regionalKeyPriceCache = new Map();
 const regionalKeyPriceInFlight = new Map();
@@ -1417,35 +1417,35 @@ app.get("/api/key-price", async (req, res) => {
   }
 
   const request = (async () => {
-    const url = new URL("https://steamcommunity.com/market/priceoverview/");
-    url.searchParams.set("appid", "440");
+    const regionMeta = TF2_MARKET_REGIONS.find((item) => item.code === region) || { country: region, currency };
+    const url = new URL("https://steamcommunity.com/market/itemordershistogram");
+    url.searchParams.set("country", regionMeta.country);
+    url.searchParams.set("language", "english");
     url.searchParams.set("currency", String(currency));
-    url.searchParams.set("market_hash_name", "Mann Co. Supply Crate Key");
+    url.searchParams.set("item_nameid", "1");
+    url.searchParams.set("two_factor", "0");
+    url.searchParams.set("norender", "1");
 
     const response = await fetch(url, {
       headers: {
-        "Accept": "application/json",
+        "Accept": "application/json, text/plain, */*",
         "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0",
-        "Referer": "https://steamcommunity.com/market/"
+        "Referer": "https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/",
+        "Origin": "https://steamcommunity.com"
       },
       signal: AbortSignal.timeout(10000)
     });
-
     if (!response.ok) {
-      const error = new Error(`Steam price API returned ${response.status} for ${region}.`);
+      const error = new Error(`Steam histogram returned ${response.status} for ${region}.`);
       error.status = response.status;
       throw error;
     }
-
     const data = await response.json();
-    const rawPrice = String(data?.lowest_price || "");
-    const grossPrice = Number(rawPrice.replace(/[^0-9.,]/g, "").replace(/,(?=\\d{3}(?:\\D|$))/g, "").replace(",", "."));
-    if (!data?.success || !Number.isFinite(grossPrice) || grossPrice <= 0) {
-      throw new Error(`Steam did not return a valid key price for ${region}.`);
-    }
-
-    // Steam Market's seller fee is approximately 13%; use the net proceeds.
-    const netPrice = Number((grossPrice * 0.87).toFixed(2));
+    const rawSellOrder = Number(data?.lowest_sell_order);
+    const graphSellOrder = Array.isArray(data?.sell_order_graph) ? Number(data.sell_order_graph[0]?.[0]) : NaN;
+    const grossPrice = Number(data?.success) === 1 && rawSellOrder > 0 ? rawSellOrder / 100 : (Number(data?.success) === 1 && graphSellOrder > 0 ? graphSellOrder : NaN);
+    if (!Number.isFinite(grossPrice) || grossPrice <= 0) throw new Error(`Steam did not return a valid histogram key price for ${region}.`);
+    const rawPrice = `${String(data.price_prefix || "")}${grossPrice.toFixed(2)}${String(data.price_suffix || "")}`;
     const value = {
       region,
       currency,
