@@ -5,7 +5,7 @@
   const STEAMPULSE_URL = "http://localhost:5173/#/game/";
 
   function getAppId() {
-    const match = window.location.pathname.match(/^\\/app\\/(\\d+)(?:\\/|$)/);
+    const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
     return match ? match[1] : null;
   }
 
