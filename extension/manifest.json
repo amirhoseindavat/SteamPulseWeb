@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "SteamPulse Connect",
+  "version": "0.1.0",
+  "description": "Connects your signed-in Steam Store account to SteamPulse in your browser.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://store.steampowered.com/*"],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://store.steampowered.com/*"],
+      "js": ["steam-sync.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://amirhoseindavat.github.io/SteamPulseWeb/*",
+        "http://localhost:5173/*",
+        "http://127.0.0.1:5173/*"
+      ],
+      "js": ["steampulse-bridge.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
