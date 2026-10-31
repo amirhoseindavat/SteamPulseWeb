@@ -7,15 +7,42 @@
   const SYNC_INTERVAL_MS = 60_000;
   let syncing = false;
   let lastSyncAt = 0;
+  let contextInvalidated = false;
+
+  function hasExtensionContext() {
+    try {
+      return Boolean(chrome && chrome.runtime && chrome.runtime.id);
+    } catch (_) {
+      contextInvalidated = true;
+      return false;
+    }
+  }
 
   function sendSnapshot(snapshot) {
-    chrome.runtime.sendMessage(
-      { type: "STEAMPULSE_SAVE_SNAPSHOT", snapshot },
-      () => void chrome.runtime.lastError
-    );
+    if (!hasExtensionContext()) return;
+
+    try {
+      chrome.runtime.sendMessage(
+        { type: "STEAMPULSE_SAVE_SNAPSHOT", snapshot },
+        () => {
+          try {
+            void chrome.runtime.lastError;
+          } catch (_) {
+            contextInvalidated = true;
+          }
+        }
+      );
+    } catch (error) {
+      if (/context invalidated/i.test(error && error.message ? error.message : String(error))) {
+        contextInvalidated = true;
+        return;
+      }
+      throw error;
+    }
   }
 
   async function syncSteamAccount(force = false) {
+    if (contextInvalidated || !hasExtensionContext()) return;
     if (syncing || document.visibilityState === "hidden") return;
     if (!force && Date.now() - lastSyncAt < 15_000) return;
 
@@ -43,9 +70,10 @@
       }
 
       const data = await userdataResponse.json();
+      if (contextInvalidated || !hasExtensionContext()) return;
 
       const accountPath = new URL(accountResponse.url || ACCOUNT_URL).pathname;
-      const loginStatus = /(^|\/)login\/?$/i.test(accountPath) ? "disconnected" : "connected";
+      const loginStatus = /(^|\\/)login\\/?$/i.test(accountPath) ? "disconnected" : "connected";
 
       const snapshot = {
         source: "steam-dynamicstore-userdata",
@@ -55,24 +83,38 @@
       };
 
       sendSnapshot(snapshot);
-      document.documentElement.dataset.steampulseConnected = loginStatus;
+      if (!contextInvalidated) {
+        document.documentElement.dataset.steampulseConnected = loginStatus;
+      }
     } catch (error) {
+      const message = error && error.message ? error.message : String(error);
+      if (/context invalidated/i.test(message)) {
+        contextInvalidated = true;
+        return;
+      }
       document.documentElement.dataset.steampulseConnected = "error";
-      console.warn("[SteamPulse Connect]", error.message || error);
+      console.warn("[SteamPulse Connect]", message);
     } finally {
       syncing = false;
     }
   }
 
   syncSteamAccount(true);
-  window.setInterval(() => syncSteamAccount(false), SYNC_INTERVAL_MS);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") syncSteamAccount(true);
-  });
+  window.setInterval(() => {
+    if (!contextInvalidated) syncSteamAccount(false);
+  }, SYNC_INTERVAL_MS);
 
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message && message.type === "STEAMPULSE_REFRESH_STEAM_DATA") {
+  document.addEventListener("visibilitychange", () => {
+    if (!contextInvalidated && document.visibilityState === "visible") {
       syncSteamAccount(true);
     }
   });
+
+  if (hasExtensionContext()) {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (!contextInvalidated && message && message.type === "STEAMPULSE_REFRESH_STEAM_DATA") {
+        syncSteamAccount(true);
+      }
+    });
+  }
 })();
