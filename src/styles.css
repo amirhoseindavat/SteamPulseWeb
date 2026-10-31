@@ -2418,3 +2418,48 @@
 .custom-region-select.is-open .region-select-menu{
   z-index:1000;
 }
+
+
+/* Game search toolbar: use the region picker in place of the manual App ID field. */
+.game-region-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 205px;
+  min-width:0;
+  min-height:49px;
+  padding:0 7px 0 12px;
+  border:1px solid #29344f;
+  border-radius:10px;
+  background:rgba(8,14,29,.72);
+}
+.game-region-box>label{
+  flex:0 0 auto;
+  color:#8793ae;
+  font:9px 'DM Mono',monospace;
+  letter-spacing:.5px;
+}
+.game-region-box .custom-region-select{
+  flex:1 1 auto;
+  min-width:0;
+  border:0;
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.game-region-box .region-select-trigger{
+  min-height:43px;
+  gap:8px;
+  padding:5px 6px;
+}
+.game-region-box .region-select-value{font-size:11px}
+.game-region-box .region-select-value small{font-size:9px}
+.app-shell[data-theme="light"] .game-region-box{
+  border-color:#d8deeb;
+  background:rgba(255,255,255,.78);
+}
+.app-shell[data-theme="light"] .game-region-box>label{color:#75819a}
+@media(max-width:620px){
+  .game-region-box{flex:1 1 0;min-width:0}
+  .game-region-box .region-select-trigger{padding-left:3px;padding-right:3px}
+}
