@@ -746,7 +746,14 @@ export default function App() {
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>}
               </div>
-              <div className="hero-actions"><a className="primary-button" href={game.steam_url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={15} /></a><button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button></div>
+              <div className="hero-actions game-external-actions">
+                  <a className="primary-button" href={game.steam_url || ("https://store.steampowered.com/app/" + game.appid + "/")} target="_blank" rel="noreferrer"><span className="external-site-mark steam-mark">S</span> Steam <ExternalLink size={14} /></a>
+                  <a className="secondary-button external-site-button" href={"https://steamdb.info/app/" + game.appid + "/"} target="_blank" rel="noreferrer"><span className="external-site-mark steamdb-mark">DB</span> SteamDB <ExternalLink size={13} /></a>
+                  <a className="secondary-button external-site-button" href={"https://www.protondb.com/app/" + game.appid} target="_blank" rel="noreferrer"><span className="external-site-mark proton-mark">P</span> ProtonDB <ExternalLink size={13} /></a>
+                  <a className="secondary-button external-site-button" href={"https://www.pcgamingwiki.com/api/appid.php?appid=" + game.appid} target="_blank" rel="noreferrer"><span className="external-site-mark pcgw-mark">W</span> PCGamingWiki <ExternalLink size={13} /></a>
+                  <a className="secondary-button external-site-button" href={"https://www.google.com/search?q=" + encodeURIComponent('HowLongToBeat ' + game.name)} target="_blank" rel="noreferrer"><Clock3 size={14} /> HowLongToBeat <ExternalLink size={13} /></a>
+                  <button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button>
+                </div>
             </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
