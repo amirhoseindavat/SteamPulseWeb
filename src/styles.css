@@ -2055,3 +2055,5 @@
  .profile-library-footer{gap:12px}
  .profile-library-footer .secondary-button{margin-left:0}
 }
+
+.edition-top-status{margin-left:auto;margin-right:9px;font-size:9px;font-weight:700;color:var(--muted);white-space:nowrap}.edition-top-status:has(+ .edition-discount){margin-left:0}.edition-top-status:first-of-type{color:#40c98a}
