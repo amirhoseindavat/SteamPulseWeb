@@ -794,7 +794,7 @@ export default function App() {
               {searchOpen && !searching && query.trim().length >= 2 && results.length === 0 && <div className="search-results empty-results">No matches yet. Try another title or enter an AppID.</div>}
             </div>
             <button className="primary-button" onClick={() => /^\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
-            <div className="app-id-box"><label htmlFor="appid">APP ID</label><input id="appid" value={inputId} onChange={(e) => setInputId(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadGame(inputId)} /><button onClick={() => loadGame(inputId)} aria-label="Load AppID"><ChevronRight size={18} /></button></div>
+            <div className="game-region-box"><label>REGION</label><RegionSelect value={region} onChange={(nextRegion) => { setRegion(nextRegion); localStorage.setItem("steampulse-region", nextRegion); }} ariaLabel="Game price region" /></div>
           </div>
           <div className="popular-line"><span>POPULAR NEW RELEASES</span>{discoveryLoading && !discovery.newReleases.length ? <small>Loading Steam releases…</small> : discovery.newReleases.slice(0, 6).map((g) => <a key={g.id} href={"#/game/" + g.id} onClick={() => {setQuery(g.name);setInputId(String(g.id));loadGame(g.id, region);}}>{g.name}</a>)}{!discoveryLoading && !discovery.newReleases.length && <small>{discoveryError || "No new releases available right now."}</small>}</div>
         </section>
