@@ -44,7 +44,7 @@
 
       const data = await userdataResponse.json();
       const bundleIds = new Set((Array.isArray(data.rgBundlesInCart) ? data.rgBundlesInCart : []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0));
-      if (/^\\/cart\\/?$/i.test(window.location.pathname)) {
+      if (window.location.pathname.replace(/\\/+$/, "") === "/cart") {
         document.querySelectorAll('[data-ds-bundleid], [data-bundleid]').forEach((element) => {
           const raw = element.getAttribute("data-ds-bundleid") || element.getAttribute("data-bundleid") || "";
           const match = String(raw).match(/(\\d+)/);
