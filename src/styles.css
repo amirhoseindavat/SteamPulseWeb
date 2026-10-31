@@ -1434,3 +1434,37 @@
 .app-shell[data-theme="light"] .bundle-thumb{
   background:#eef1f7;
 }
+
+/* Shareable game snapshot card (rendered off-screen for clipboard export). */
+.share-card-render{
+  position:fixed;
+  left:-10000px;
+  top:0;
+  z-index:-1;
+  width:1100px;
+  min-height:560px;
+  box-sizing:border-box;
+  display:flex;
+  gap:34px;
+  padding:38px;
+  color:#f5f7ff;
+  background:radial-gradient(ellipse at 85% 10%,rgba(101,31,255,.28),transparent 42%),linear-gradient(135deg,#111a32,#080d1b 72%);
+  border:1px solid rgba(139,117,255,.55);
+  border-radius:28px;
+  font-family:Inter,Arial,sans-serif;
+}
+.share-card-art{width:360px;flex:0 0 360px;min-height:480px;overflow:hidden;border-radius:20px;background:#18213a}
+.share-card-art img{width:100%;height:100%;min-height:480px;object-fit:cover;display:block}
+.share-card-content{min-width:0;flex:1;display:flex;flex-direction:column}
+.share-card-brand{font-size:14px;font-weight:900;letter-spacing:3px;color:#a99aff}
+.share-card-brand span{margin-left:12px;color:#7d8ba9;font-size:11px;letter-spacing:1.5px}
+.share-card-content h1{font-size:46px;line-height:1.12;margin:26px 0 12px;color:#fff}
+.share-card-description{font-size:17px;line-height:1.55;color:#aab6d2;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.share-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:42px}
+.share-card-stats div{padding:18px 16px;border:1px solid rgba(139,117,255,.24);border-radius:15px;background:rgba(255,255,255,.045)}
+.share-card-stats small{display:block;font-size:11px;letter-spacing:1.5px;color:#8d9ab9;margin-bottom:9px}
+.share-card-stats strong{font-size:22px;color:#fff}
+.share-card-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}
+.share-card-tags span{padding:9px 14px;border-radius:30px;background:rgba(101,31,255,.17);border:1px solid rgba(139,117,255,.3);font-size:13px;color:#d5ceff}
+.share-card-footer{margin-top:auto;padding-top:22px;border-top:1px solid rgba(139,117,255,.22);display:flex;justify-content:space-between;color:#8491b0;font-size:12px;letter-spacing:1.4px}
+.share-card-footer strong{color:#b9aaff}
