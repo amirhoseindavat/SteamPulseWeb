@@ -140,6 +140,13 @@ export default function App() {
       if (requestId !== gameRequestRef.current) return;
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
+      // Keep the base game's default Steam edition selected in the purchase options.
+      const baseGamePrice = data.price_overview?.final != null ? Number(data.price_overview.final) / 100 : null;
+      const defaultEdition = (data.editions || []).find((edition) =>
+        edition.priceValue != null && baseGamePrice != null &&
+        Math.abs(Number(edition.priceValue) - baseGamePrice) < 0.01
+      ) || (data.editions || []).find((edition) => edition.priceValue != null);
+      setSelectedEditionName(defaultEdition?.name?.replace(/\s*-\s*\$\s*$/, "") || "");
       // Bundle discovery can be slow on some Steam pages; load it after the main game details.
       if (String(data.type || "").toLowerCase() !== "dlc") {
         fetch(`/api/game/${id}/bundles?cc=${cc}`)
