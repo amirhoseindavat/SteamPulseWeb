@@ -59,7 +59,6 @@ export default function App() {
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
   const [steamCartDetails, setSteamCartDetails] = useState([]);
-  const [steamCartBundleDetails, setSteamCartBundleDetails] = useState([]);
   const [steamCartDetailsLoading, setSteamCartDetailsLoading] = useState(false);
   const [steamCartDetailsError, setSteamCartDetailsError] = useState("");
   const [ownership, setOwnership] = useState(null);
@@ -487,44 +486,37 @@ export default function App() {
   const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
   const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
   const steamCartApps = (steamAccountData?.rgAppsInCart || []).map(Number);
-  const steamCartPackages = (steamAccountData?.rgPackagesInCart || []).map(Number);
-  const steamCartBundles = (steamAccountData?.rgBundlesInCart || []).map(Number);
 
   useEffect(() => {
     let cancelled = false;
-    const appIds = steamCartApps.join(",");
-    const packageIds = steamCartPackages.join(",");
-    const bundleIds = steamCartBundles.join(",");
-    if (!steamAccountConnected || (!appIds && !packageIds && !bundleIds)) {
+    const appIds = [...new Set(steamCartApps.filter((id) => Number.isSafeInteger(id) && id > 0))].join(",");
+    if (!steamAccountConnected || !appIds) {
       setSteamCartDetails([]);
-      setSteamCartBundleDetails([]);
       setSteamCartDetailsError("");
       setSteamCartDetailsLoading(false);
       return () => { cancelled = true; };
     }
+
     setSteamCartDetailsLoading(true);
     setSteamCartDetailsError("");
-    fetch(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}&packages=${encodeURIComponent(packageIds)}`)
+    fetch(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}`)
       .then(async (response) => {
         const data = await readApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Could not load cart details.");
         return data;
       })
-      .then(async (data) => {
-        if (cancelled) return;
-        setSteamCartDetails(data.items || []);
-        if (bundleIds) {
-          const bundleResponse = await fetch(`/api/cart-bundle-details?cc=${encodeURIComponent(region)}&bundles=${encodeURIComponent(bundleIds)}`);
-          const bundleData = await readApiResponse(bundleResponse);
-          if (!bundleResponse.ok) throw new Error(bundleData.error || "Could not load cart bundles.");
-          if (!cancelled) setSteamCartBundleDetails(bundleData.items || []);
-        } else if (!cancelled) setSteamCartBundleDetails([]);
+      .then((data) => {
+        if (!cancelled) setSteamCartDetails(data.items || []);
       })
-      .catch((error) => { if (!cancelled) setSteamCartDetailsError(error.message || "Cart details are temporarily unavailable."); })
-      .finally(() => { if (!cancelled) setSteamCartDetailsLoading(false); });
-    return () => { cancelled = true; };
-  }, [steamAccountConnected, steamCartApps.join(","), steamCartPackages.join(","), steamCartBundles.join(","), region]);
+      .catch((error) => {
+        if (!cancelled) setSteamCartDetailsError(error.message || "Cart details are temporarily unavailable.");
+      })
+      .finally(() => {
+        if (!cancelled) setSteamCartDetailsLoading(false);
+      });
 
+    return () => { cancelled = true; };
+  }, [steamAccountConnected, steamCartApps.join(","), region]);
 
 
   const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
@@ -545,12 +537,7 @@ export default function App() {
   const numericRegionalPrice = Number(regionalPriceInput);
   const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
   const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
-  const packageContainedAppIds = new Set(steamCartDetails.filter((item) => item.type === "package").flatMap((item) => item.appIds || []));
-  const bundleContainedAppIds = new Set(steamCartBundleDetails.flatMap((item) => item.appIds || []));
-  const uniqueCartDetails = [
-    ...steamCartDetails.filter((item) => item.type !== "app" || (!packageContainedAppIds.has(Number(item.id)) && !bundleContainedAppIds.has(Number(item.id)))),
-    ...steamCartBundleDetails
-  ];
+  const uniqueCartDetails = steamCartDetails;
   const cartCurrency = uniqueCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
   const cartTotalMinor = uniqueCartDetails.reduce((sum, item) => sum + (item.price != null && Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
   const cartPricedItems = uniqueCartDetails.filter((item) => item.price != null && Number.isFinite(Number(item.price)));
@@ -646,8 +633,8 @@ export default function App() {
         {currentPage === "cart" && <section className="steam-cart-page">
           <div className="steam-cart-heading"><div><span className="section-kicker"><ShoppingCart size={13} /> STEAM ACCOUNT</span><h1>Shopping Cart</h1><p>Your current Steam Store cart, synced from the account connected in your browser.</p></div><a className="primary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Cart <ExternalLink size={14} /></a></div>
           {!steamAccountConnected ? <div className="steam-cart-empty detail-card"><ShoppingCart size={28} /><h2>Connect your Steam account</h2><p>Open Steam Store in another tab and sign in. SteamPulse Connect will sync your cart automatically.</p><a className="secondary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Store <ExternalLink size={14} /></a></div> : <>
-            <div className="steam-cart-summary"><div><small>GAMES IN CART</small><strong>{uniqueCartDetails.filter((item) => item.type === "app").length}</strong></div><div><small>PACKAGES IN CART</small><strong>{steamCartPackages.length}</strong></div><div><small>TOTAL ITEMS</small><strong>{uniqueCartDetails.length}</strong></div></div>
-            {steamCartApps.length + steamCartPackages.length + steamCartBundles.length === 0 ? <div className="steam-cart-empty detail-card"><ShoppingCart size={28} /><h2>Your Steam cart is empty</h2><p>Add a game or package on Steam and refresh your account snapshot to see it here.</p><a className="secondary-button" href="https://store.steampowered.com/" target="_blank" rel="noreferrer">Browse Steam Store <ExternalLink size={14} /></a></div> : <>
+            <div className="steam-cart-summary"><div><small>GAMES IN CART</small><strong>{steamCartApps.length}</strong></div><div><small>TOTAL ITEMS</small><strong>{uniqueCartDetails.length}</strong></div></div>
+            {steamCartApps.length === 0 ? <div className="steam-cart-empty detail-card"><ShoppingCart size={28} /><h2>Your Steam cart is empty</h2><p>Add a game to your Steam cart and refresh your account snapshot to see it here.</p><a className="secondary-button" href="https://store.steampowered.com/" target="_blank" rel="noreferrer">Browse Steam Store <ExternalLink size={14} /></a></div> : <>
               <div className="steam-cart-cost-summary detail-card">
                 <div><small>ESTIMATED CART TOTAL · {region}</small><strong>{steamCartDetailsLoading ? "Loading…" : cartTotalFormatted}</strong></div>
                 <div><small>ESTIMATED KEYS REQUIRED</small><strong>{steamCartDetailsLoading ? "…" : cartKeyCount == null ? "—" : `${formatNumber(cartKeyCount)} Keys`}</strong><span>{regionalKeyPriceForCalculation > 0 ? `Based on ${new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(regionalKeyPriceForCalculation)} net per key` : "Regional key price is not available yet."}</span></div>
@@ -656,12 +643,12 @@ export default function App() {
               {steamCartDetailsLoading && <p className="steam-cart-footnote">Loading item names, artwork and regional prices from Steam…</p>}
               <div className="steam-cart-items">
                 {uniqueCartDetails.map((item) => <a className="steam-cart-item detail-card" key={item.type+"-"+item.id} href={item.url} target="_blank" rel="noreferrer">
-                  {item.image ? <img className="steam-cart-item-image" src={item.image} alt="" loading="lazy" /> : <span className="steam-cart-item-icon">{item.type === "app" ? <Gamepad2 size={19} /> : <PackageOpen size={19} />}</span>}
-                  <span className="steam-cart-item-info"><small>{item.type === "app" ? "STEAM GAME" : item.type === "bundle" ? "STEAM BUNDLE" : "STEAM PACKAGE"} · {item.id}</small><strong>{item.name}</strong><b>{item.formattedPrice || "Price unavailable"}</b></span><ExternalLink size={15} />
+                  {<img className="steam-cart-item-image" src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = `https://cdn.akamai.steamstatic.com/steam/apps/${item.id}/header.jpg`; }} /> }
+                  <span className="steam-cart-item-info"><small>{"STEAM GAME"} · {item.id}</small><strong>{item.name}</strong><b>{item.formattedPrice || "Price unavailable"}</b></span><ExternalLink size={15} />
                 </a>)}
               </div>
             </>}
-            <p className="steam-cart-footnote">Prices are fetched from Steam Store for your selected region ({region}). Final checkout totals may differ due to taxes, bundles or Steam pricing updates.</p>
+            <p className="steam-cart-footnote">Game details and prices are fetched from Steam Store for your selected region ({region}).</p>
           </>}
         </section>}
 
