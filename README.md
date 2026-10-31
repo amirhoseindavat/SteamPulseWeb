@@ -33,7 +33,7 @@ Open the local URL printed by Vite (usually `http://localhost:5173`). Vite proxi
 - Store search requests are made server-side to avoid browser CORS issues.
 - Steam's StoreBrowse asset endpoint is undocumented and may change or omit data for some titles.
 - Player counts can be unavailable for some games.
-- Steam account ownership is not inferred; that requires user-specific authenticated library data.
+- Steam account ownership and wishlist status can be checked with the optional SteamPulse Connect browser extension, using the user's authenticated Steam Store data.
 - The app does not invent price history, language support, or Steam review percentages.
 - For production deployment, add request throttling, persistent caching, and suitable server-side cache controls.
 
