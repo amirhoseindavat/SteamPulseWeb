@@ -798,6 +798,35 @@ export default function App() {
                 </div>
               : <div className="discovery-message">{discoveryError || "Top sellers are temporarily unavailable. Try again shortly."}</div>}
         </section>}
+        <section className="free-games-section">
+          <div className="discovery-heading">
+            <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
+            <button className="discovery-refresh" onClick={() => {
+              setFreeGamesLoading(true); setFreeGamesError("");
+              fetch(`/api/free-games?cc=${region}&refresh=1`)
+                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+                .then((data) => setFreeGames(data.items || []))
+                .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
+                .finally(() => setFreeGamesLoading(false));
+            }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
+          </div>
+          {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
+          {freeGamesLoading && !freeGames.length
+            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
+            : freeGames.length
+              ? <div className="discovery-grid">
+                  {freeGames.map((item) => <article className="free-game-card" key={item.id}>
+                    <a className="free-game-main" href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
+                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
+                    </a>
+                    <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
+                  </article>)}
+                </div>
+              : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
+          <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
+          <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
+        </section>
         </>}
         
         {currentPage === "trending" && <>
@@ -828,36 +857,6 @@ export default function App() {
           {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
           <div className="discovery-sources"><span>Want deeper trend data?</span><a href="https://steamdb.info/stats/mostwished/?displayOnly=Game" target="_blank" rel="noreferrer">Most wishlisted <ExternalLink size={11} /></a><a href="https://steamdb.info/stats/wishlistactivity/?upcoming_only=1" target="_blank" rel="noreferrer">Rising wishlist activity <ExternalLink size={11} /></a><a href="https://steamdb.info/upcoming/" target="_blank" rel="noreferrer">Upcoming releases <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
-        </section>
-
-        <section className="free-games-section">
-          <div className="discovery-heading">
-            <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
-            <button className="discovery-refresh" onClick={() => {
-              setFreeGamesLoading(true); setFreeGamesError("");
-              fetch(`/api/free-games?cc=${region}&refresh=1`)
-                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
-                .then((data) => setFreeGames(data.items || []))
-                .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
-                .finally(() => setFreeGamesLoading(false));
-            }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
-          </div>
-          {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
-          {freeGamesLoading && !freeGames.length
-            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
-            : freeGames.length
-              ? <div className="discovery-grid">
-                  {freeGames.map((item) => <article className="free-game-card" key={item.id}>
-                    <a className="free-game-main" href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
-                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
-                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
-                    </a>
-                    <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
-                  </article>)}
-                </div>
-              : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
-          <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
-          <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
         </section>
 
         </>}
