@@ -1639,3 +1639,17 @@
 .site-footer-credit{font-size:12px;}
 .site-footer-credit img{width:18px;height:18px;}
 .app-shell[data-theme="light"] .site-footer{color:#66718a;}
+
+
+/* The outer purchase-options column is the glass surface.
+   Keep its inner section flat to avoid stacking a second glass panel. */
+.app-shell .purchase-options-column .extra-content-section.purchase-options-panel{
+  margin:0;
+  padding:0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
