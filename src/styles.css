@@ -2187,3 +2187,112 @@
   border-color:#a6dfc4;
   background:#dcf7e9;
 }
+
+
+/* Liquid glass footer */
+.site-footer{
+  position:relative;
+  isolation:isolate;
+  max-width:1176px;
+  margin:28px auto 24px;
+  padding:20px 26px;
+  border:1px solid rgba(190,202,255,.2);
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(117,133,190,.13),rgba(49,62,104,.09) 48%,rgba(140,112,255,.11));
+  -webkit-backdrop-filter:blur(24px) saturate(165%);
+  backdrop-filter:blur(24px) saturate(165%);
+  box-shadow:0 12px 36px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.2),inset 0 -1px 0 rgba(255,255,255,.035);
+}
+.site-footer:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,255,255,.11),transparent 34%,transparent 72%,rgba(161,138,255,.08));
+  opacity:.8;
+  z-index:-1;
+}
+.site-footer-brand{
+  color:var(--text,#edf0ff);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  text-shadow:0 0 18px rgba(161,138,255,.28);
+}
+.app-shell[data-theme="light"] .site-footer{
+  border-color:rgba(90,105,150,.2);
+  background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(230,236,255,.48) 52%,rgba(224,216,255,.48));
+  box-shadow:0 12px 32px rgba(65,78,120,.09),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(90,105,150,.06);
+}
+.app-shell[data-theme="light"] .site-footer:before{
+  background:linear-gradient(115deg,rgba(255,255,255,.7),transparent 38%,transparent 72%,rgba(161,138,255,.1));
+}
+.app-shell[data-theme="light"] .site-footer-brand{color:#303a58}
+@media(max-width:620px){
+  .site-footer{margin:18px 15px 20px;padding:18px 16px;gap:9px}
+}
+
+/* Liquid glass treatment for the Steam profile surfaces */
+.steam-profile-page .steam-profile-hero.detail-card,
+.steam-profile-page .steam-profile-identity,
+.steam-profile-page .profile-stat,
+.steam-profile-page .profile-current-game,
+.steam-profile-page .profile-recent,
+.steam-profile-page .profile-account,
+.steam-profile-page .steam-profile-badges,
+.steam-profile-page > .detail-card{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:linear-gradient(135deg,rgba(112,128,181,.16),rgba(28,39,69,.48) 52%,rgba(126,99,211,.13)) !important;
+  border:1px solid rgba(205,215,255,.18) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(170%) !important;
+  backdrop-filter:blur(26px) saturate(170%) !important;
+  box-shadow:0 14px 38px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.19),inset 0 -1px 0 rgba(255,255,255,.045) !important;
+}
+.steam-profile-page .steam-profile-hero.detail-card:before,
+.steam-profile-page .profile-stat:before,
+.steam-profile-page .profile-current-game:before,
+.steam-profile-page .profile-recent:before,
+.steam-profile-page .profile-account:before,
+.steam-profile-page .steam-profile-badges:before,
+.steam-profile-page > .detail-card:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(125deg,rgba(255,255,255,.105),transparent 32%,transparent 70%,rgba(161,138,255,.075));
+}
+.steam-profile-page .profile-stat,
+.steam-profile-page .profile-current-game,
+.steam-profile-page .profile-recent,
+.steam-profile-page .profile-account,
+.steam-profile-page .steam-profile-badges{
+  border-radius:16px;
+}
+.steam-profile-page .steam-profile-identity{
+  background:linear-gradient(115deg,rgba(103,119,170,.2),rgba(24,34,62,.5) 55%,rgba(119,92,205,.16)) !important;
+  border-color:rgba(205,215,255,.16) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(175%) !important;
+  backdrop-filter:blur(28px) saturate(175%) !important;
+}
+.steam-profile-page .steam-profile-cover{opacity:.62}
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-hero.detail-card,
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity,
+.app-shell[data-theme="light"] .steam-profile-page .profile-stat,
+.app-shell[data-theme="light"] .steam-profile-page .profile-current-game,
+.app-shell[data-theme="light"] .steam-profile-page .profile-recent,
+.app-shell[data-theme="light"] .steam-profile-page .profile-account,
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-badges,
+.app-shell[data-theme="light"] .steam-profile-page > .detail-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(231,237,255,.48) 54%,rgba(226,218,255,.4)) !important;
+  border-color:rgba(91,106,151,.2) !important;
+  box-shadow:0 14px 34px rgba(65,78,120,.1),inset 0 1px 0 rgba(255,255,255,.88),inset 0 -1px 0 rgba(90,105,150,.06) !important;
+}
+.app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity{
+  background:linear-gradient(115deg,rgba(255,255,255,.78),rgba(232,238,255,.52) 55%,rgba(225,217,255,.48)) !important;
+}
