@@ -15,6 +15,62 @@
     );
   }
 
+  function firstNumber(value) {
+    const text = String(value || "");
+    let digits = "";
+    let started = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code >= 48 && code <= 57) {
+        digits += text[i];
+        started = true;
+      } else if (started) {
+        break;
+      }
+    }
+
+    const number = Number(digits);
+    return Number.isSafeInteger(number) && number > 0 ? number : null;
+  }
+
+  function collectCartBundleIds(data) {
+    const bundleIds = new Set(
+      (Array.isArray(data.rgBundlesInCart) ? data.rgBundlesInCart : [])
+        .map(Number)
+        .filter((id) => Number.isSafeInteger(id) && id > 0)
+    );
+
+    const pathParts = window.location.pathname.split("/").filter(Boolean);
+    const isCartPage = pathParts.length === 1 && pathParts[0].toLowerCase() === "cart";
+
+    if (isCartPage) {
+      document.querySelectorAll("[data-ds-bundleid], [data-bundleid]").forEach((element) => {
+        const raw = element.getAttribute("data-ds-bundleid") || element.getAttribute("data-bundleid") || "";
+        const id = firstNumber(raw);
+        if (id) bundleIds.add(id);
+      });
+
+      document.querySelectorAll(
+        '.cart_item a[href], .cart_item_wrapper a[href], [data-cart-item] a[href]'
+      ).forEach((element) => {
+        try {
+          const url = new URL(element.getAttribute("href"), window.location.origin);
+          const parts = url.pathname.split("/").filter(Boolean);
+          const bundleIndex = parts.findIndex((part) => part.toLowerCase() === "bundle");
+          if (bundleIndex !== -1) {
+            const id = firstNumber(parts[bundleIndex + 1]);
+            if (id) bundleIds.add(id);
+          }
+        } catch (_) {
+          // Ignore malformed cart links.
+        }
+      });
+    }
+
+    return Array.from(bundleIds);
+  }
+
   async function syncSteamAccount(force = false) {
     if (syncing || document.visibilityState === "hidden") return;
     if (!force && Date.now() - lastSyncAt < 15_000) return;
@@ -43,19 +99,8 @@
       }
 
       const data = await userdataResponse.json();
-      const bundleIds = new Set((Array.isArray(data.rgBundlesInCart) ? data.rgBundlesInCart : []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0));
-      if (window.location.pathname.replace(/\\/+$/, "") === "/cart") {
-        document.querySelectorAll('[data-ds-bundleid], [data-bundleid]').forEach((element) => {
-          const raw = element.getAttribute("data-ds-bundleid") || element.getAttribute("data-bundleid") || "";
-          const match = String(raw).match(/(\\d+)/);
-          if (match) bundleIds.add(Number(match[1]));
-        });
-        document.querySelectorAll('.cart_item a[href*="/bundle/"], .cart_item_wrapper a[href*="/bundle/"], [data-cart-item] a[href*="/bundle/"]').forEach((element) => {
-          const match = String(element.getAttribute("href") || "").match(/\\/bundle\\/(\\d+)/i);
-          if (match) bundleIds.add(Number(match[1]));
-        });
-      }
-      data.rgBundlesInCart = [...bundleIds];
+      data.rgBundlesInCart = collectCartBundleIds(data);
+
       const accountPath = new URL(accountResponse.url || ACCOUNT_URL).pathname;
       const loginStatus = /(^|\/)login\/?$/i.test(accountPath) ? "disconnected" : "connected";
 
@@ -82,8 +127,9 @@
     if (document.visibilityState === "visible") syncSteamAccount(true);
   });
 
-  // Allows a manual refresh from a future extension popup without exposing account data to page scripts.
   chrome.runtime.onMessage.addListener((message) => {
-    if (message?.type === "STEAMPULSE_REFRESH_STEAM_DATA") syncSteamAccount(true);
+    if (message && message.type === "STEAMPULSE_REFRESH_STEAM_DATA") {
+      syncSteamAccount(true);
+    }
   });
 })();
