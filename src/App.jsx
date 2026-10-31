@@ -762,16 +762,50 @@ export default function App() {
                 </div>
                 <div className="hero-utility-actions">
                   <button className="secondary-button share-game-button" onClick={async () => {
-                    if (!shareCardRef.current) return;
+                    if (!shareCardRef.current) {
+                      setShareStatus("Card unavailable");
+                      window.setTimeout(() => setShareStatus(""), 2500);
+                      return;
+                    }
                     setShareStatus("Preparing image…");
                     try {
-                      const blob = await toBlob(shareCardRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: "#0b1020" });
+                      const blob = await toBlob(shareCardRef.current, {
+                        pixelRatio: 2,
+                        cacheBust: true,
+                        backgroundColor: "#0b1020",
+                        skipAutoScale: true
+                      });
                       if (!blob) throw new Error("Could not generate the image.");
-                      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                      setShareStatus("Image copied!");
+
+                      const file = new File([blob], `steampulse-${game.appid}.png`, { type: "image/png" });
+                      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+                        await navigator.share({
+                          files: [file],
+                          title: `${game.name} | SteamPulse`,
+                          text: "Game snapshot created with SteamPulse"
+                        });
+                        setShareStatus("Shared!");
+                      } else if (navigator.clipboard?.write && window.ClipboardItem) {
+                        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                        setShareStatus("Image copied!");
+                      } else {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `steampulse-${game.appid}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        URL.revokeObjectURL(url);
+                        setShareStatus("Image downloaded!");
+                      }
                     } catch (error) {
-                      console.error("Game card copy failed:", error);
-                      setShareStatus("Clipboard unavailable");
+                      if (error.name === "AbortError") {
+                        setShareStatus("");
+                      } else {
+                        console.error("Game card share failed:", error);
+                        setShareStatus("Sharing failed");
+                      }
                     }
                     window.setTimeout(() => setShareStatus(""), 2500);
                   }}><Share2 size={15} /> {shareStatus || "Share"}</button>
@@ -780,7 +814,7 @@ export default function App() {
             </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
-          <div className="share-card-render" aria-hidden="true">
+          <div className="share-card-render" ref={shareCardRef} aria-hidden="true">
             <div className="share-card-art"><img src={hero} crossOrigin="anonymous" alt="" /></div>
             <div className="share-card-content">
               <div className="share-card-brand">STEAMPULSE <span>GAME SNAPSHOT</span></div>
