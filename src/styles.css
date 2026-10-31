@@ -2133,3 +2133,56 @@
 
 /* Steam cart price details and header count */
 .nav-cart-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;line-height:1;margin-left:2px}.steam-cart-price-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.steam-cart-price-row del{color:var(--muted);font-size:12px;font-weight:600}.steam-cart-price-row em{font-style:normal;background:rgba(34,197,94,.14);color:#22c55e;border-radius:6px;padding:3px 6px;font-size:10px;font-weight:800}.steam-cart-price-row b{font-size:14px;color:var(--accent)}.steam-cart-original-total{font-size:12px;color:var(--muted)}.steam-cart-savings{font-size:12px;color:#22c55e;font-weight:700}.steam-cart-cost-summary{margin-top:4px}
+
+
+/* Make owned DLCs and packages stand out clearly in the library view. */
+.app-shell .edition-card.edition-card-owned{
+  border-color:rgba(80,213,163,.62);
+  background:linear-gradient(135deg,rgba(24,83,67,.34),rgba(16,29,43,.92));
+  box-shadow:inset 3px 0 0 #50d5a3,0 5px 18px rgba(0,0,0,.12);
+}
+.app-shell .edition-card-owned .edition-top-status{
+  color:#72edbd;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.045em;
+  padding:5px 8px;
+  border:1px solid rgba(80,213,163,.4);
+  border-radius:999px;
+  background:rgba(80,213,163,.12);
+}
+.app-shell .dlc-card.dlc-card-owned{
+  border-color:rgba(80,213,163,.58);
+  background:linear-gradient(110deg,rgba(25,83,66,.3),rgba(16,29,43,.88));
+  box-shadow:inset 3px 0 0 #50d5a3,0 5px 18px rgba(0,0,0,.12);
+}
+.app-shell .dlc-card-owned .dlc-copy strong{color:#f0fff8}
+.app-shell .dlc-card-owned .dlc-ownership.is-owned{
+  color:#8af0c5;
+  border:1px solid rgba(80,213,163,.48);
+  background:rgba(80,213,163,.16);
+  font-weight:800;
+  padding:4px 8px;
+  border-radius:999px;
+}
+.app-shell[data-theme="light"] .edition-card.edition-card-owned{
+  background:linear-gradient(135deg,#e7fbf2,#f8fffb);
+  border-color:#78d8ae;
+  box-shadow:inset 3px 0 0 #269d70,0 5px 18px rgba(31,85,64,.08);
+}
+.app-shell[data-theme="light"] .edition-card-owned .edition-top-status{
+  color:#16764f;
+  border-color:#a6dfc4;
+  background:#dcf7e9;
+}
+.app-shell[data-theme="light"] .dlc-card.dlc-card-owned{
+  background:linear-gradient(110deg,#e9fbf2,#fff);
+  border-color:#9bdcba;
+  box-shadow:inset 3px 0 0 #269d70,0 5px 18px rgba(31,85,64,.08);
+}
+.app-shell[data-theme="light"] .dlc-card-owned .dlc-copy strong{color:#174c38}
+.app-shell[data-theme="light"] .dlc-card-owned .dlc-ownership.is-owned{
+  color:#16764f;
+  border-color:#a6dfc4;
+  background:#dcf7e9;
+}
