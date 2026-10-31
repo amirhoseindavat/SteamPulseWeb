@@ -106,6 +106,13 @@ export default function App() {
   const headerSearchRef = useRef(null);
   const debounceRef = useRef(null);
 
+
+  useEffect(() => {
+    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", calculator: "Key Calculator", settings: "Settings", profile: "Profile" };
+    const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
+    document.title = `${title} | SteamPulse`;
+  }, [currentPage, game?.name]);
+
   function navigateTo(page) {
     const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
     if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
@@ -474,7 +481,15 @@ export default function App() {
   const steamWishlist = new Set((steamAccountData?.rgWishlist || []).map(Number));
   const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
   const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
-  const gamePackageIds = (game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number);
+
+  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
+  const gameEditions = game?.editions || [];
+  const gameBundles = game?.bundles || [];
+  const hasEditions = gameEditions.length > 0;
+  const hasBundles = gameBundles.length > 0;
+  const missingOwnedPackages = gamePackageIds
+    .filter((packageId) => steamOwnedPackages.has(packageId) && !gameEditions.some((edition) => Number(edition.packageId) === packageId))
+    .map((packageId) => ({ packageId, name: `Steam package ${packageId}`, kind: "OWNED PACKAGE", description: "Owned package detected in your Steam account.", price: "Owned", priceValue: null, url: `https://store.steampowered.com/sub/${packageId}/` }));
   const gameIsWishlisted = Boolean(game && steamAccountConnected && steamWishlist.has(Number(game.appid)));
   const gameIsOwned = Boolean(game && steamAccountConnected && (
     steamOwnedApps.has(Number(game.appid)) || gamePackageIds.some((packageId) => steamOwnedPackages.has(packageId))
@@ -912,21 +927,27 @@ export default function App() {
             <div className="purchase-options-column">
             {game.type !== "edition" && ((game.editions || []).length > 0 || (game.bundles || []).length > 0) && <section className="extra-content-section purchase-options-panel">
               <div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Choose your version</h2><p className="purchase-hint">Select an edition or bundle to calculate its required keys and estimated cost.</p></div></div>
-              <div className="purchase-tabs" role="tablist" aria-label="Purchase options">
-                <button type="button" role="tab" aria-selected={purchaseTab === "editions"} className={purchaseTab === "editions" ? "purchase-tab-active" : ""} onClick={() => setPurchaseTab("editions")}>Editions <span>{(game.editions || []).length}</span></button>
-                <button type="button" role="tab" aria-selected={purchaseTab === "bundles"} className={purchaseTab === "bundles" ? "purchase-tab-active" : ""} onClick={() => setPurchaseTab("bundles")}>Bundles <span>{(game.bundles || []).length}</span></button>
-              </div>
-              {purchaseTab === "editions" && <div className="editions-grid purchase-editions-grid">
-                {(game.editions || []).length ? game.editions.map((edition, i) => <article className={`edition-card ${selectedEditionName === (edition.name || "").replace(/\s*-\s*\\$\s*$/, "") ? "edition-card-selected" : ""}`} key={`${edition.name}-${i}`}>
+              {hasEditions && hasBundles && <div className="purchase-tabs" role="tablist" aria-label="Purchase options">
+                <button type="button" role="tab" aria-selected={purchaseTab === "editions"} className={purchaseTab === "editions" ? "purchase-tab-active" : ""} onClick={() => setPurchaseTab("editions")}>Packages <span>{gameEditions.length + missingOwnedPackages.length}</span></button>
+                <button type="button" role="tab" aria-selected={purchaseTab === "bundles"} className={purchaseTab === "bundles" ? "purchase-tab-active" : ""} onClick={() => setPurchaseTab("bundles")}>Bundles <span>{gameBundles.length}</span></button>
+              </div>}
+              {hasEditions && (!hasBundles || purchaseTab === "editions") && <div className="editions-grid purchase-editions-grid">
+                {gameEditions.map((edition, i) => <article className={`edition-card ${selectedEditionName === (edition.name || "").replace(/\s*-\s*\\$\s*$/, "") ? "edition-card-selected" : ""}`} key={`${edition.packageId || edition.name}-${i}`}>
                   <button className="edition-select" onClick={() => { if (edition.priceValue != null) { setRegionalPriceInput(String(edition.priceValue)); setSelectedEditionName((edition.name || "").replace(/\s*-\s*\\$\s*$/, "")); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={edition.priceValue == null} title={edition.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this option"}>
                     <div className="edition-top"><span className="edition-tag">{edition.kind || "STEAM EDITION"}</span><span className="edition-top-status">{steamAccountConnected ? (edition.packageId == null ? "Ownership unavailable" : steamOwnedPackages.has(Number(edition.packageId)) ? "✓ Owned" : "Not owned") : "Ownership unavailable"}</span>{edition.savings && Number(edition.savings) > 0 && <span className="edition-discount">-{edition.savings}%</span>}</div>
                     <h3>{(edition.name || "").replace(/\s*-\s*\\$\s*$/, "")}</h3><p>{edition.description || "Steam purchase option"}</p>
                     <div className="edition-bottom"><div className="edition-prices">{edition.originalPrice && edition.savings && Number(edition.savings) > 0 && <del>{edition.originalPrice}</del>}<strong>{edition.price || "Price unavailable"}</strong></div>{edition.savings && Number(edition.savings) > 0 && <span className="edition-save-label">Save {edition.savings}%</span>}</div>
                     <span className="edition-calculate">{edition.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span>
                   </button>{edition.url && <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>}
-                </article>) : <div className="purchase-empty-state">No separate editions are listed for this game.</div>}
+                </article>)}
+                {missingOwnedPackages.map((edition) => <article className="edition-card edition-card-owned" key={edition.packageId}>
+                  <div className="edition-top"><span className="edition-tag">OWNED PACKAGE</span><span className="edition-top-status">✓ Owned</span></div>
+                  <span className="edition-package-id">PACKAGE · {edition.packageId}</span><h3>{edition.name}</h3><p>{edition.description}</p>
+                  <div className="edition-bottom"><div className="edition-prices"><strong>Owned</strong></div></div>
+                  <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>
+                </article>)}
               </div>}
-              {purchaseTab === "bundles" && <div className="bundle-list">
+              {hasBundles && (!hasEditions || purchaseTab === "bundles") && <div className="bundle-list">
                 {(game.bundles || []).length ? game.bundles.map((bundle) => <article className={`bundle-row ${selectedEditionName === (bundle.name || "").replace(/\s*-\s*\\$\s*$/, "") ? "edition-card-selected" : ""}`} key={bundle.id}>
                   <button className="bundle-select" onClick={() => { if (bundle.priceValue != null) { setRegionalPriceInput(String(bundle.priceValue)); setSelectedEditionName((bundle.name || "").replace(/\s*-\s*\\$\s*$/, "")); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={bundle.priceValue == null} title={bundle.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this bundle"}>
                     <span className={`bundle-thumb ${bundle.image ? "" : "bundle-thumb-empty"}`}>{bundle.image ? <img src={bundle.image} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none"; event.currentTarget.parentElement.classList.add("bundle-thumb-empty"); }} /> : <Tag size={18} />}</span>
