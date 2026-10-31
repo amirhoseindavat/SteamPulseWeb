@@ -73,7 +73,7 @@
       if (contextInvalidated || !hasExtensionContext()) return;
 
       const accountPath = new URL(accountResponse.url || ACCOUNT_URL).pathname;
-      const loginStatus = /(^|\\/)login\\/?$/i.test(accountPath) ? "disconnected" : "connected";
+      const loginStatus = /(^|\/)login\/?$/i.test(accountPath) ? "disconnected" : "connected";
 
       const snapshot = {
         source: "steam-dynamicstore-userdata",
