@@ -751,9 +751,11 @@ export default function App() {
               <div className="hero-actions game-external-actions">
                   <a className="primary-button" href={game.steam_url || ("https://store.steampowered.com/app/" + game.appid + "/")} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=store.steampowered.com&sz=64" alt="" /> Steam <ExternalLink size={14} /></a>
                   <a className="secondary-button external-site-button" href={"https://steamdb.info/app/" + game.appid + "/"} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=steamdb.info&sz=64" alt="" /> SteamDB <ExternalLink size={13} /></a>
+{game.type !== "dlc" && <>
                   <a className="secondary-button external-site-button" href={"https://www.protondb.com/app/" + game.appid} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=protondb.com&sz=64" alt="" /> ProtonDB <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://www.pcgamingwiki.com/api/appid.php?appid=" + game.appid} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=pcgamingwiki.com&sz=64" alt="" /> PCGamingWiki <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://howlongtobeat.com/?q=" + encodeURIComponent(game.name)} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=howlongtobeat.com&sz=64" alt="" /> HowLongToBeat <ExternalLink size={13} /></a>
+                  </>}
                   <button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button>
                 </div>
             </div>
