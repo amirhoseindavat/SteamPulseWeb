@@ -649,10 +649,10 @@ export default function App() {
               {steamCartDetailsError && <p className="steam-cart-footnote">{steamCartDetailsError}</p>}
               {steamCartDetailsLoading && <p className="steam-cart-footnote">Loading item names, artwork and regional prices from Steam…</p>}
               <div className="steam-cart-items">
-                {uniqueCartDetails.map((item) => <article className="steam-cart-item detail-card" key={item.type+"-"+item.id}>
-                  <img className="steam-cart-item-image" src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = `https://cdn.akamai.steamstatic.com/steam/apps/${item.id}/header.jpg`; }} />
-                  <div className="steam-cart-item-info"><small>STEAM GAME · {item.id}</small><strong>{item.name}</strong><span className="steam-cart-price-row">{item.discountPercent > 0 && item.formattedInitialPrice && <><del>{item.formattedInitialPrice}</del><em>{item.discountPercent}% OFF</em></>}<b>{item.formattedPrice || "Price unavailable"}</b></span><span className="steam-cart-item-actions"><a className="primary-button" href={`#/game/${item.id}`}>View SteamPulse <ChevronRight size={13} /></a><a className="secondary-button" href={item.url} target="_blank" rel="noreferrer">View Steam <ExternalLink size={13} /></a></span></div>
-                </article>)}
+                {uniqueCartDetails.map((item) => <a className="steam-cart-item detail-card" key={item.type+"-"+item.id} href={item.url} target="_blank" rel="noreferrer">
+                  {<img className="steam-cart-item-image" src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = `https://cdn.akamai.steamstatic.com/steam/apps/${item.id}/header.jpg`; }} /> }
+                  <span className="steam-cart-item-info"><small>STEAM GAME · {item.id}</small><strong>{item.name}</strong><span className="steam-cart-price-row">{item.discountPercent > 0 && item.formattedInitialPrice && <><del>{item.formattedInitialPrice}</del><em>{item.discountPercent}% OFF</em></>}<b>{item.formattedPrice || "Price unavailable"}</b></span></span><ExternalLink size={15} />
+                </a>)}
               </div>
               <div className="steam-cart-cost-summary detail-card">
                 <div><small>ESTIMATED CART TOTAL · {region}</small><strong>{steamCartDetailsLoading ? "Loading…" : cartTotalFormatted}</strong><span className="steam-cart-original-total">Original total: {steamCartDetailsLoading ? "…" : cartOriginalTotalFormatted}</span>{cartSavingsMinor > 0 && <span className="steam-cart-savings">You save {cartSavingsFormatted}</span>}</div>
