@@ -36,3 +36,16 @@ Open the local URL printed by Vite (usually `http://localhost:5173`). Vite proxi
 - Steam account ownership is not inferred; that requires user-specific authenticated library data.
 - The app does not invent price history, language support, or Steam review percentages.
 - For production deployment, add request throttling, persistent caching, and suitable server-side cache controls.
+
+
+## SteamPulse Connect browser extension
+
+The optional Chrome/Chromium extension reads the signed-in Steam Store account snapshot from Steam's `dynamicstore/userdata` endpoint while a Steam Store tab is open. It shares the snapshot with SteamPulse locally through the extension messaging bridge; it does not collect or transmit Steam passwords or session cookies to the SteamPulse server.
+
+### Install locally
+1. Open `chrome://extensions` (or your Chromium browser's extensions page).
+2. Enable **Developer mode**.
+3. Choose **Load unpacked** and select the repository's `extension` folder.
+4. Open or refresh a Steam Store tab while signed in, then refresh SteamPulse.
+
+The first version syncs wishlist, owned AppIDs, owned PackageIDs, cart IDs, and recommendation tags. The Steam account data remains in the browser's extension storage.
