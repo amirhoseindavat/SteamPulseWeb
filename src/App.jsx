@@ -583,7 +583,7 @@ export default function App() {
         <div className="topbar-right">
           <button className="header-search-home" ref={headerSearchRef} onClick={() => navigateTo("home")} title="Go to Home" aria-label="Go to Home"><Search size={17} /><span>Search</span></button>
           <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
-          <span className="online-pill"><span className="status-dot" /> API READY</span><button className={`avatar-button ${steamProfileData?.profile ? (steamProfileData.profile.currentGame ? "has-steam-game" : steamProfileData.profile.online ? "is-steam-online" : "is-steam-offline") : ""}`} title={steamProfileData?.profile?.currentGame ? `In game: ${steamProfileData.profile.currentGame.name}` : steamProfileData?.profile ? (steamProfileData.profile.online ? "Online" : "Offline") : "Steam profile"} aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatarAnimated || steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}{steamProfileData?.profile && <i className="header-steam-status-dot" aria-hidden="true" />}</button></div>
+          <span className="online-pill"><span className="status-dot" /> API READY</span></div>
       </header>
 
       <main className="main-content">
@@ -604,25 +604,10 @@ export default function App() {
             <section className="profile-stats-grid">
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Library size={19} /><span>Games owned</span></div><strong className="profile-stat-value">{steamProfileData.stats.games == null ? "Private" : formatNumber(steamProfileData.stats.games)}</strong></div>
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Clock3 size={19} /><span>Total playtime</span></div><strong className="profile-stat-value">{steamProfileData.stats.hours == null ? "Private" : `${formatNumber(steamProfileData.stats.hours)} hrs`}</strong></div>
+              {Array.isArray(steamAccountData?.rgWishlist) && <div className="profile-stat detail-card"><div className="profile-stat-heading"><Heart size={19} /><span>Wishlist</span></div><strong className="profile-stat-value">{formatNumber(steamWishlist.size)}</strong></div>}
               
               {steamProfileData.yearOfService && <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Years of Service</span></div><span className="profile-badge-art"><img className="profile-badge-image" src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" /></span></div>}
               <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Badges earned</span></div><strong className="profile-stat-value">{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong></div>
-            </section>
-            <section className="profile-library-preview">
-              <div className="profile-library-heading"><div><span className="section-kicker"><Library size={13} /> STEAM LIBRARY</span><h2>Your games</h2><p>A quick snapshot of your Steam account — no huge game lists or extra loading.</p></div><span className={steamAccountConnected ? "library-connection is-connected" : "library-connection"}><i />{steamAccountConnected ? "Steam connected" : "Connect Steam"}</span></div>
-              <div className="profile-library-grid">
-                <div className="profile-library-card detail-card">
-                  <div className="card-title"><Heart size={17} /><h3>Wishlist</h3><span>{formatNumber(steamWishlist.size)}</span></div>
-                  {steamWishlist.size ? <div className="profile-library-games">{[...steamWishlist].slice(0, 5).map((id) => <a key={id} href={`https://store.steampowered.com/app/${id}/`} target="_blank" rel="noreferrer" title={`Steam App ${id}`}><img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></a>)}</div> : <p className="profile-muted">{steamAccountConnected ? "Your wishlist is empty." : "Open Steam Store while signed in to sync your wishlist."}</p>}
-                  {steamWishlist.size > 5 && <small className="profile-library-more">Showing 5 of {formatNumber(steamWishlist.size)}</small>}
-                </div>
-                <div className="profile-library-card detail-card">
-                  <div className="card-title"><Gamepad2 size={17} /><h3>Owned games</h3><span>{formatNumber(steamOwnedApps.size)}</span></div>
-                  {steamOwnedApps.size ? <div className="profile-library-games">{[...steamOwnedApps].slice(0, 5).map((id) => <a key={id} href={`https://store.steampowered.com/app/${id}/`} target="_blank" rel="noreferrer" title={`Steam App ${id}`}><img src={`https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`} alt="" loading="lazy" onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></a>)}</div> : <p className="profile-muted">{steamAccountConnected ? "No owned apps were synced." : "Sign in to Steam Store to sync owned games."}</p>}
-                  {steamOwnedApps.size > 5 && <small className="profile-library-more">Showing 5 of {formatNumber(steamOwnedApps.size)}</small>}
-                </div>
-              </div>
-              <div className="profile-library-footer"><span><PackageOpen size={14} /> {formatNumber(steamOwnedPackages.size)} package licenses synced</span><a href="https://store.steampowered.com/account/licenses/" target="_blank" rel="noreferrer">Manage licenses <ExternalLink size={13} /></a><button className="secondary-button" onClick={() => window.postMessage({ source: "STEAMPULSE_PAGE", type: "GET_ACCOUNT_SNAPSHOT" }, window.location.origin)}><RefreshCw size={13} /> Sync status</button></div>
             </section>
             <section className="profile-content-grid">
               {steamProfileData.profile.currentGame && <div className="detail-card profile-current-game">
