@@ -1468,3 +1468,10 @@
 .share-card-tags span{padding:9px 14px;border-radius:30px;background:rgba(101,31,255,.17);border:1px solid rgba(139,117,255,.3);font-size:13px;color:#d5ceff}
 .share-card-footer{margin-top:auto;padding-top:22px;border-top:1px solid rgba(139,117,255,.22);display:flex;justify-content:space-between;color:#8491b0;font-size:12px;letter-spacing:1.4px}
 .share-card-footer strong{color:#b9aaff}
+
+/* Keep share and refresh controls pinned to the top-right of the game hero. */
+.game-hero{padding-top:54px}
+.hero-utility-actions{position:absolute;z-index:3;top:14px;right:16px;display:flex;align-items:center;gap:8px}
+.hero-utility-actions .secondary-button{width:auto;min-width:40px;height:36px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center}
+.hero-utility-actions .share-game-button{gap:7px}
+@media(max-width:620px){.game-hero{padding-top:58px}.hero-utility-actions{top:10px;right:10px}.hero-utility-actions .secondary-button{height:34px;padding:0 9px}}
