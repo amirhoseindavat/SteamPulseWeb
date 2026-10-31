@@ -1484,8 +1484,8 @@
 .steam-account-statuses .not-owned{color:#aab5cf;background:#ffffff08;border:1px solid #ffffff18}
 .steam-account-statuses .wishlisted{color:#ff8cae;background:#ff6b9612;border:1px solid #ff8cae35}
 .steam-account-statuses .not-wishlisted{color:#aab5cf;background:#ffffff08;border:1px solid #ffffff18}
-.game-background-blur{position:absolute;inset:0;z-index:0;pointer-events:none;background-position:center top;background-size:cover;background-repeat:no-repeat;filter:blur(30px) brightness(.34) saturate(.9);transform:scale(1.08);opacity:.82}
+.game-background-blur{position:fixed;inset:0;z-index:0;pointer-events:none;background-position:center;background-size:cover;background-repeat:no-repeat;filter:blur(16px) brightness(.34) saturate(.9);transform:scale(1.04);opacity:.82;will-change:transform}
 .app-shell.has-game-background{background-image:linear-gradient(180deg,rgba(8,13,27,.55),rgba(8,13,27,.9) 70rem)}
 .app-shell.has-game-background[data-theme="light"]{background-image:linear-gradient(180deg,rgba(245,247,252,.62),rgba(245,247,252,.94) 70rem)}
-.app-shell.has-game-background .game-background-blur{filter:blur(32px) brightness(.42) saturate(.85)}
-.app-shell.has-game-background[data-theme="light"] .game-background-blur{filter:blur(32px) brightness(1.2) saturate(.65);opacity:.38}
+.app-shell.has-game-background .game-background-blur{filter:blur(18px) brightness(.42) saturate(.85)}
+.app-shell.has-game-background[data-theme="light"] .game-background-blur{filter:blur(18px) brightness(1.2) saturate(.65);opacity:.38}
