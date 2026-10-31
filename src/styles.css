@@ -1935,3 +1935,38 @@
   max-width:100%;
   overflow:hidden;
 }
+
+
+/* Remove every added surface/background behind Steam About videos and players. */
+.about-card .about-copy video,
+.about-card .about-copy iframe,
+.about-card .about-copy embed,
+.about-card .about-copy object,
+.about-card .about-copy .bb_video,
+.about-card .about-copy .highlight_player_item,
+.about-card .about-copy .steam_video,
+.about-card .about-copy .video_container,
+.about-card .about-copy .bb_video *,
+.about-card .about-copy .highlight_player_item *,
+.about-card .about-copy .steam_video *,
+.about-card .about-copy .video_container *{
+  background:transparent !important;
+  background-color:transparent !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+.about-card .about-copy video{
+  background:none !important;
+}
+.about-card .about-copy .bb_video::before,
+.about-card .about-copy .bb_video::after,
+.about-card .about-copy .highlight_player_item::before,
+.about-card .about-copy .highlight_player_item::after,
+.about-card .about-copy .steam_video::before,
+.about-card .about-copy .steam_video::after,
+.about-card .about-copy .video_container::before,
+.about-card .about-copy .video_container::after{
+  content:none !important;
+  display:none !important;
+}
