@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
@@ -62,7 +62,7 @@ export default function App() {
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|settings|profile)$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
@@ -89,6 +89,8 @@ export default function App() {
   const [shopDataError, setShopDataError] = useState("");
   const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
   const [regionalKeyPrice, setRegionalKeyPrice] = useState(null);
+  const [conversionMode, setConversionMode] = useState("currency-to-keys");
+  const [conversionAmount, setConversionAmount] = useState("18");
   const [regionalMarketData, setRegionalMarketData] = useState([]);
   const [regionalMarketLoading, setRegionalMarketLoading] = useState(false);
   const [regionalMarketError, setRegionalMarketError] = useState("");
@@ -244,7 +246,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|settings|profile)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -451,6 +453,11 @@ export default function App() {
   const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
   const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPriceForCalculation > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPriceForCalculation) : 0;
   const liveKeyPriceToman = Number(shopData?.Key);
+  const conversionValue = Number(conversionAmount);
+  const conversionValid = conversionAmount.trim() !== "" && Number.isFinite(conversionValue) && conversionValue > 0;
+  const conversionResult = !conversionValid ? null : conversionMode === "currency-to-keys" ? (regionalKeyPriceForCalculation > 0 ? conversionValue / regionalKeyPriceForCalculation : null) : conversionMode === "toman-to-keys" ? (liveKeyPriceToman > 0 ? conversionValue / liveKeyPriceToman : null) : conversionMode === "keys-to-toman" ? (liveKeyPriceToman > 0 ? conversionValue * liveKeyPriceToman : null) : (regionalKeyPriceForCalculation > 0 ? conversionValue * regionalKeyPriceForCalculation : null);
+  const conversionResultLabel = conversionMode === "currency-to-keys" || conversionMode === "toman-to-keys" ? "Keys" : conversionMode === "keys-to-toman" ? "toman" : selectedRegion.currency;
+  const conversionResultFormatted = conversionResult == null ? null : new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(conversionResult);
   const totalToman = keyCount * (Number.isFinite(liveKeyPriceToman) && liveKeyPriceToman > 0 ? liveKeyPriceToman : 0);
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
   const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
@@ -463,7 +470,7 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
           <div className="header-search-box" ref={headerSearchRef}>
             <Search size={16} className="header-search-icon" />
@@ -553,6 +560,20 @@ export default function App() {
             </div>
             <p className="market-footnote"><Info size={14} /> Prices are refreshed automatically every 60 seconds. Last source update: {shopData.LastUpdateDate || (shopData.LastUpdate ? new Date(Number(shopData.LastUpdate) * 1000).toLocaleString() : "not provided")}.</p>
           </>}
+        </section>}
+
+        {currentPage === "calculator" && <section className="conversion-page">
+          <div className="conversion-heading"><div><span className="section-kicker"><Calculator size={13} /> STEAMPULSE CONVERTER</span><h1>Key calculator</h1><p>Convert between Steam regional prices, TF2 keys and your local shop price using live data.</p></div><span className="conversion-live"><i /> LIVE RATES</span></div>
+          <section className="conversion-card detail-card">
+            <label className="conversion-region"><span><Globe2 size={15} /> Steam price region</span><select value={region} onChange={(e) => { setRegion(e.target.value); localStorage.setItem("steampulse-region", e.target.value); }}>{REGIONS.map((r) => <option key={r.code} value={r.code}>{r.label} ({r.code} · {r.currency})</option>)}</select></label>
+            <div className="conversion-mode-grid">
+              {[["currency-to-keys", "Currency to keys", "18 USD → keys"], ["toman-to-keys", "Toman to keys", "800,000 toman → keys"], ["keys-to-toman", "Keys to toman", "5 keys → toman"], ["keys-to-currency", "Keys to currency", "5 keys → USD"]].map(([mode,label,hint]) => <button type="button" key={mode} className={conversionMode === mode ? "active" : ""} onClick={() => { setConversionMode(mode); setConversionAmount(mode === "currency-to-keys" ? "18" : mode === "toman-to-keys" ? "800000" : "5"); }}><strong>{label}</strong><small>{hint}</small></button>)}
+            </div>
+            <label className="conversion-input"><span>{conversionMode === "currency-to-keys" ? "Amount (" + selectedRegion.currency + ")" : conversionMode === "toman-to-keys" ? "Amount (toman)" : "Number of keys"}</span><div><input type="number" min="0" step="any" value={conversionAmount} onChange={(e) => setConversionAmount(e.target.value)} placeholder="Enter amount" /><b>{conversionMode === "currency-to-keys" ? selectedRegion.currency : conversionMode === "toman-to-keys" || conversionMode === "keys-to-toman" ? "TOMAN" : "KEYS"}</b></div></label>
+            <div className="conversion-result"><span>CONVERTED VALUE</span>{conversionResult == null ? <strong>—</strong> : <><strong>{conversionResultFormatted} <small>{conversionResultLabel}</small></strong>{(conversionMode === "currency-to-keys" || conversionMode === "toman-to-keys") && <p>For a whole-key purchase: <b>{formatNumber(Math.ceil(conversionResult))} keys</b></p>}</>}{conversionResult == null && <p>{conversionMode === "currency-to-keys" || conversionMode === "keys-to-currency" ? regionalKeyPrice?.error || "Loading regional Steam key price…" : shopDataError || "Loading live shop key price…"}</p>}</div>
+            <div className="conversion-rate-grid"><div><small>REGIONAL KEY VALUE · NET</small><strong>{regionalKeyPriceForCalculation > 0 ? regionalKeyPriceForCalculation.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " " + selectedRegion.currency : "Loading…"}</strong></div><div><small>SHOP KEY PRICE</small><strong>{liveKeyPriceToman > 0 ? formatNumber(liveKeyPriceToman) + " toman" : "Loading…"}</strong></div></div>
+            <p className="conversion-footnote"><Info size={14} /> Regional conversions use Steam’s live net key value for the selected region. Toman conversions use the live key price from the SteamPulse shop feed. Results are estimates.</p>
+          </section>
         </section>}
 
         {currentPage === "settings" && <section className="settings-page detail-card">
