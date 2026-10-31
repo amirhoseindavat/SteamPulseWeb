@@ -1493,7 +1493,7 @@ app.get("/api/key-price", async (req, res) => {
     const graphSellOrder = Array.isArray(data?.sell_order_graph) ? Number(data.sell_order_graph[0]?.[0]) : NaN;
     const grossPrice = Number(data?.success) === 1 && rawSellOrder > 0 ? rawSellOrder / 100 : (Number(data?.success) === 1 && graphSellOrder > 0 ? graphSellOrder : NaN);
     if (!Number.isFinite(grossPrice) || grossPrice <= 0) throw new Error(`Steam did not return a valid histogram key price for ${region}.`);
-    const rawPrice = `${String(data.price_prefix || "")}${grossPrice.toFixed(2)}${String(data.price_suffix || "")}`;
+    const netPrice = Number((grossPrice * 0.87).toFixed(2));
     const value = {
       region,
       currency,
