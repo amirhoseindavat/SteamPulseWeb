@@ -611,6 +611,54 @@ app.get("/api/free-games", async (req, res) => {
   }
 });
 
+app.get("/api/cart-details", async (req, res) => {
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const appids = [...new Set(String(req.query.apps || "").split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 50);
+  const packageIds = [...new Set(String(req.query.packages || "").split(",").map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))].slice(0, 50);
+  const cacheKey = `cart-details:${cc}:a=${appids.join(".")}:p=${packageIds.join(".")}`;
+  const hit = cached(cacheKey);
+  if (hit) return res.json(hit);
+
+  try {
+    const [apps, packages] = await Promise.all([
+      mapWithConcurrency(appids, 5, async (id) => {
+        const url = new URL("https://store.steampowered.com/api/appdetails");
+        url.searchParams.set("appids", String(id));
+        url.searchParams.set("cc", cc);
+        url.searchParams.set("l", "english");
+        const envelope = (await fetchJson(url))?.[id];
+        if (!envelope?.success || !envelope.data) return { id, type: "app", name: `App ${id}`, image: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${id}/header.jpg`, price: null, currency: null, url: `https://store.steampowered.com/app/${id}/` };
+        const d = envelope.data;
+        const price = d.price_overview || null;
+        return { id, type: "app", name: d.name || `App ${id}`, image: d.header_image || d.capsule_image || "", price: price?.final ?? null, initialPrice: price?.initial ?? null, formattedPrice: price?.final_formatted || (price ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100) : "Price unavailable"), currency: price?.currency || null, url: `https://store.steampowered.com/app/${id}/`, free: Boolean(d.is_free) || Number(price?.final) === 0 };
+      }),
+      mapWithConcurrency(packageIds, 5, async (id) => {
+        const url = new URL("https://store.steampowered.com/api/packagedetails/");
+        url.searchParams.set("packageids", String(id));
+        url.searchParams.set("cc", cc);
+        url.searchParams.set("l", "english");
+        const envelope = (await fetchJson(url))?.[id];
+        if (!envelope?.success || !envelope.data) return { id, type: "package", name: `Package ${id}`, image: "", price: null, currency: null, url: `https://store.steampowered.com/sub/${id}/` };
+        const d = envelope.data;
+        const price = d.price || null;
+        const finalPrice = price?.final ?? null;
+        return { id, type: "package", name: d.name || `Package ${id}`, image: d.header_image || d.small_logo || "", price: finalPrice, initialPrice: price?.initial ?? null, formattedPrice: price?.final_formatted || (finalPrice != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(finalPrice) / 100) : "Price unavailable"), currency: price?.currency || null, url: `https://store.steampowered.com/sub/${id}/`, free: Number(finalPrice) === 0 };
+      })
+    ]);
+    const result = {
+      region: cc,
+      items: [
+        ...apps.filter((entry) => entry.status === "fulfilled").map((entry) => entry.value),
+        ...packages.filter((entry) => entry.status === "fulfilled").map((entry) => entry.value)
+      ]
+    };
+    res.json(saveCache(cacheKey, result));
+  } catch (error) {
+    console.error("Steam cart details failed:", error);
+    res.status(502).json({ error: "Could not load Steam cart item details.", detail: error.message });
+  }
+});
+
 app.get("/api/game/:appid", async (req, res) => {
   const appid = String(req.params.appid);
   if (!/^\d+$/.test(appid)) {
