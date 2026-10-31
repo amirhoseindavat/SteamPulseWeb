@@ -1795,3 +1795,18 @@
 .app-shell[data-theme="light"] .purchase-layout .usd-price-field .usd-price-display>strong{
   color:#26324b;
 }
+
+
+/* The Steam price tile is the only glass layer; its value row is plain content. */
+.app-shell .purchase-layout .calculator-content .usd-price-field .usd-price-display,
+.app-shell .purchase-layout .calculator-content .usd-price-field .usd-price-display:hover,
+.app-shell .purchase-layout .calculator-content .usd-price-field .usd-price-display:focus,
+.app-shell .purchase-layout .calculator-content .usd-price-field .usd-price-display:focus-within{
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  outline:0;
+}
