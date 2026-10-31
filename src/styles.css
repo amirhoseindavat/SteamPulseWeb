@@ -1772,3 +1772,26 @@
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
 }
+
+
+/* Read-only Steam price display, keeping the same glass tile surface. */
+.app-shell .purchase-layout .usd-price-field .usd-price-display{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.app-shell .purchase-layout .usd-price-field .usd-price-display>span{
+  flex:0 0 auto;
+  color:#a18aff;
+  font:500 10px 'DM Mono',monospace;
+}
+.app-shell .purchase-layout .usd-price-field .usd-price-display>strong{
+  min-width:0;
+  color:#e9eefb;
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+}
+.app-shell[data-theme="light"] .purchase-layout .usd-price-field .usd-price-display>strong{
+  color:#26324b;
+}
