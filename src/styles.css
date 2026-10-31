@@ -1368,3 +1368,43 @@
 .app-shell[data-theme="light"] .game-external-actions .external-site-button{background:#ffffffb8;color:#48536b;border-color:#dce2ef;}
 .app-shell[data-theme="light"] .game-external-actions .external-site-button:hover{background:#eee9ff;color:#5139ae;border-color:#a18aff;}
 @media(max-width:620px){.game-external-actions{gap:7px;}.game-external-actions .primary-button,.game-external-actions .external-site-button{min-height:35px;padding:8px 9px;font-size:10px;}.game-external-actions button{flex:0 0 auto;}}
+
+
+/* Purchase options: compact tabs and horizontal bundle rows. */
+.purchase-options-panel{margin-top:0;padding:18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,rgba(21,29,52,.72),rgba(16,24,44,.72));}
+.purchase-options-panel .detail-header{margin-bottom:14px;}
+.purchase-tabs{display:flex;gap:7px;padding:4px;margin:0 0 15px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.16);}
+.purchase-tabs button{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:0;padding:10px 12px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,color .18s;}
+.purchase-tabs button span{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;background:#ffffff0d;color:inherit;font:10px "DM Mono",monospace;}
+.purchase-tabs button.purchase-tab-active{border-color:#8b6cff66;background:#8b6cff20;color:#c9bcff;box-shadow:0 2px 10px #0002;}
+.purchase-editions-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}
+.bundle-list{display:flex;flex-direction:column;gap:9px;}
+.bundle-row{display:flex;align-items:stretch;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:rgba(5,12,24,.32);transition:border-color .18s,background .18s;}
+.bundle-row:hover{border-color:#8b6cff77;background:rgba(30,45,69,.52);}
+.bundle-row.edition-card-selected{border-color:#66c0f4;box-shadow:0 0 0 1px #66c0f444;}
+.bundle-select{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:10px 12px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;}
+.bundle-select:disabled{cursor:default;opacity:.72;}
+.bundle-thumb{display:flex;align-items:center;justify-content:center;flex:0 0 92px;width:92px;height:54px;overflow:hidden;border-radius:6px;background:#172337;color:#91a2bb;}
+.bundle-thumb img{display:block;width:100%;height:100%;object-fit:cover;}
+.bundle-thumb-empty{background:linear-gradient(135deg,#172337,#26334a);}
+.bundle-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
+.bundle-copy>strong{overflow:hidden;color:#e2e9f5;font-size:11px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap;}
+.bundle-copy>small{overflow:hidden;color:#8795ad;font-size:9px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap;}
+.bundle-price{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;}
+.bundle-price del{color:#8295a5;font-size:9px;}
+.bundle-price b{color:#78e3d5;font-size:12px;}
+.bundle-price em{color:#beee11;font-size:9px;font-style:normal;font-weight:700;}
+.bundle-calculate{display:flex;align-items:center;gap:4px;flex:0 0 auto;color:#66c0f4;font-size:9px;font-weight:700;white-space:nowrap;}
+.bundle-store-link{display:flex;align-items:center;justify-content:center;flex:0 0 38px;border-left:1px solid var(--line);color:#91a4bf;}
+.bundle-store-link:hover{color:#c9bcff;background:#8b6cff18;}
+.purchase-empty-state{padding:25px 14px;border:1px dashed var(--line);border-radius:9px;color:var(--muted);font-size:11px;text-align:center;}
+.external-site-icon{display:inline-block;width:18px;height:18px;flex:0 0 18px;object-fit:contain;border-radius:4px;background:#fff;padding:2px;}
+.game-external-actions .primary-button .external-site-icon{background:#fff;}
+.app-shell[data-theme="light"] .purchase-options-panel{background:linear-gradient(145deg,#fff,#f6f8fd);}
+.app-shell[data-theme="light"] .purchase-tabs{background:#f0f2f8;}
+.app-shell[data-theme="light"] .purchase-tabs button.purchase-tab-active{background:#eee9ff;color:#5139ae;border-color:#c7baff;}
+.app-shell[data-theme="light"] .bundle-row{background:#fff;border-color:#e0e5ef;}
+.app-shell[data-theme="light"] .bundle-row:hover{background:#f5f7fc;border-color:#b8a9f7;}
+.app-shell[data-theme="light"] .bundle-copy>strong{color:#29354b;}
+.app-shell[data-theme="light"] .bundle-copy>small{color:#738099;}
+@media(max-width:620px){.purchase-options-panel{padding:13px;}.bundle-select{gap:9px;padding:9px;}.bundle-thumb{flex-basis:72px;width:72px;height:44px;}.bundle-calculate{font-size:0;gap:0;}.bundle-calculate svg{width:16px;height:16px;}.bundle-store-link{flex-basis:32px;}.purchase-editions-grid{grid-template-columns:1fr;}}
