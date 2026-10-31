@@ -2063,3 +2063,11 @@
 .edition-package-id{display:inline-flex;align-items:center;margin-top:10px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;background:#ffffff08;color:#8f9bb7;font:8px "DM Mono",monospace;letter-spacing:.55px}
 .edition-card-owned{border-color:#50d5a355;background:linear-gradient(145deg,#12332dc9,#10182c)}
 .edition-card-owned .edition-top-status{color:#68dfb4}
+
+/* DLC ownership status */
+.dlc-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}
+.dlc-title-row>strong{min-width:0}
+.dlc-ownership{flex-shrink:0;padding:4px 6px;border-radius:5px;border:1px solid var(--line);font:8px "DM Mono",monospace;letter-spacing:.35px;white-space:nowrap}
+.dlc-ownership.is-owned{color:#68dfb4;border-color:#50d5a355;background:#50d5a312}
+.dlc-ownership.is-not-owned{color:#8491ad;background:#ffffff06}
+.dlc-card-owned{border-color:#50d5a344}
