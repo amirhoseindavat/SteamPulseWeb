@@ -520,13 +520,19 @@ export default function App() {
 
 
   const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-  const gameEditions = game?.editions || [];
+  const allGameEditions = game?.editions || [];
+  const gameEditions = steamAccountConnected
+    ? allGameEditions.filter((edition) => edition.packageId != null && steamOwnedPackages.has(Number(edition.packageId)))
+    : allGameEditions;
   const gameBundles = game?.bundles || [];
   const hasEditions = gameEditions.length > 0;
   const hasBundles = gameBundles.length > 0;
   const missingPackages = gamePackageIds
-    .filter((packageId) => !gameEditions.some((edition) => Number(edition.packageId) === packageId))
-    .map((packageId) => ({ packageId, name: `Steam package ${packageId}`, description: steamOwnedPackages.has(packageId) ? "Owned package detected in your Steam account." : "Steam package linked to this game.", url: `https://store.steampowered.com/sub/${packageId}/` }));
+    .filter((packageId) => !allGameEditions.some((edition) => Number(edition.packageId) === packageId) && (!steamAccountConnected || steamOwnedPackages.has(packageId)))
+    .map((packageId) => ({ packageId, name: `Steam package ${packageId}`, description: "Owned package detected in your Steam account.", url: `https://store.steampowered.com/sub/${packageId}/` }));
+  const visibleDlc = steamAccountConnected
+    ? (game?.dlc || []).filter((item) => steamOwnedApps.has(Number(item.appid)))
+    : (game?.dlc || []);
   const gameIsWishlisted = Boolean(game && steamAccountConnected && steamWishlist.has(Number(game.appid)));
   const gameIsOwned = Boolean(game && steamAccountConnected && (
     steamOwnedApps.has(Number(game.appid)) || gamePackageIds.some((packageId) => steamOwnedPackages.has(packageId))
@@ -1047,7 +1053,7 @@ export default function App() {
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>}
 
-          {(game.dlc || []).length > 0 && <section className="extra-content-section detail-card dlc-section-card"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2><p className="purchase-hint">Open a DLC here or view its Steam store page.</p></div><span className="section-count">{game.dlc.length}{game.dlc_total > game.dlc.length ? ` / ${game.dlc_total}` : ""} DLCs</span></div><div className="dlc-grid">{game.dlc.map((item) => <article className={`dlc-card ${steamAccountConnected && steamOwnedApps.has(Number(item.appid)) ? "dlc-card-owned" : ""}`} key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><div className="dlc-title-row"><strong>{item.name}</strong>{steamAccountConnected && <span className={`dlc-ownership ${steamOwnedApps.has(Number(item.appid)) ? "is-owned" : "is-not-owned"}`}>{steamOwnedApps.has(Number(item.appid)) ? "✓ OWNED" : "NOT OWNED"}</span>}</div><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span><div className="dlc-actions"><a className="dlc-open-button" href={"#/game/" + item.appid} onClick={() => loadGame(item.appid, region)}><Gamepad2 size={13} /> Show details</a><a className="dlc-store-button" href={item.url} target="_blank" rel="noreferrer">Steam <ExternalLink size={12} /></a></div></div></article>)}</div>{game.dlc.length < game.dlc_total && <div className="dlc-load-more"><p className="dlc-note">Showing {game.dlc.length} of {game.dlc_total} DLC items.</p><button type="button" className="secondary-button" onClick={loadMoreDlc} disabled={loadingMoreDlc}>{loadingMoreDlc ? <><LoaderCircle size={15} className="spin" /> Loading DLCs…</> : <><ChevronRight size={15} /> Load more DLCs</>}</button></div>}</section>}
+          {visibleDlc.length > 0 && <section className="extra-content-section detail-card dlc-section-card"><div className="detail-header"><div><span className="section-kicker">EXPAND YOUR GAME</span><h2>Downloadable content</h2><p className="purchase-hint">Open a DLC here or view its Steam store page.</p></div><span className="section-count">{visibleDlc.length} owned DLCs</span></div><div className="dlc-grid">{visibleDlc.map((item) => <article className={`dlc-card ${steamAccountConnected && steamOwnedApps.has(Number(item.appid)) ? "dlc-card-owned" : ""}`} key={item.appid}><img src={item.image || game.header_image} alt="" loading="lazy" /><div className="dlc-copy"><div className="dlc-title-row"><strong>{item.name}</strong>{steamAccountConnected && <span className={`dlc-ownership ${steamOwnedApps.has(Number(item.appid)) ? "is-owned" : "is-not-owned"}`}>{steamOwnedApps.has(Number(item.appid)) ? "✓ OWNED" : "NOT OWNED"}</span>}</div><small>APP ID · {item.appid}</small><span>{item.price || "Price unavailable"}</span><div className="dlc-actions"><a className="dlc-open-button" href={"#/game/" + item.appid} onClick={() => loadGame(item.appid, region)}><Gamepad2 size={13} /> Show details</a><a className="dlc-store-button" href={item.url} target="_blank" rel="noreferrer">Steam <ExternalLink size={12} /></a></div></div></article>)}</div>{!steamAccountConnected && game.dlc.length < game.dlc_total && <div className="dlc-load-more"><p className="dlc-note">Showing {game.dlc.length} of {game.dlc_total} DLC items.</p><button type="button" className="secondary-button" onClick={loadMoreDlc} disabled={loadingMoreDlc}>{loadingMoreDlc ? <><LoaderCircle size={15} className="spin" /> Loading DLCs…</> : <><ChevronRight size={15} /> Load more DLCs</>}</button></div>}</section>}
 
           <section className="detail-section">
             <div className="detail-card game-intel-card"><div className="detail-header"><div><span className="section-kicker">GAME INTEL</span><h2>Inside the game</h2></div><div className="tabs">{tabNames.map((tab) => <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div></div>
