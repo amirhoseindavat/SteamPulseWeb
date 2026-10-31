@@ -2298,14 +2298,16 @@
 }
 
 
-/* Country flag beside every Steam region selector */
-.region-select-control{display:flex;align-items:center;gap:9px;min-width:0}
-.region-select-flag{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:21px;line-height:1}
+/* Country flag displayed inside each Steam region selector */
+.region-select-control{position:relative;display:block;min-width:0}
+.region-select-flag{position:absolute;z-index:2;left:12px;top:50%;width:22px;height:16px;object-fit:cover;border-radius:2px;transform:translateY(-50%);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.region-select-control select{padding-left:44px!important}
 .settings-form .region-select-control select{min-width:0;width:100%}
-.calculator-region .region-select-control select{max-width:100%;min-width:0;flex:1}
+.calculator-region .region-select-control{flex:0 1 60%;max-width:60%}
+.calculator-region .region-select-control select{width:100%;max-width:100%;min-width:0}
 .conversion-region .region-select-control select{min-width:210px}
 @media(max-width:620px){
-  .calculator-region .region-select-control{width:100%}
+  .calculator-region .region-select-control{width:100%;max-width:100%}
   .calculator-region .region-select-control select{width:100%}
   .conversion-region .region-select-control{width:100%}
   .conversion-region .region-select-control select{width:100%;min-width:0}
