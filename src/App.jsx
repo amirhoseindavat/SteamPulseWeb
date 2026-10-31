@@ -533,8 +533,8 @@ export default function App() {
   const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
   const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
   const cartCurrency = steamCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
-  const cartTotalMinor = steamCartDetails.reduce((sum, item) => sum + (Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
-  const cartPricedItems = steamCartDetails.filter((item) => Number.isFinite(Number(item.price)));
+  const cartTotalMinor = steamCartDetails.reduce((sum, item) => sum + (item.price != null && Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
+  const cartPricedItems = steamCartDetails.filter((item) => item.price != null && Number.isFinite(Number(item.price)));
   const cartTotalFormatted = cartPricedItems.length
     ? new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartTotalMinor / 100)
     : "—";
