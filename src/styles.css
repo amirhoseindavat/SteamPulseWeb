@@ -1856,3 +1856,82 @@
 @media(max-width:620px){
   .app-shell .purchase-layout .usd-price-field .usd-price-display>strong{font-size:24px}
 }
+
+
+/* Steam About content can contain animated GIFs, videos and embedded players.
+   Keep those media elements independent from the surrounding Liquid Glass card. */
+.about-card .about-copy{
+  min-width:0;
+  isolation:isolate;
+}
+.about-card .about-copy img,
+.about-card .about-copy video,
+.about-card .about-copy iframe,
+.about-card .about-copy embed,
+.about-card .about-copy object{
+  display:block;
+  max-width:100% !important;
+  margin:12px auto;
+  border:0 !important;
+  border-radius:9px;
+  background:transparent !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+  filter:none;
+}
+.about-card .about-copy img{
+  width:auto;
+  height:auto !important;
+  object-fit:contain;
+}
+.about-card .about-copy video{
+  width:100% !important;
+  height:auto !important;
+  max-height: min(70vh,560px);
+  object-fit:contain;
+  background:#080d1b !important;
+}
+.about-card .about-copy iframe,
+.about-card .about-copy embed,
+.about-card .about-copy object{
+  width:100%;
+  aspect-ratio:16/9;
+  height:auto;
+  min-height:180px;
+  overflow:hidden;
+}
+.about-card .about-copy .bb_img_ctn,
+.about-card .about-copy .bb_video,
+.about-card .about-copy .highlight_player_item,
+.about-card .about-copy .steam_video,
+.about-card .about-copy .video_container{
+  display:block;
+  width:100% !important;
+  max-width:100% !important;
+  height:auto !important;
+  margin:12px auto;
+  overflow:hidden;
+  border:0 !important;
+  border-radius:9px;
+  background:transparent !important;
+  box-shadow:none !important;
+  -webkit-backdrop-filter:none !important;
+  backdrop-filter:none !important;
+}
+.about-card .about-copy .bb_img_ctn img,
+.about-card .about-copy .bb_video video,
+.about-card .about-copy .highlight_player_item video,
+.about-card .about-copy .steam_video video,
+.about-card .about-copy .video_container video{
+  width:100% !important;
+  max-width:100% !important;
+  height:auto !important;
+  margin:0;
+  object-fit:contain;
+}
+.about-card .about-copy p:has(> img),
+.about-card .about-copy p:has(> video){
+  max-width:100%;
+  overflow:hidden;
+}
