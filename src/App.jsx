@@ -751,7 +751,7 @@ export default function App() {
                   <a className="secondary-button external-site-button" href={"https://steamdb.info/app/" + game.appid + "/"} target="_blank" rel="noreferrer"><span className="external-site-mark steamdb-mark">DB</span> SteamDB <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://www.protondb.com/app/" + game.appid} target="_blank" rel="noreferrer"><span className="external-site-mark proton-mark">P</span> ProtonDB <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://www.pcgamingwiki.com/api/appid.php?appid=" + game.appid} target="_blank" rel="noreferrer"><span className="external-site-mark pcgw-mark">W</span> PCGamingWiki <ExternalLink size={13} /></a>
-                  <a className="secondary-button external-site-button" href={"https://www.google.com/search?q=" + encodeURIComponent('HowLongToBeat ' + game.name)} target="_blank" rel="noreferrer"><Clock3 size={14} /> HowLongToBeat <ExternalLink size={13} /></a>
+                  <a className="secondary-button external-site-button" href={"https://howlongtobeat.com/?q=" + encodeURIComponent(game.name)} target="_blank" rel="noreferrer"><Clock3 size={14} /> HowLongToBeat <ExternalLink size={13} /></a>
                   <button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button>
                 </div>
             </div>
