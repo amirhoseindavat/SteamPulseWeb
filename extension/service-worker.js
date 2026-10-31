@@ -30,10 +30,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       return response.json();
     }).then(function (data) {
       chrome.storage.local.get(SNAPSHOT_KEY, function (result) {
-        var previous = result[SNAPSHOT_KEY] && result[SNAPSHOT_KEY].data ? result[SNAPSHOT_KEY].data : {};
-        if (!Array.isArray(data.rgBundlesInCart) || data.rgBundlesInCart.length === 0) {
-          data.rgBundlesInCart = Array.isArray(previous.rgBundlesInCart) ? previous.rgBundlesInCart : [];
-        }
         var snapshot = {
           source: "steam-dynamicstore-userdata",
           loginStatus: "connected",
