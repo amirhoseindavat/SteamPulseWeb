@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toBlob } from "html-to-image";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Share2, Heart, PackageOpen,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Share2, Heart, PackageOpen, ShoppingCart,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
@@ -64,7 +64,7 @@ export default function App() {
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
@@ -108,7 +108,7 @@ export default function App() {
 
 
   useEffect(() => {
-    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", calculator: "Key Calculator", settings: "Settings", profile: "Profile" };
+    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
     const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
     document.title = `${title} | SteamPulse`;
   }, [currentPage, game?.name]);
@@ -259,7 +259,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|settings|profile)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       if (nextPage !== "game") { setGame(null); setLoading(false); }
@@ -279,7 +279,7 @@ export default function App() {
     };
     window.addEventListener("message", receiveSteamAccount);
     requestSteamAccount();
-    const syncTimer = window.setInterval(requestSteamAccount, 30000);
+    const syncTimer = window.setInterval(() => requestSteamAccount(true), 60000);
     return () => {
       window.removeEventListener("message", receiveSteamAccount);
       window.clearInterval(syncTimer);
@@ -481,6 +481,8 @@ export default function App() {
   const steamWishlist = new Set((steamAccountData?.rgWishlist || []).map(Number));
   const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
   const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
+  const steamCartApps = (steamAccountData?.rgAppsInCart || []).map(Number);
+  const steamCartPackages = (steamAccountData?.rgPackagesInCart || []).map(Number);
 
   const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
   const gameEditions = game?.editions || [];
@@ -519,7 +521,7 @@ export default function App() {
         <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }} aria-label="SteamPulse Home">
           <img className="brand-logo" src="https://steampulse.ir/favicon.png" alt="SteamPulse" />
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["cart","Cart"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "cart" ? <ShoppingCart size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
           <button className="header-search-home" ref={headerSearchRef} onClick={() => navigateTo("home")} title="Go to Home" aria-label="Go to Home"><Search size={17} /><span>Search</span></button>
           <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
@@ -581,6 +583,18 @@ export default function App() {
           </>}
         </section>}
 
+
+        {currentPage === "cart" && <section className="steam-cart-page">
+          <div className="steam-cart-heading"><div><span className="section-kicker"><ShoppingCart size={13} /> STEAM ACCOUNT</span><h1>Shopping Cart</h1><p>Your current Steam Store cart, synced from the account connected in your browser.</p></div><a className="primary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Cart <ExternalLink size={14} /></a></div>
+          {!steamAccountConnected ? <div className="steam-cart-empty detail-card"><ShoppingCart size={28} /><h2>Connect your Steam account</h2><p>Open Steam Store in another tab and sign in. SteamPulse Connect will sync your cart automatically.</p><a className="secondary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Store <ExternalLink size={14} /></a></div> : <>
+            <div className="steam-cart-summary"><div><small>GAMES IN CART</small><strong>{steamCartApps.length}</strong></div><div><small>PACKAGES IN CART</small><strong>{steamCartPackages.length}</strong></div><div><small>TOTAL ITEMS</small><strong>{steamCartApps.length + steamCartPackages.length}</strong></div></div>
+            {steamCartApps.length + steamCartPackages.length === 0 ? <div className="steam-cart-empty detail-card"><ShoppingCart size={28} /><h2>Your Steam cart is empty</h2><p>Add a game or package on Steam and refresh your account snapshot to see it here.</p><a className="secondary-button" href="https://store.steampowered.com/" target="_blank" rel="noreferrer">Browse Steam Store <ExternalLink size={14} /></a></div> : <div className="steam-cart-items">
+              {steamCartApps.map((id) => <a className="steam-cart-item detail-card" key={"app-"+id} href={"https://store.steampowered.com/app/"+id+"/"} target="_blank" rel="noreferrer"><span className="steam-cart-item-icon"><Gamepad2 size={19} /></span><span><small>STEAM APP · {id}</small><strong>App {id}</strong></span><ExternalLink size={15} /></a>)}
+              {steamCartPackages.map((id) => <a className="steam-cart-item detail-card" key={"sub-"+id} href={"https://store.steampowered.com/sub/"+id+"/"} target="_blank" rel="noreferrer"><span className="steam-cart-item-icon"><PackageOpen size={19} /></span><span><small>STEAM PACKAGE · {id}</small><strong>Package {id}</strong></span><ExternalLink size={15} /></a>)}
+            </div>}
+            <p className="steam-cart-footnote">Steam's dynamic store endpoint provides AppIDs and package IDs, but not checkout prices. Use Steam's cart for live pricing and checkout.</p>
+          </>}
+        </section>}
 
         {currentPage === "market" && <section className="market-page">
           <div className="market-heading"><div><span className="section-kicker"><Tag size={13} /> STEAMPULSE MARKET</span><h1>Steam key market</h1><p>Live Iranian shop prices, stock and purchase links.</p></div><button className="market-refresh" onClick={() => { setShopDataLoading(true); setShopDataError(""); fetch("/api/shop-data").then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || "Could not load live key prices."); return data; }).then((data) => { setShopData(data); setShopDataUpdatedAt(new Date()); }).catch((error) => setShopDataError(error.message || "Refresh failed.")).finally(() => setShopDataLoading(false)); }} disabled={shopDataLoading}><RefreshCw size={14} className={shopDataLoading ? "spin" : ""} /> Refresh prices</button></div>
