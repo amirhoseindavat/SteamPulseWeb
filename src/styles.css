@@ -2071,3 +2071,56 @@
 .dlc-ownership.is-owned{color:#68dfb4;border-color:#50d5a355;background:#50d5a312}
 .dlc-ownership.is-not-owned{color:#8491ad;background:#ffffff06}
 .dlc-card-owned{border-color:#50d5a344}
+
+
+/* Header branding and navigation polish */
+.brand{gap:0;flex:0 0 auto}
+.brand-logo{display:block;width:42px;height:42px;object-fit:contain;border-radius:11px}
+.header-search-home{height:39px;min-width:88px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.045);color:#c9baff;font-size:11px;font-weight:700;transition:.18s}
+.header-search-home:hover{background:rgba(139,108,255,.14);border-color:#8b6cff66;color:#fff}
+.app-shell[data-theme="light"] .header-search-home{background:#fff;color:#6b54c8;border-color:#d8deeb}
+.app-shell[data-theme="light"] .header-search-home:hover{background:#8b6cff12}
+@media(max-width:620px){.brand-logo{width:38px;height:38px}.header-search-home{width:38px;min-width:38px;padding:0}.header-search-home span{display:none}}
+
+/* Profile layout: prevent long names, badges and stat labels from colliding. */
+.steam-profile-identity{display:grid;grid-template-columns:104px minmax(0,1fr) auto;align-items:center;gap:20px;padding:34px 26px 20px;min-width:0}
+.steam-profile-avatar-wrap{grid-column:1;grid-row:1;align-self:center}
+.steam-profile-name{grid-column:2;grid-row:1;min-width:0;width:100%;padding:0}
+.steam-profile-title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+.steam-profile-title-row h1{min-width:0;max-width:100%;overflow-wrap:anywhere;line-height:1.2}
+.steam-profile-level{flex:0 0 42px}
+.profile-steam-link{grid-column:3;grid-row:1;align-self:center;margin:0}
+.steam-profile-summary{max-width:900px;overflow-wrap:anywhere}
+.profile-stats-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:stretch;gap:14px}
+.profile-stat{min-width:0;justify-content:space-between;min-height:126px}
+.profile-stat-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.profile-stat-heading span{min-width:0;line-height:1.45;overflow-wrap:anywhere}
+.profile-stat-value{max-width:100%;line-height:1.25;overflow-wrap:anywhere}
+.profile-badge-art{display:flex;align-items:center;min-height:44px}
+.profile-badge-image{display:block;max-width:100%;max-height:56px;object-fit:contain}
+.profile-library-heading{align-items:center;flex-wrap:wrap}
+.profile-library-heading>div{min-width:0;flex:1}
+.profile-library-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.profile-library-card{min-width:0;overflow:hidden}
+.profile-library-card .card-title{min-width:0;flex-wrap:wrap}
+.profile-library-card .card-title h3{overflow-wrap:anywhere}
+@media(max-width:760px){
+ .steam-profile-identity{grid-template-columns:82px minmax(0,1fr);align-items:center;gap:14px;padding:26px 18px 16px}
+ .steam-profile-avatar-wrap{grid-column:1;grid-row:1}
+ .steam-profile-name{grid-column:2;grid-row:1;min-width:0}
+ .profile-steam-link{grid-column:2;grid-row:2;justify-self:start;margin:0}
+ .profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .profile-library-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+ .steam-profile-identity{grid-template-columns:68px minmax(0,1fr);gap:12px;padding:22px 14px 15px}
+ .steam-profile-avatar-wrap{width:68px;height:68px;flex-basis:68px}
+ .steam-profile-name h1{font-size:20px}
+ .steam-profile-title-row{gap:7px}
+ .steam-profile-level{width:34px;height:34px;flex-basis:34px}
+ .profile-steam-link{grid-column:1/-1;grid-row:2}
+ .profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .profile-stat{padding:13px;min-height:112px}
+ .profile-stat-value{font-size:18px!important}
+ .profile-stat-heading span{font-size:10px}
+}
