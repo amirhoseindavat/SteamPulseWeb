@@ -2403,3 +2403,18 @@
 .app-shell[data-theme="light"] .region-select-option{color:#29354b}
 .app-shell[data-theme="light"] .region-select-option:hover,.app-shell[data-theme="light"] .region-select-option.active{background:#eee9ff}
 .app-shell[data-theme="light"] .region-select-option small{color:#75819a}
+
+
+/* Keep an expanded region dropdown above neighboring cards and form fields. */
+.conversion-region:has(.custom-region-select.is-open),
+.calculator-region:has(.custom-region-select.is-open),
+.settings-form label:has(.custom-region-select.is-open){
+  position:relative;
+  z-index:100;
+}
+.custom-region-select.is-open{
+  z-index:101;
+}
+.custom-region-select.is-open .region-select-menu{
+  z-index:1000;
+}
