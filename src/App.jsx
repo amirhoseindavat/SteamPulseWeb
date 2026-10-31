@@ -760,6 +760,7 @@ export default function App() {
                   <a className="secondary-button external-site-button" href={"https://howlongtobeat.com/?q=" + encodeURIComponent(game.name)} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=howlongtobeat.com&sz=64" alt="" /> HowLongToBeat <ExternalLink size={13} /></a>
                   </>}
                 </div>
+            </div>
                 <div className="hero-utility-actions">
                   <button className="secondary-button share-game-button" onClick={async () => {
                     if (!shareCardRef.current) {
@@ -811,7 +812,6 @@ export default function App() {
                   }}><Share2 size={15} /> {shareStatus || "Share"}</button>
                   <button className="secondary-button" onClick={() => loadGame(appid)} title="Refresh game data" aria-label="Refresh game data"><RefreshCw size={15} /></button>
                 </div>
-            </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
           <div className="share-card-render" ref={shareCardRef} aria-hidden="true">
