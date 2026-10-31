@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { toBlob } from "html-to-image";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Share2,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
@@ -78,6 +79,8 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
+  const [shareStatus, setShareStatus] = useState("");
+  const shareCardRef = useRef(null);
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
@@ -756,11 +759,40 @@ export default function App() {
                   <a className="secondary-button external-site-button" href={"https://www.pcgamingwiki.com/api/appid.php?appid=" + game.appid} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=pcgamingwiki.com&sz=64" alt="" /> PCGamingWiki <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://howlongtobeat.com/?q=" + encodeURIComponent(game.name)} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=howlongtobeat.com&sz=64" alt="" /> HowLongToBeat <ExternalLink size={13} /></a>
                   </>}
+                  <button className="secondary-button share-game-button" onClick={async () => {
+                    if (!shareCardRef.current) return;
+                    setShareStatus("Preparing image…");
+                    try {
+                      const blob = await toBlob(shareCardRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: "#0b1020" });
+                      if (!blob) throw new Error("Could not generate the image.");
+                      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                      setShareStatus("Image copied!");
+                    } catch (error) {
+                      console.error("Game card copy failed:", error);
+                      setShareStatus("Clipboard unavailable");
+                    }
+                    window.setTimeout(() => setShareStatus(""), 2500);
+                  }}><Share2 size={15} /> {shareStatus || "Share"}</button>
                   <button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button>
                 </div>
             </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
+          <div className="share-card-render" aria-hidden="true">
+            <div className="share-card-art"><img src={hero} crossOrigin="anonymous" alt="" /></div>
+            <div className="share-card-content">
+              <div className="share-card-brand">STEAMPULSE <span>GAME SNAPSHOT</span></div>
+              <h1>{game.name}</h1>
+              <p className="share-card-description">{game.short_description || "Discover this game on Steam."}</p>
+              <div className="share-card-stats">
+                <div><small>PRICE</small><strong>{price}</strong></div>
+                <div><small>METACRITIC</small><strong>{game.metacritic?.score ?? "—"}</strong></div>
+                <div><small>PLAYERS ONLINE</small><strong>{formatNumber(game.player_count)}</strong></div>
+              </div>
+              <div className="share-card-tags">{(game.genres || []).slice(0, 5).map((genre) => <span key={genre}>{genre}</span>)}</div>
+              <div className="share-card-footer"><span>APP/{game.appid}</span><strong>STEAMPULSE · aresgame.ir</strong></div>
+            </div>
+          </div>
 
           {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
