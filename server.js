@@ -761,7 +761,11 @@ app.get("/api/game/:appid", async (req, res) => {
     }
 
     const packageGroups = Array.isArray(d.package_groups) ? d.package_groups : [];
+    const packageIds = [...new Set(packageGroups.flatMap((group) => (group.subs || [])
+      .map((sub) => Number(sub.packageid || sub.id))
+      .filter((id) => Number.isSafeInteger(id) && id > 0)))];
     const editions = packageGroups.flatMap((group) => (group.subs || []).map((sub) => ({
+      packageId: Number(sub.packageid || sub.id) || null,
       name: cleanEditionName(sub.option_text || sub.name || group.title || group.name || "Steam edition"),
       description: sub.option_description || group.description || "",
       kind: group.name || group.title || "EDITION",
@@ -929,6 +933,7 @@ app.get("/api/game/:appid", async (req, res) => {
       library_hero: libraryHero,
       game_logo: gameLogo,
       background: d.background || "",
+      background_raw: d.background_raw || "",
       developers: d.developers || [],
       publishers: d.publishers || [],
       release_date: d.release_date?.date || "Unknown",
@@ -939,6 +944,7 @@ app.get("/api/game/:appid", async (req, res) => {
       price_overview: d.price_overview || null,
       us_price_overview: usPriceOverview,
       editions,
+      package_ids: packageIds,
       bundles,
       dlc,
       dlc_total: dlcIds.length,
