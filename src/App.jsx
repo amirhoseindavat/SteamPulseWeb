@@ -783,6 +783,10 @@ export default function App() {
           <footer className="page-footer"><span>STEAMPULSE</span><span>APP/{game.appid}</span></footer>
         </>}
       </main>
+      <footer className="site-footer">
+        <span>© All rights reserved</span>
+        <span className="site-footer-credit">Made with <span aria-label="love">❤️</span> by <img src="https://codemage.ir/img/favicon.png" alt="CodeMage" loading="lazy" /><a href="https://codemage.ir/" target="_blank" rel="noreferrer">CodeMage</a></span>
+      </footer>
     </div>
   );
 }
