@@ -470,7 +470,7 @@ export default function App() {
           <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
           <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
           <div className="header-search-box" ref={headerSearchRef}>
             <Search size={16} className="header-search-icon" />
