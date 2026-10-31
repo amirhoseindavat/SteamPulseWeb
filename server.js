@@ -1005,6 +1005,8 @@ app.get("/api/game/:appid", async (req, res) => {
       package_ids: packageIds,
       bundles,
       dlc,
+      // Keep every DLC AppID so ownership totals are accurate before all cards are loaded.
+      dlc_ids: dlcIds,
       dlc_total: dlcIds.length,
       metacritic: d.metacritic || null,
       recommendations: d.recommendations?.total ?? null,
