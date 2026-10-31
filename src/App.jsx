@@ -350,21 +350,22 @@ export default function App() {
       const ownedIds = [...new Set((account.rgOwnedApps || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
       const fetchDetails = async (ids) => {
         const selected = ids.slice(0, 36);
-        const results = [];
+        const results = new Array(selected.length);
         let cursor = 0;
         const workers = Array.from({ length: Math.min(4, selected.length) }, async () => {
           while (cursor < selected.length) {
-            const id = selected[cursor++];
+            const index = cursor++;
+            const id = selected[index];
             try {
               const response = await fetch(`/api/game/${id}?cc=${region}`);
               if (!response.ok) continue;
               const data = await response.json();
-              if (data?.appid) results.push(data);
+              if (data?.appid) results[index] = data;
             } catch { /* Keep the rest of the library usable if one Steam item fails. */ }
           }
         });
         await Promise.all(workers);
-        return results;
+        return results.filter(Boolean);
       };
       const [wishlist, owned] = await Promise.all([fetchDetails(wishlistIds), fetchDetails(ownedIds)]);
       setLibraryItems({ wishlist, owned });
