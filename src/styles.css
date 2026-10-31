@@ -1215,3 +1215,17 @@
 .purchase-options-column .edition-prices s{font-size:9px;}
 .purchase-options-column .edition-prices strong{font-size:13px;}
 @media(max-width:900px){.purchase-options-column .edition-prices strong{font-size:12px;}}
+
+
+/* Keep search suggestions anchored below the search field. */
+.search-box,.header-search-box{position:relative;z-index:40;overflow:visible;}
+.search-box .search-results,.header-search-box .search-results{position:absolute;top:calc(100% + 8px);bottom:auto!important;left:0;right:0;z-index:1200;max-height:min(410px,65vh);overflow-y:auto;}
+.search-panel{position:relative;z-index:40;overflow:visible;}
+.topbar{z-index:100;overflow:visible;}
+.topbar-right,.header-search-box{overflow:visible;}
+.site-footer{max-width:1240px;margin:24px auto 0;padding:20px 32px 24px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:11px;}
+.site-footer-credit{display:inline-flex;align-items:center;gap:6px;}
+.site-footer-credit img{width:17px;height:17px;object-fit:contain;border-radius:4px;margin-left:2px;}
+.site-footer-credit a{color:#a18aff;font-weight:700;transition:color .18s;}
+.site-footer-credit a:hover{color:#c3b4ff;text-decoration:underline;}
+@media(max-width:620px){.site-footer{margin-top:18px;padding:17px 15px 22px;justify-content:center;text-align:center;gap:8px;flex-direction:column;}}
