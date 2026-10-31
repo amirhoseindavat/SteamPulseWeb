@@ -5,7 +5,7 @@
   const STEAMPULSE_URL = "https://amirhoseindavat.github.io/SteamPulseWeb/";
 
   function getAppId() {
-    const match = window.location.pathname.match(/^\\/app\\/(\\d+)(?:\\/|$)/);
+    const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
     return match ? match[1] : null;
   }
 
@@ -13,7 +13,7 @@
     const appId = getAppId();
     if (!appId) return;
 
-    const title = document.querySelector("#appHubAppName, .apphub_AppName");
+    const title = document.querySelector("#appHubAppName, .apphub_AppName, .apphub_AppNameTitle");
     if (!title) return;
 
     const host = title.closest(".apphub_HeaderStandardTop") || title.parentElement;
@@ -35,7 +35,7 @@
           display: inline-flex;
           align-items: center;
           width: fit-content;
-          margin-top: 12px;
+          margin: 12px 0 0;
           padding: 8px 13px;
           border: 1px solid rgba(161, 125, 255, .55);
           border-radius: 8px;
@@ -45,6 +45,8 @@
           text-decoration: none !important;
           box-shadow: 0 3px 12px rgba(75, 25, 189, .25);
           transition: transform .15s ease, filter .15s ease;
+          position: relative;
+          z-index: 5;
         }
         .steampulse-store-button:hover {
           color: #fff !important;
