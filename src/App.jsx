@@ -18,13 +18,21 @@ const REGIONS = [
 ];
 
 function countryFlagEmoji(country) {
+  const raw = String(country || "").trim();
   const codes = {
     "United States": "US", "United Kingdom": "GB", Germany: "DE", Ukraine: "UA",
-    Türkiye: "TR", Canada: "CA", Australia: "AU", France: "FR", Poland: "PL",
-    Brazil: "BR", India: "IN", Japan: "JP"
+    Türkiye: "TR", Turkey: "TR", Canada: "CA", Australia: "AU", France: "FR",
+    Poland: "PL", Brazil: "BR", India: "IN", Japan: "JP", Netherlands: "NL",
+    Spain: "ES", Italy: "IT", Russia: "RU", Sweden: "SE", Norway: "NO",
+    Finland: "FI", Denmark: "DK", Switzerland: "CH", Austria: "AT",
+    Belgium: "BE", Portugal: "PT", Ireland: "IE", Czechia: "CZ",
+    Romania: "RO", Argentina: "AR", Mexico: "MX", "South Korea": "KR",
+    China: "CN", Taiwan: "TW", "New Zealand": "NZ"
   };
-  const code = codes[country] || (/^[A-Z]{2}$/.test(country || "") ? country : "");
-  return code ? String.fromCodePoint(...[...code].map((char) => 127397 + char.charCodeAt(0))) : "🌍";
+  const code = (codes[raw] || raw).toUpperCase();
+  return /^[A-Z]{2}$/.test(code)
+    ? String.fromCodePoint(...[...code].map((char) => 127397 + char.charCodeAt(0)))
+    : "🌍";
 }
 
 function money(price) {
@@ -589,8 +597,9 @@ export default function App() {
         <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }} aria-label="SteamPulse Home">
           <img className="brand-logo" src="https://steampulse.ir/favicon.png" alt="SteamPulse" />
         </a>
-        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["cart","Cart"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "cart" ? <ShoppingCart size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}{page === "cart" && steamCartApps.length > 0 && <span className="nav-cart-count">{steamCartApps.length}</span>}</button>)}</nav>
+        <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["cart","Cart"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "cart" ? <ShoppingCart size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}{page === "cart" && steamCartApps.length > 0 && <span className="nav-cart-count">{steamCartApps.length}</span>}</button>)}</nav>
         <div className="topbar-right">
+          <button className="header-profile-avatar" onClick={() => navigateTo("profile")} title="Steam Profile" aria-label="Steam Profile">{steamProfileData?.profile?.avatar ? <img src={steamProfileData.profile.avatar} alt="" /> : <UserRound size={17} />}</button>
           <button className="header-search-home" ref={headerSearchRef} onClick={() => navigateTo("home")} title="Go to Home" aria-label="Go to Home"><Search size={17} /><span>Search</span></button>
           <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
           <span className="online-pill"><span className="status-dot" /> API READY</span></div>
