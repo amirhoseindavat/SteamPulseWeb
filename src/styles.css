@@ -2296,3 +2296,17 @@
 .app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity{
   background:linear-gradient(115deg,rgba(255,255,255,.78),rgba(232,238,255,.52) 55%,rgba(225,217,255,.48)) !important;
 }
+
+
+/* Country flag beside every Steam region selector */
+.region-select-control{display:flex;align-items:center;gap:9px;min-width:0}
+.region-select-flag{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-size:21px;line-height:1}
+.settings-form .region-select-control select{min-width:0;width:100%}
+.calculator-region .region-select-control select{max-width:100%;min-width:0;flex:1}
+.conversion-region .region-select-control select{min-width:210px}
+@media(max-width:620px){
+  .calculator-region .region-select-control{width:100%}
+  .calculator-region .region-select-control select{width:100%}
+  .conversion-region .region-select-control{width:100%}
+  .conversion-region .region-select-control select{width:100%;min-width:0}
+}
