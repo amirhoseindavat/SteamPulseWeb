@@ -93,9 +93,15 @@
       }
     }
 
-    banner.querySelector(".steampulse-store-main").href = gameUrl;
-    banner.querySelector(".steampulse-store-open").href = gameUrl;
-    banner.querySelector(".steampulse-store-label").textContent = "View " + getGameName() + " in SteamPulse";
+    const mainLink = banner.querySelector(".steampulse-store-main");
+    const openLink = banner.querySelector(".steampulse-store-open");
+    const label = banner.querySelector(".steampulse-store-label");
+    const gameLabel = "View " + getGameName() + " in SteamPulse";
+
+    // Avoid generating mutations when the observer calls addButton again.
+    if (mainLink.href !== gameUrl) mainLink.href = gameUrl;
+    if (openLink.href !== gameUrl) openLink.href = gameUrl;
+    if (label.textContent !== gameLabel) label.textContent = gameLabel;
 
     if (target.firstPackage) {
       if (banner.parentElement !== target.purchaseArea || banner.nextElementSibling !== target.firstPackage) {
