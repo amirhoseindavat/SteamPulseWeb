@@ -517,7 +517,7 @@ export default function App() {
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }} aria-label="SteamPulse Home">
-          <img className="brand-logo" src="/favicon.png" alt="SteamPulse" />
+          <img className="brand-logo" src="https://steampulse.ir/favicon.png" alt="SteamPulse" />
         </a>
         <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
