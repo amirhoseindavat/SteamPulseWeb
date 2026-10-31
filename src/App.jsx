@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { toBlob } from "html-to-image";
 import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Share2, Heart, PackageOpen, ShoppingCart,
+  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Heart, PackageOpen, ShoppingCart,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
@@ -83,8 +82,6 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
-  const [shareStatus, setShareStatus] = useState("");
-  const shareCardRef = useRef(null);
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
@@ -894,97 +891,10 @@ export default function App() {
                 </div>
             </div>
                 <div className="hero-utility-actions">
-                  <button className="secondary-button share-game-button" onClick={async () => {
-                    if (!shareCardRef.current) {
-                      setShareStatus("Card unavailable");
-                      window.setTimeout(() => setShareStatus(""), 2500);
-                      return;
-                    }
-                    setShareStatus("Preparing image…");
-                    try {
-                      // Ensure the artwork is decoded before html-to-image snapshots the card.
-                      const shareImage = shareCardRef.current.querySelector("img");
-                      if (shareImage && !shareImage.complete) {
-                        await new Promise((resolve, reject) => {
-                          shareImage.onload = resolve;
-                          shareImage.onerror = () => reject(new Error("Game artwork could not be loaded."));
-                        });
-                      }
-                      if (shareImage?.decode) {
-                        await shareImage.decode().catch(() => {});
-                      }
-                      if (document.fonts?.ready) await document.fonts.ready;
-
-                      const blob = await toBlob(shareCardRef.current, {
-                        pixelRatio: 2,
-                        cacheBust: true,
-                        backgroundColor: "#0b1020",
-                        skipAutoScale: true,
-                        width: 1100,
-                        height: 560,
-                        style: {
-                          position: "fixed",
-                          left: "0px",
-                          top: "0px",
-                          zIndex: "99999",
-                          transform: "none",
-                          margin: "0"
-                        }
-                      });
-                      if (!blob) throw new Error("Could not generate the image.");
-
-                      const file = new File([blob], `steampulse-${game.appid}.png`, { type: "image/png" });
-                      if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-                        await navigator.share({
-                          files: [file],
-                          title: `${game.name} | SteamPulse`,
-                          text: "Game snapshot created with SteamPulse"
-                        });
-                        setShareStatus("Shared!");
-                      } else if (navigator.clipboard?.write && window.ClipboardItem) {
-                        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                        setShareStatus("Image copied!");
-                      } else {
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.download = `steampulse-${game.appid}.png`;
-                        document.body.appendChild(link);
-                        link.click();
-                        link.remove();
-                        URL.revokeObjectURL(url);
-                        setShareStatus("Image downloaded!");
-                      }
-                    } catch (error) {
-                      if (error.name === "AbortError") {
-                        setShareStatus("");
-                      } else {
-                        console.error("Game card share failed:", error);
-                        setShareStatus("Sharing failed");
-                      }
-                    }
-                    window.setTimeout(() => setShareStatus(""), 2500);
-                  }}><Share2 size={15} /> {shareStatus || "Share"}</button>
                   <button className="secondary-button" onClick={() => loadGame(appid)} title="Refresh game data" aria-label="Refresh game data"><RefreshCw size={15} /></button>
                 </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
-          <div className="share-card-render" ref={shareCardRef} aria-hidden="true">
-            <div className="share-card-art"><img src={hero} crossOrigin="anonymous" alt="" /></div>
-            <div className="share-card-content">
-              <div className="share-card-brand">STEAMPULSE <span>GAME SNAPSHOT</span></div>
-              <h1>{game.name}</h1>
-              <p className="share-card-description">{game.short_description || "Discover this game on Steam."}</p>
-              <div className="share-card-stats">
-                <div><small>PRICE</small><strong>{price}</strong></div>
-                <div><small>METACRITIC</small><strong>{game.metacritic?.score ?? "—"}</strong></div>
-                <div><small>PLAYERS ONLINE</small><strong>{formatNumber(game.player_count)}</strong></div>
-              </div>
-              <div className="share-card-tags">{(game.genres || []).slice(0, 5).map((genre) => <span key={genre}>{genre}</span>)}</div>
-              <div className="share-card-footer"><span>APP/{game.appid}</span><strong>STEAMPULSE · aresgame.ir</strong></div>
-            </div>
-          </div>
-
           {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
