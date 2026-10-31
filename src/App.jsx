@@ -57,6 +57,7 @@ export default function App() {
   const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
+  const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
   const [ownership, setOwnership] = useState(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
@@ -262,6 +263,23 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const receiveSteamAccount = (event) => {
+      if (event.source !== window || event.data?.source !== "STEAMPULSE_CONNECT" || event.data?.type !== "ACCOUNT_SNAPSHOT") return;
+      setSteamAccountSnapshot(event.data.snapshot || null);
+    };
+    const requestSteamAccount = () => {
+      window.postMessage({ source: "STEAMPULSE_PAGE", type: "GET_ACCOUNT_SNAPSHOT" }, window.location.origin);
+    };
+    window.addEventListener("message", receiveSteamAccount);
+    requestSteamAccount();
+    const syncTimer = window.setInterval(requestSteamAccount, 30000);
+    return () => {
+      window.removeEventListener("message", receiveSteamAccount);
+      window.clearInterval(syncTimer);
+    };
+  }, []);
+
+  useEffect(() => {
     const close = (event) => {
       if (!searchRef.current?.contains(event.target) && !headerSearchRef.current?.contains(event.target)) setSearchOpen(false);
     };
@@ -450,6 +468,16 @@ export default function App() {
     return () => { cancelled = true; };
   }, [region]);
 
+  const steamAccountData = steamAccountSnapshot?.data || null;
+  const steamAccountConnected = steamAccountSnapshot?.loginStatus === "connected";
+  const steamWishlist = new Set((steamAccountData?.rgWishlist || []).map(Number));
+  const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
+  const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
+  const gamePackageIds = (game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number);
+  const gameIsWishlisted = Boolean(game && steamAccountConnected && steamWishlist.has(Number(game.appid)));
+  const gameIsOwned = Boolean(game && steamAccountConnected && (
+    steamOwnedApps.has(Number(game.appid)) || gamePackageIds.some((packageId) => steamOwnedPackages.has(packageId))
+  ));
   const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
   const price = money(game?.price_overview);
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
@@ -468,7 +496,8 @@ export default function App() {
   const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
 
   return (
-    <div className="app-shell" data-theme={theme} style={game?.background ? { backgroundImage: theme === "dark" ? `linear-gradient(180deg, rgba(8,13,27,.84) 0%, rgba(8,13,27,.94) 34rem, #080d1b 85%), url("${game.background}")` : `linear-gradient(180deg, rgba(245,247,252,.78) 0%, rgba(245,247,252,.94) 34rem, #f5f7fc 85%), url("${game.background}")` } : undefined}>
+    <div className={`app-shell${game?.background_raw ? " has-game-background" : ""}`} data-theme={theme}>
+      {game?.background_raw && <div className="game-background-blur" style={{ backgroundImage: `url("${game.background_raw}")` }} aria-hidden="true" />}
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
@@ -738,7 +767,7 @@ export default function App() {
             <div className="hero-header-image"><img src={game.header_image || hero || ""} alt={`${game.name} header`} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></div>
             <div className="hero-content">
               <div className="hero-topline game-hero-topline"></div>
-              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> YOUR LIBRARY</span>{ownershipLoading ? <strong>Checking…</strong> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamProfile && steamApiKey ? "Checking…" : "Add profile + API key in Settings"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
+              <h2>{game.name}</h2>{game.developers?.length > 0 && <div className="hero-developer">Developed by {game.developers.slice(0, 2).join(", ")}</div>}<p className="hero-description">{game.short_description || game.about_the_game?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 320) || "No short description is available for this title."}</p>{game.type !== "dlc" && <div className="title-ownership-status"><span className="section-kicker"><Library size={13} /> STEAM ACCOUNT</span>{steamAccountConnected ? <div className="steam-account-statuses"><strong className={gameIsOwned ? "owned" : "not-owned"}>{gameIsOwned ? "✓ Owned" : "Not owned"}</strong><strong className={gameIsWishlisted ? "wishlisted" : "not-wishlisted"}>{gameIsWishlisted ? "♥ Wishlisted" : "Not wishlisted"}</strong></div> : ownership ? (() => { const title = ownership.items.find((item) => Number(item.appid) === Number(game.appid)); return <strong className={title?.owned ? "owned" : "not-owned"}>{title?.owned ? "✓ Owned" : "Not owned"}</strong>; })() : <strong>{steamAccountSnapshot?.loginStatus === "disconnected" ? "Open Steam and sign in" : "Install SteamPulse Connect and open Steam"}</strong>}</div>}<div className="title-extra-meta">{(game.genres || []).slice(0, 4).map((genre) => <span className="tag" key={genre}>{genre}</span>)}</div>
               <div className="hero-meta">
                 <span><CalendarDays size={15} /> {game.release_date || "Release date unknown"}</span>
                 <div className="hero-platforms" aria-label="Supported platforms">
