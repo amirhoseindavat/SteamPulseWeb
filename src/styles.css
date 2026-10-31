@@ -1475,3 +1475,17 @@
 .hero-utility-actions .secondary-button{width:auto;min-width:40px;height:36px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center}
 .hero-utility-actions .share-game-button{gap:7px}
 @media(max-width:620px){.game-hero{padding-top:58px}.hero-utility-actions{top:10px;right:10px}.hero-utility-actions .secondary-button{height:34px;padding:0 9px}}
+
+
+/* SteamPulse Connect account indicators and blurred full-page game artwork */
+.steam-account-statuses{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.steam-account-statuses strong{display:inline-flex;align-items:center;padding:6px 9px;border-radius:7px;font-size:10px;font-weight:800}
+.steam-account-statuses .owned{color:#75e0b1;background:#75e0b110;border:1px solid #75e0b133}
+.steam-account-statuses .not-owned{color:#aab5cf;background:#ffffff08;border:1px solid #ffffff18}
+.steam-account-statuses .wishlisted{color:#ff8cae;background:#ff6b9612;border:1px solid #ff8cae35}
+.steam-account-statuses .not-wishlisted{color:#aab5cf;background:#ffffff08;border:1px solid #ffffff18}
+.game-background-blur{position:absolute;inset:0;z-index:0;pointer-events:none;background-position:center top;background-size:cover;background-repeat:no-repeat;filter:blur(30px) brightness(.34) saturate(.9);transform:scale(1.08);opacity:.82}
+.app-shell.has-game-background{background-image:linear-gradient(180deg,rgba(8,13,27,.55),rgba(8,13,27,.9) 70rem)}
+.app-shell.has-game-background[data-theme="light"]{background-image:linear-gradient(180deg,rgba(245,247,252,.62),rgba(245,247,252,.94) 70rem)}
+.app-shell.has-game-background .game-background-blur{filter:blur(32px) brightness(.42) saturate(.85)}
+.app-shell.has-game-background[data-theme="light"] .game-background-blur{filter:blur(32px) brightness(1.2) saturate(.65);opacity:.38}
