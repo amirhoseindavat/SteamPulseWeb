@@ -644,7 +644,11 @@ app.get("/api/cart-details", async (req, res) => {
         name: d.name || `App ${id}`,
         image: d.header_image || d.capsule_image || fallbackImage,
         price: d.is_free ? 0 : (price?.final ?? null),
-        initialPrice: price?.initial ?? null,
+        initialPrice: price?.initial ?? price?.final ?? null,
+        discountPercent: Number(price?.discount_percent || 0),
+        formattedInitialPrice: price
+          ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.initial ?? price.final ?? 0) / 100)
+          : null,
         formattedPrice: d.is_free ? "Free" : (price?.final_formatted || (price
           ? new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency || "USD" }).format(Number(price.final || 0) / 100)
           : "Price unavailable")),
