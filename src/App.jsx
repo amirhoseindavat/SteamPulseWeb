@@ -759,6 +759,8 @@ export default function App() {
                   <a className="secondary-button external-site-button" href={"https://www.pcgamingwiki.com/api/appid.php?appid=" + game.appid} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=pcgamingwiki.com&sz=64" alt="" /> PCGamingWiki <ExternalLink size={13} /></a>
                   <a className="secondary-button external-site-button" href={"https://howlongtobeat.com/?q=" + encodeURIComponent(game.name)} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=howlongtobeat.com&sz=64" alt="" /> HowLongToBeat <ExternalLink size={13} /></a>
                   </>}
+                </div>
+                <div className="hero-utility-actions">
                   <button className="secondary-button share-game-button" onClick={async () => {
                     if (!shareCardRef.current) return;
                     setShareStatus("Preparing image…");
@@ -773,7 +775,7 @@ export default function App() {
                     }
                     window.setTimeout(() => setShareStatus(""), 2500);
                   }}><Share2 size={15} /> {shareStatus || "Share"}</button>
-                  <button className="secondary-button" onClick={() => loadGame(appid)}><RefreshCw size={15} /> Refresh data</button>
+                  <button className="secondary-button" onClick={() => loadGame(appid)} title="Refresh game data" aria-label="Refresh game data"><RefreshCw size={15} /></button>
                 </div>
             </div>
             <div className="hero-corner">APP/{game.appid}</div>
