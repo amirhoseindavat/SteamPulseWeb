@@ -1008,6 +1008,8 @@ app.get("/api/game/:appid", async (req, res) => {
       // Keep every DLC AppID so ownership totals are accurate before all cards are loaded.
       dlc_ids: dlcIds,
       dlc_total: dlcIds.length,
+      dlc_next_offset: dlcIdsToFetch.length,
+      dlc_has_more: dlcIdsToFetch.length < dlcIds.length,
       metacritic: d.metacritic || null,
       recommendations: d.recommendations?.total ?? null,
       screenshots: (d.screenshots || []).map((s) => s.path_full).filter(Boolean),
