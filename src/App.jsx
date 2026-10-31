@@ -770,11 +770,34 @@ export default function App() {
                     }
                     setShareStatus("Preparing image…");
                     try {
+                      // Ensure the artwork is decoded before html-to-image snapshots the card.
+                      const shareImage = shareCardRef.current.querySelector("img");
+                      if (shareImage && !shareImage.complete) {
+                        await new Promise((resolve, reject) => {
+                          shareImage.onload = resolve;
+                          shareImage.onerror = () => reject(new Error("Game artwork could not be loaded."));
+                        });
+                      }
+                      if (shareImage?.decode) {
+                        await shareImage.decode().catch(() => {});
+                      }
+                      if (document.fonts?.ready) await document.fonts.ready;
+
                       const blob = await toBlob(shareCardRef.current, {
                         pixelRatio: 2,
                         cacheBust: true,
                         backgroundColor: "#0b1020",
-                        skipAutoScale: true
+                        skipAutoScale: true,
+                        width: 1100,
+                        height: 560,
+                        style: {
+                          position: "fixed",
+                          left: "0px",
+                          top: "0px",
+                          zIndex: "99999",
+                          transform: "none",
+                          margin: "0"
+                        }
                       });
                       if (!blob) throw new Error("Could not generate the image.");
 
