@@ -516,19 +516,12 @@ export default function App() {
       {game?.background_raw && <div className="game-background-blur" style={{ backgroundImage: `url("${game.background_raw}")` }} aria-hidden="true" />}
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
-        <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
-          <span className="brand-mark"><Activity size={23} strokeWidth={2.5} /></span>
-          <span>STEAM<span className="brand-accent">PULSE</span><small>GAME INTELLIGENCE</small></span>
+        <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }} aria-label="SteamPulse Home">
+          <img className="brand-logo" src="/favicon.png" alt="SteamPulse" />
         </a>
         <nav className="main-nav" aria-label="Main navigation">{[["home","Home"],["games","Games"],["trending","Trending"],["market","Market"],["calculator","Calculator"],["profile","Profile"],["settings","Settings"]].map(([page,label]) => <button key={page} className={currentPage === page || (currentPage === "game" && page === "games") ? "active" : ""} onClick={() => navigateTo(page)}>{page === "home" ? <Activity size={15} /> : page === "games" ? <Gamepad2 size={15} /> : page === "trending" ? <Sparkles size={15} /> : page === "market" ? <Tag size={15} /> : page === "calculator" ? <Calculator size={15} /> : page === "profile" ? <UserRound size={15} /> : <Settings size={15} />}{label}</button>)}</nav>
         <div className="topbar-right">
-          <div className="header-search-box" ref={headerSearchRef}>
-            <Search size={16} className="header-search-icon" />
-            <input value={query} onChange={(e) => onSearchChange(e.target.value)} onFocus={() => query.trim().length >= 2 && setSearchOpen(true)} onKeyDown={(e) => { if (e.key === "Enter") { if (/^\d+$/.test(query.trim())) loadGame(query.trim()); else if (results[0]) chooseGame(results[0]); else searchGames(query); } if (e.key === "Escape") setSearchOpen(false); }} placeholder="Search games…" aria-label="Search Steam games" />
-            {searching && <LoaderCircle size={15} className="spin" />}
-            {query && <button className="header-search-clear" onClick={() => { setQuery(""); setResults([]); setSearchOpen(false); }} aria-label="Clear search"><X size={14} /></button>}
-            {searchOpen && results.length > 0 && <div className="search-results header-search-results"><div className="results-label">STEAM STORE RESULTS <span>{results.length} MATCHES</span></div>{results.slice(0, 6).map((item) => <button className="result-row" key={item.id} onClick={() => chooseGame(item)}><img src={item.tiny_image} alt="" loading="lazy" /><span className="result-name">{item.name}<small>APP ID · {item.id}</small></span><span className="result-type">{item.type || "game"}</span><ChevronRight size={16} /></button>)}</div>}
-          </div>
+          <button className="header-search-home" ref={headerSearchRef} onClick={() => navigateTo("home")} title="Go to Home" aria-label="Go to Home"><Search size={17} /><span>Search</span></button>
           <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
           <span className="online-pill"><span className="status-dot" /> API READY</span><button className={`avatar-button ${steamProfileData?.profile ? (steamProfileData.profile.currentGame ? "has-steam-game" : steamProfileData.profile.online ? "is-steam-online" : "is-steam-offline") : ""}`} title={steamProfileData?.profile?.currentGame ? `In game: ${steamProfileData.profile.currentGame.name}` : steamProfileData?.profile ? (steamProfileData.profile.online ? "Online" : "Offline") : "Steam profile"} aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatarAnimated || steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}{steamProfileData?.profile && <i className="header-steam-status-dot" aria-hidden="true" />}</button></div>
       </header>
