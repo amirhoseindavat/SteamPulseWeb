@@ -293,8 +293,7 @@
 .profile-error h2{margin:4px 0;color:#f0f3ff}
 .profile-error p{margin:0 0 10px;color:#929fbb;font-size:13px}
 .steam-profile-hero{position:relative;overflow:hidden;padding:0}
-.steam-profile-cover{position:absolute;inset:0 0 auto;height:145px;background:linear-gradient(90deg,#171c35,#10172a);background-size:cover;background-position:center;opacity:.85}
-.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 18px;background:var(--panel,rgba(16,24,44,.82));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);border-radius:0 0 17px 17px}
+.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 18px;background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 .steam-profile-avatar-wrap{position:relative;display:block;width:112px;height:112px;flex:0 0 112px;z-index:2}
 .steam-profile-avatar{display:block;width:100%;height:100%;object-fit:cover;border:4px solid #101629;border-radius:18px;background:#0b1020}
 .steam-profile-avatar-frame {
@@ -938,11 +937,8 @@
 /* Steam profile artwork becomes the page backdrop, with a dark overlay for readability. */
 .steam-profile-page{padding:18px;border-radius:18px;background-color:var(--panel,#0b1020);background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed}
 .steam-profile-page>.detail-card{backdrop-filter:blur(3px)}
-.steam-profile-cover{background-color:rgba(8,12,24,.18)}
-.steam-profile-cover.has-steam-background{background-size:cover;background-position:center 35%;opacity:.72;filter:saturate(1.08)}
 .steam-profile-page[style*="background-image"]{background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:fixed}
 .steam-profile-page[style*="background-image"]>.steam-profile-hero{background:rgba(10,14,28,.48)}
-.steam-profile-page[style*="background-image"] .steam-profile-cover.has-steam-background{opacity:.58}
 @media(max-width:620px){.steam-profile-page{padding:10px;background-attachment:scroll;border-radius:12px}}
 
 
@@ -965,7 +961,6 @@
 
 /* Steam profile card: tighter header and precisely aligned avatar frame. */
 .steam-profile-hero{border-radius:16px}
-.steam-profile-cover{height:118px}
 .steam-profile-identity{
   align-items:flex-end;
   gap:18px;
@@ -1005,7 +1000,6 @@
 .steam-profile-name{padding-bottom:3px}
 .steam-profile-name h1{margin-top:3px}
 @media(max-width:760px){
-  .steam-profile-cover{height:104px}
   .steam-profile-identity{padding:26px 18px 16px;gap:15px}
   .steam-profile-avatar-wrap{width:88px;height:88px;flex-basis:88px}
   .steam-profile-avatar-frame {
@@ -1037,12 +1031,6 @@
   .steam-profile-name h1{font-size:22px}
 }
 
-
-/* Keep the profile hero consistent with other detail cards; the Steam artwork stays in its own cover layer. */
-.steam-profile-page > .steam-profile-hero.detail-card {
-  background: var(--panel, rgba(16,24,44,.82)) !important;
-  backdrop-filter: blur(18px);
-}
 
 /* Compact Steam-style presence dot on the header avatar */
 .avatar-button{position:relative}
@@ -2107,7 +2095,6 @@
 .app-shell .welcome-panel,
 .app-shell .requirements-card,
 .app-shell .steam-profile-page .steam-profile-hero.detail-card,
-.app-shell .steam-profile-page .steam-profile-identity,
 .app-shell .steam-profile-page .profile-stat,
 .app-shell .steam-profile-page .profile-current-game,
 .app-shell .steam-profile-page .profile-recent,
@@ -2164,7 +2151,6 @@
   isolation:isolate;
   overflow:hidden;
 }
-.app-shell .steam-profile-page .steam-profile-cover{opacity:.62}
 .app-shell .site-footer{position:relative;isolation:isolate}
 .app-shell .site-footer:before{
   content:"";
