@@ -350,7 +350,7 @@ async function fetchSteamPreorders() {
     const start = starts[index].index;
     const end = index + 1 < starts.length ? starts[index + 1].index : html.length;
     const row = html.slice(start, end);
-    const id = Number(starts[index][1]);
+    const id = Number(starts[index].id);
     const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
