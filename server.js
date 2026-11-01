@@ -1440,9 +1440,16 @@ app.get("/api/steam-profile", async (req, res) => {
             .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
             .replace(/\s+/g, " ");
 
-          // Steam's showcase renders the total beside the "Games Owned"
-          // label. Support both label orders and comma-separated counts.
-          const countMatch =
+          // Steam's current profile header exposes the library total in the
+          // Games navigation link (profile_count_link_total). Read that exact
+          // element rather than relying on the optional "Games Owned" showcase.
+          const gamesLink = profileHtml.match(
+            /<a\b(?=[^>]*href=["'][^"']*\/games\/?(?:\?[^"']*)?["'])[^>]*>([\s\S]*?)<\/a>/i
+          );
+          const gamesLinkCount = gamesLink?.[1]?.match(
+            /<span\b(?=[^>]*class=["'][^"']*\bprofile_count_link_total\b[^"']*["'])[^>]*>\s*([\d,]+)\s*<\/span>/i
+          );
+          const countMatch = gamesLinkCount ||
             plainText.match(/\b([\d,]+)\s+Games\s+Owned\b/i) ||
             plainText.match(/\bGames\s+Owned\s*[:\-]?\s*([\d,]+)\b/i);
           if (countMatch) {
