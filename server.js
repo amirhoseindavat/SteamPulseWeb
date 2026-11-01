@@ -480,7 +480,13 @@ app.get("/api/discover", async (req, res) => {
     // Top Sellers must contain purchasable games only; featured-category
     // entries can otherwise leak in with a zero or missing price.
     const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
-    const result = { newReleases, upcoming, topSellers };
+    // Steam's coming-soon feed also contains titles already available for
+    // pre-purchase. Surface those separately when Steam provides a paid price.
+    const preorders = upcoming.filter(hasPaidPrice).map((item) => ({
+      ...item,
+      badge: "PRE-PURCHASE"
+    }));
+    const result = { newReleases, upcoming, preorders, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
     }
