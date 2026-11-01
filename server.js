@@ -116,8 +116,8 @@ function cached(key) {
   return null;
 }
 
-function saveCache(key, value) {
-  cache.set(key, { at: Date.now(), value });
+function saveCache(key, value, ttl = CACHE_TTL) {
+  cache.set(key, { at: Date.now(), value, ttl });
   return value;
 }
 
@@ -175,7 +175,30 @@ function cleanEditionName(value) {
     .trim();
 }
 
+function extractSteamBundleIds(html = "") {
+  const normalized = String(html)
+    .replace(/\\u002f/gi, "/")
+    .replace(/\\\//g, "/")
+    .replace(/&#x2f;|&#47;|&sol;/gi, "/")
+    .replace(/\\u0022/gi, '"')
+    .replace(/\\"/g, '"');
+
+  const ids = new Set();
+  const add = (value) => {
+    const id = Number(value);
+    if (Number.isSafeInteger(id) && id > 0) ids.add(id);
+  };
+
+  for (const match of normalized.matchAll(/\/bundle\/(\d+)/gi)) add(match[1]);
+  for (const match of normalized.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)) add(match[1]);
+  for (const match of normalized.matchAll(/["']bundleids?["']\s*:\s*\[([^\]]+)\]/gi)) {
+    for (const id of match[1].matchAll(/\d+/g)) add(id[0]);
+  }
+  return [...ids];
+}
+
 async function fetchSteamBundles(appid, cc) {
+  const startedAt = Date.now();
   const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "TR" ? "TRY" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "AR" ? "ARS" : "USD";
   const headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
@@ -183,53 +206,42 @@ async function fetchSteamBundles(appid, cc) {
     "Accept-Language": "en-US,en;q=0.9"
   };
 
-  // Steam's app page is the source of truth for which bundles are actually
-  // advertised for this game. Resolve only bundle IDs found in that page.
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
-      const pageUrl = new URL(`https://store.steampowered.com/app/${appid}/`);
+      const pageUrl = new URL("https://store.steampowered.com/app/" + appid + "/");
       pageUrl.searchParams.set("cc", cc);
       pageUrl.searchParams.set("l", "english");
 
-      const response = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
-      if (!response.ok) throw new Error(`Steam app page request failed (${response.status})`);
-      const html = await response.text();
+      const appResponse = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
+      if (!appResponse.ok) throw new Error("Steam app page request failed (" + appResponse.status + ")");
+      const appHtml = await appResponse.text();
+      const appIds = extractSteamBundleIds(appHtml);
 
-      const foundIds = new Set();
-      const addIds = (matches) => {
-        for (const match of matches) {
-          const id = Number(match);
-          if (Number.isSafeInteger(id) && id > 0) foundIds.add(id);
-        }
-      };
-
-      // Steam markup may contain normal or JSON-escaped bundle URLs.
-      addIds([...html.matchAll(/\/bundle\/(\d+)/gi)].map((match) => match[1]));
-      addIds([...html.matchAll(/\\\/bundle\\\/(\d+)/gi)].map((match) => match[1]));
-      // Steam page metadata and inline purchase payloads use several key names.
-      addIds([...html.matchAll(/(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\s*(?:=|:)\s*["']?(\d+)/gi)].map((match) => match[1]));
-      addIds([...html.matchAll(/["']bundleid["']\s*:\s*(\d+)/gi)].map((match) => match[1]));
-
-      // Steam shows at most three bundles on the main app page. The dedicated
-      // listing page exposes the full set when more bundles are available.
+      let listingIds = [];
+      let listingStatus = "unavailable";
       try {
         const listingUrl = new URL("https://store.steampowered.com/app/" + appid + "/bundles/");
         listingUrl.searchParams.set("cc", cc);
         listingUrl.searchParams.set("l", "english");
         const listingResponse = await fetch(listingUrl, { headers, signal: AbortSignal.timeout(12000) });
-        if (listingResponse.ok) {
-          const listingHtml = await listingResponse.text();
-          addIds([...listingHtml.matchAll(new RegExp("\\/bundle\\/(\\d+)", "gi"))].map((match) => match[1]));
-          addIds([...listingHtml.matchAll(new RegExp("\\\\\\/bundle\\\\\\/(\\d+)", "gi"))].map((match) => match[1]));
-          addIds([...listingHtml.matchAll(new RegExp("(?:data-ds-bundleid|data-bundleid|bundleid|bundle_id)\\s*(?:=|:)\\s*[\\\"']?(\\d+)", "gi"))].map((match) => match[1]));
-          addIds([...listingHtml.matchAll(new RegExp("[\\\"']bundleid[\\\"']\\s*:\\s*(\\d+)", "gi"))].map((match) => match[1]));
-        }
+        listingStatus = listingResponse.status;
+        if (listingResponse.ok) listingIds = extractSteamBundleIds(await listingResponse.text());
       } catch (listingError) {
-        console.warn("Steam full bundle listing unavailable for AppID " + appid + ": " + listingError.message);
+        listingStatus = "error";
+        console.warn("[SteamPulse bundles] AppID " + appid + ": listing request failed: " + listingError.message);
       }
 
-      const bundleIds = [...foundIds].slice(0, 40);
-      if (!bundleIds.length) return [];
+      const bundleIds = [...new Set([...appIds, ...listingIds])].slice(0, 40);
+      console.info("[SteamPulse bundles] AppID " + appid + " cc=" + cc + " attempt=" + attempt + ": appIds=" + appIds.length + ", listingIds=" + listingIds.length + ", listingStatus=" + listingStatus + ", uniqueIds=" + bundleIds.length);
+
+      if (!bundleIds.length) {
+        if (attempt === 1) {
+          await new Promise((resolve) => setTimeout(resolve, 700));
+          continue;
+        }
+        console.warn("[SteamPulse bundles] AppID " + appid + ": no bundle IDs discovered after 2 attempts (" + (Date.now() - startedAt) + "ms)");
+        return [];
+      }
 
       const bundleUrl = new URL("https://store.steampowered.com/actions/ajaxresolvebundles");
       bundleUrl.searchParams.set("bundleids", bundleIds.join(","));
@@ -240,7 +252,6 @@ async function fetchSteamBundles(appid, cc) {
         signal: AbortSignal.timeout(15000)
       });
 
-      // Steam has returned both arrays and objects keyed by bundle ID.
       const bundlePayload = Array.isArray(resolved) ? resolved
         : Array.isArray(resolved?.bundles) ? resolved.bundles
           : Array.isArray(resolved?.bundle_data) ? resolved.bundle_data
@@ -260,7 +271,7 @@ async function fetchSteamBundles(appid, cc) {
         byId.set(id, bundle);
       }
 
-      return bundleIds
+      const bundles = bundleIds
         .filter((id) => byId.has(id))
         .map((id) => {
           const bundle = byId.get(id);
@@ -281,15 +292,19 @@ async function fetchSteamBundles(appid, cc) {
               : null),
             savings: bundle.discount_percent != null ? String(bundle.discount_percent) : "",
             appCount: Array.isArray(bundle.appids) ? bundle.appids.length : null,
-            url: `https://store.steampowered.com/bundle/${id}/`
+            url: "https://store.steampowered.com/bundle/" + id + "/"
           };
         });
+
+      console.info("[SteamPulse bundles] AppID " + appid + " cc=" + cc + ": requestedIds=" + bundleIds.length + ", resolvedBundles=" + bundles.length + ", rawItems=" + rawBundles.length + ", duration=" + (Date.now() - startedAt) + "ms");
+      if (!bundles.length) console.warn("[SteamPulse bundles] AppID " + appid + ": Steam returned no resolvable bundle data for discovered IDs.");
+      return bundles;
     } catch (error) {
       if (attempt === 1) {
-        console.warn(`Steam bundles request failed for AppID ${appid}; retrying: ${error.message}`);
+        console.warn("[SteamPulse bundles] AppID " + appid + " attempt 1 failed; retrying: " + error.message);
         await new Promise((resolve) => setTimeout(resolve, 700));
       } else {
-        console.warn(`Could not load Steam bundles for AppID ${appid} after 2 attempts: ${error.message}`);
+        console.warn("[SteamPulse bundles] AppID " + appid + " failed after 2 attempts (" + (Date.now() - startedAt) + "ms): " + error.message);
       }
     }
   }
@@ -1235,7 +1250,10 @@ app.get("/api/game/:appid/bundles", async (req, res) => {
   const hit = cached(key);
   if (hit) return res.json(hit);
   const bundles = await fetchSteamBundles(appid, cc);
-  return res.json(saveCache(key, { bundles }));
+  // Negative results may reflect transient or incomplete Steam HTML.
+  // Retry discovery soon instead of caching an empty result for five minutes.
+  const ttl = bundles.length ? CACHE_TTL : 30 * 1000;
+  return res.json(saveCache(key, { bundles }, ttl));
 });
 
 app.get("/api/game/:appid/dlc", async (req, res) => {
