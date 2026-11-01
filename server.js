@@ -892,7 +892,7 @@ app.get("/api/game/:appid", async (req, res) => {
       url: (sub.packageid || sub.id) ? `https://store.steampowered.com/sub/${sub.packageid || sub.id}/` : ""
     })));
 
-    const isPrePurchase = Boolean(d.release_date?.coming_soon && editions.some((edition) => Number(edition.priceValue) > 0));
+    const isPrePurchase = Boolean(d.release_date?.coming_soon && Number(d.price_overview?.final) > 0);
     const dlcIds = Array.isArray(d.dlc) ? d.dlc.map(Number).filter(Number.isFinite) : [];
     const dlcIdsToFetch = dlcIds.slice(0, 24);
     const dlcResults = await mapWithConcurrency(dlcIdsToFetch, 4, async (dlcId) => {
