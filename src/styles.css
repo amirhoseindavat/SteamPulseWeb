@@ -2472,3 +2472,7 @@
 .preorder-discovery-card .discovery-card-meta{justify-content:flex-start;margin-top:0}
 .preorder-open-button{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;padding:9px 11px;border:1px solid #8b6cff55;border-radius:7px;background:#8b6cff18;color:#d6caff;text-decoration:none;font-size:10px;font-weight:700;transition:background .18s,border-color .18s}
 .preorder-open-button:hover{background:#8b6cff30;border-color:#a58bff}
+
+/* Keep discovery artwork fully visible instead of cropping it. */
+.discovery-image-wrap img{object-fit:contain}
+.discovery-card:hover .discovery-image-wrap img{transform:none}
