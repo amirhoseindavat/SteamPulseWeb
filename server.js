@@ -111,7 +111,8 @@ async function mapWithConcurrency(items, concurrency, mapper) {
 
 function cached(key) {
   const entry = cache.get(key);
-  if (entry && Date.now() - entry.at < CACHE_TTL) return entry.value;
+  const ttl = entry?.ttl ?? CACHE_TTL;
+  if (entry && Date.now() - entry.at < ttl) return entry.value;
   cache.delete(key);
   return null;
 }
