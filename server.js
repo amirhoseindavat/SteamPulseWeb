@@ -316,14 +316,12 @@ async function fetchSteamPreorders() {
   // Steam's normal search page returns the complete, server-rendered result
   // rows. This is the same HTML page used by the Steam website itself.
   const searchUrl = new URL("https://store.steampowered.com/search/");
-  searchUrl.searchParams.set("hwtype", "0");
-  searchUrl.searchParams.set("maxprice", "60");
-  searchUrl.searchParams.set("category1", "998");
-  searchUrl.searchParams.set("os", "win");
-  searchUrl.searchParams.set("supportedlang", "english,persian");
+  // Keep the query minimal: additional region, price, OS and language filters can
+  // cause Steam to return an empty list for some server IPs (notably cc=IR).
   searchUrl.searchParams.set("filter", "popularcomingsoon");
-  searchUrl.searchParams.set("ndl", "1");
-  // Bypass Steam account/content preferences that can silently reduce the result set to zero.
+  searchUrl.searchParams.set("supportedlang", "english");
+  searchUrl.searchParams.set("cc", "US");
+  searchUrl.searchParams.set("l", "english");
   searchUrl.searchParams.set("ignore_preferences", "1");
 
   let html;
