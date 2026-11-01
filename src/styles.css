@@ -2121,7 +2121,7 @@
 .app-shell .key-calculator,
 .app-shell .edition-card:not(.edition-card-owned):not(.edition-card-selected),
 .app-shell .dlc-card:not(.dlc-card-owned),
-.app-shell .bundle-row,
+.app-shell .bundle-row:not(.edition-card-selected),
 .app-shell .screenshot-card,
 .app-shell .welcome-panel,
 .app-shell .requirements-card,
