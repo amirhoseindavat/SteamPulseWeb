@@ -326,6 +326,7 @@ async function fetchSteamPreorders() {
   searchUrl.searchParams.set("category1", "998");
   searchUrl.searchParams.set("os", "win");
   searchUrl.searchParams.set("supportedlang", "english,persian");
+  searchUrl.searchParams.set("l", "english");
   searchUrl.searchParams.set("ignore_preferences", "1");
   searchUrl.searchParams.set("infinite", "1");
 
@@ -359,6 +360,11 @@ async function fetchSteamPreorders() {
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
+    // Steam includes both purchasable pre-orders and ordinary Coming Soon pages
+    // in Popular Upcoming. Only keep rows explicitly marked Pre-Purchase.
+    const rowText = decodeSteamHtml(row);
+    if (!/\\bpre[\\s-]?purchase\\b/i.test(rowText)) continue;
+
     const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
 
@@ -368,7 +374,7 @@ async function fetchSteamPreorders() {
       type: "game",
       image: image.replace(/&amp;/g, "&"),
       releaseDate: decodeSteamHtml(releaseDateHtml),
-      badge: "POPULAR UPCOMING"
+      badge: "PRE-ORDER"
     });
   }
 
@@ -382,7 +388,7 @@ async function fetchSteamPreorders() {
     );
   }
 
-  console.info("Steam Popular Upcoming: parsed " + items.size + " games");
+  console.info("Steam Pre-orders: parsed " + items.size + " purchasable games");
   return [...items.values()];
 }
 async function fetchSteamTopSellers(cc) {
@@ -488,7 +494,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v14`;
+  const key = `discover:v15`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
