@@ -425,9 +425,13 @@ async function fetchSteamPreorders(cc) {
   }
 
   if (!items.size) {
-    throw new Error("Steam Pre-orders search returned no priced games before the first unpriced result (success: " +
-      String(payload.success) + ", total_count: " + String(payload.total_count) +
-      ", rows: " + rows.length + ").");
+    throw new Error("Steam Pre-orders search returned no priced games before the first unpriced result " +
+      "(success: " + String(payload?.success ?? "HTML response") +
+      ", total_count: " + String(payload?.total_count ?? "unknown") +
+      ", content-type: " + responseContentType +
+      ", rows: " + rows.length +
+      ", HTML length: " + html.length +
+      ", sample: " + html.slice(0, 500).replace(/\s+/g, " ") + ").");
   }
 
   const result = [...items.values()]
@@ -540,7 +544,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v23:${cc}`;
+  const key = `discover:v24:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
