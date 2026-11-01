@@ -394,11 +394,11 @@ async function fetchSteamPreorders() {
       (html.match(/search_result_row/gi) || []).length +
       ", data-ds-appid markers: " + (html.match(/data-ds-appid=/gi) || []).length +
       ", data-ds-itemkey markers: " + (html.match(/data-ds-itemkey=/gi) || []).length +
-      ", app-link markers: " + (html.match(/href=["'][^"']*\\/app\\/\\d+/gi) || []).length +
+      ", app-link markers: " + (html.match(/href=["'][^"']*\/app\/\d+/gi) || []).length +
       ", candidate rows: " + rows.length +
-      ", title markers: " + (html.match(/class=["'][^"']*\\btitle\\b/gi) || []).length +
+      ", title markers: " + (html.match(/class=["'][^"']*\btitle\b/gi) || []).length +
       ", HTML length: " + html.length +
-      ", result sample: " + (() => { const i = Math.max(html.indexOf("search_result"), html.indexOf("data-ds-appid"), html.indexOf("/app/")); return i >= 0 ? html.slice(Math.max(0, i - 250), i + 900).replace(/\\s+/g, " ") : html.slice(0, 700).replace(/\\s+/g, " "); })() + ")"
+      ", result sample: " + (() => { const i = Math.max(html.indexOf("search_result"), html.indexOf("data-ds-appid"), html.indexOf("/app/")); return i >= 0 ? html.slice(Math.max(0, i - 250), i + 900).replace(/\s+/g, " ") : html.slice(0, 700).replace(/\s+/g, " "); })() + ")"
     );
   }
 
