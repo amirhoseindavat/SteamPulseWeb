@@ -313,8 +313,8 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders(cc) {
-  // Steam's Popular Upcoming ranking can omit paid preorder titles such as METRO 2039.
-  // Use the full Upcoming search sorted by price, then retain explicit Pre-Purchase rows.
+  // Match the Steam Popular Upcoming search, including its $60 price cap.
+  // Keep explicit Pre-Purchase rows for the preorder tab.
   const pageSize = 50;
   const maxPages = 5;
   const allItems = new Map();
@@ -330,9 +330,11 @@ async function fetchSteamPreorders(cc) {
     url.searchParams.set("start", String(page * pageSize));
     url.searchParams.set("count", String(pageSize));
     url.searchParams.set("dynamic_data", "");
-    url.searchParams.set("sort_by", "Price_DESC");
-    url.searchParams.set("sort_order", "DESC");
-    url.searchParams.set("filter", "comingsoon");
+    url.searchParams.set("sort_by", "_ASC");
+    url.searchParams.set("filter", "popularcomingsoon");
+    url.searchParams.set("maxprice", "60");
+    url.searchParams.set("hwtype", "0");
+    url.searchParams.set("ndl", "1");
     url.searchParams.set("category1", "998");
     url.searchParams.set("os", "win");
     url.searchParams.set("supportedlang", "english,persian");
@@ -503,7 +505,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v9:${cc}`;
+  const key = `discover:v10:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
