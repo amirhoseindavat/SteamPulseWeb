@@ -312,28 +312,32 @@ async function fetchSteamPreorders(cc) {
   });
   if (!response.ok) throw new Error("Steam Upcoming Releases page failed (" + response.status + ")");
   const html = await response.text();
-  const anchors = html.match(/<a\b[^>]*>[\s\S]*?<\/a>/gi) || [];
+  const anchors = html.match(/<a\b(?=[^>]*href=["'][^"']*\/app\/\d+)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = [];
   const extractClass = (source, className) => {
-    const tags = source.match(/<(?:div|span)\b[^>]*>[\s\S]*?<\/(?:div|span)>/gi) || [];
-    const element = tags.find((tag) => {
-      const classes = tag.match(/class=["']([^"']+)["']/i)?.[1] || "";
-      return classes.split(/\s+/).includes(className);
-    });
-    return element ? decodeSteamHtml(element.replace(/^<(?:div|span)\b[^>]*>/i, "").replace(/<\/(?:div|span)>$/i, "")) : "";
+    const opening = new RegExp("<([a-z0-9]+)\\\\b(?=[^>]*class=[\\"'][^\\"']*\\\\b" + className + "\\\\b)[^>]*>", "i");
+    const match = opening.exec(source);
+    if (!match) return "";
+    const tagName = match[1];
+    const start = match.index + match[0].length;
+    const closing = new RegExp("</" + tagName + "\\\\s*>", "ig");
+    closing.lastIndex = start;
+    const end = closing.exec(source);
+    return end ? decodeSteamHtml(source.slice(start, end.index).replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim()) : "";
   };
   for (const anchor of anchors) {
     if (!/pre[ -]?purchase/i.test(anchor)) continue;
     const href = anchor.match(/href=["'][^"']*\/app\/(\d+)[^"']*["']/i);
     const id = Number(href?.[1]);
     if (!Number.isSafeInteger(id) || id <= 0) continue;
-    const name = extractClass(anchor, "tab_item_name") || decodeSteamHtml(anchor.match(/<img[^>]+alt=["']([^"']+)["']/i)?.[1] || "");
+    const name = extractClass(anchor, "tab_item_name") ||
+      decodeSteamHtml(anchor.match(/<img[^>]+alt=["']([^"']+)["']/i)?.[1] || "");
     if (!name) continue;
     const image = anchor.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = extractClass(anchor, "tab_item_details");
-    const priceHtml = anchor.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
-    const priceText = decodeSteamHtml(priceHtml);
-    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    const priceText = extractClass(anchor, "discount_final_price") ||
+      decodeSteamHtml(anchor.replace(/<[^>]*>/g, " ").replace(/\\s+/g, " "));
+    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
     items.push({
       id, name, type: "game",
       image: image.replace(/&amp;/g, "&"),
@@ -438,7 +442,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v3:${cc}`;
+  const key = `discover:v4:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -888,6 +892,7 @@ app.get("/api/game/:appid", async (req, res) => {
       url: (sub.packageid || sub.id) ? `https://store.steampowered.com/sub/${sub.packageid || sub.id}/` : ""
     })));
 
+    const isPrePurchase = Boolean(d.release_date?.coming_soon && editions.some((edition) => Number(edition.priceValue) > 0));
     const dlcIds = Array.isArray(d.dlc) ? d.dlc.map(Number).filter(Number.isFinite) : [];
     const dlcIdsToFetch = dlcIds.slice(0, 24);
     const dlcResults = await mapWithConcurrency(dlcIdsToFetch, 4, async (dlcId) => {
@@ -1050,6 +1055,7 @@ app.get("/api/game/:appid", async (req, res) => {
       publishers: d.publishers || [],
       release_date: d.release_date?.date || "Unknown",
       coming_soon: Boolean(d.release_date?.coming_soon),
+      pre_purchase: isPrePurchase,
       genres: (d.genres || []).map((g) => g.description),
       categories: (d.categories || []).map((c) => c.description),
       platforms: d.platforms || {},
