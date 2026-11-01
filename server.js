@@ -336,7 +336,7 @@ async function fetchSteamPreorders() {
     });
 
     if (!response.ok) {
-      throw new Error(`Steam search page returned HTTP ${response.status}.`);
+      throw new Error(\`Steam search page returned HTTP \${response.status}.\`);
     }
 
     html = await response.text();
@@ -346,27 +346,26 @@ async function fetchSteamPreorders() {
   }
 
   // Parse the same anchor elements that Steam renders in the browser.
-  const rows = html.match(/<a\\b(?=[^>]*\\bclass=["'][^"']*\\bsearch_result_row\\b)[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
+  const rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = new Map();
 
-  const getAttribute = (source, name) => {
-    const escaped = name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&");
-    return source.match(new RegExp("\\\\b" + escaped + "=[\\\"']([^\\\"']*)[\\\"']", "i"))?.[1] || "";
-  };
+  const getAttribute = (source, name) =>
+    source.match(new RegExp("\\b" + name + "=[\\"']([^\\"']*)[\\"']", "i"))?.[1] || "";
 
   for (const row of rows) {
-    const appIdText = getAttribute(row.slice(0, row.indexOf(">") + 1), "data-ds-appid") ||
-      getAttribute(row.slice(0, row.indexOf(">") + 1), "data-appid");
+    const openingTag = row.slice(0, row.indexOf(">") + 1);
+    const appIdText = getAttribute(openingTag, "data-ds-appid") ||
+      getAttribute(openingTag, "data-appid");
     const id = Number(appIdText);
     if (!Number.isSafeInteger(id) || id <= 0) continue;
 
-    const titleHtml = row.match(/<span\\b[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const titleHtml = row.match(/<span\b[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!name) continue;
 
     const image = getAttribute(row, "src") || getAttribute(row, "data-src");
-    const releaseDateHtml = row.match(/<(?:div|span)\\b[^>]*class=["'][^"']*\\bsearch_released\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
-    const priceHtml = row.match(/<(?:div|span)\\b[^>]*class=["'][^"']*\\bsearch_price\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<(?:div|span)\b[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+    const priceHtml = row.match(/<(?:div|span)\b[^>]*class=["'][^"']*\bsearch_price\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
     const price = decodeSteamHtml(priceHtml);
 
     items.set(id, {
@@ -385,7 +384,7 @@ async function fetchSteamPreorders() {
       "Steam Popular Upcoming page returned no parseable games (search_result_row markers: " +
       (html.match(/search_result_row/gi) || []).length +
       ", HTML length: " + html.length +
-      ", page sample: " + html.slice(0, 700).replace(/\\s+/g, " ") + ")"
+      ", page sample: " + html.slice(0, 700).replace(/\s+/g, " ") + ")"
     );
   }
 
