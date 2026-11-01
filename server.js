@@ -319,6 +319,7 @@ async function fetchSteamPreorders() {
   // Keep the query minimal: additional region, price, OS and language filters can
   // cause Steam to return an empty list for some server IPs (notably cc=IR).
   searchUrl.searchParams.set("filter", "popularcomingsoon");
+  searchUrl.searchParams.set("maxprice", "60");
   searchUrl.searchParams.set("supportedlang", "english");
   searchUrl.searchParams.set("cc", "US");
   searchUrl.searchParams.set("l", "english");
