@@ -207,6 +207,14 @@ async function fetchSteamBundles(appid, cc) {
     "Accept-Language": "en-US,en;q=0.9"
   };
 
+  // Steam's mature-game Age Gate otherwise redirects Node fetch between
+  // /app/ and /agecheck/ because fetch does not persist browser cookies.
+  // These cookies mirror the successful browser-style age confirmation.
+  const steamStoreHeaders = {
+    ...headers,
+    Cookie: "birthtime=631152001; lastagecheckage=1-January-1990; wants_mature_content=1"
+  };
+
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const pageUrl = new URL("https://store.steampowered.com/app/" + appid + "/");
@@ -218,7 +226,7 @@ async function fetchSteamBundles(appid, cc) {
       let appIds = [];
       let appPageStatus = "error";
       try {
-        const appResponse = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
+        const appResponse = await fetch(pageUrl, { headers: steamStoreHeaders, signal: AbortSignal.timeout(15000) });
         appPageStatus = appResponse.status;
         if (appResponse.ok) appIds = extractSteamBundleIds(await appResponse.text());
       } catch (appPageError) {
@@ -231,7 +239,7 @@ async function fetchSteamBundles(appid, cc) {
         const listingUrl = new URL("https://store.steampowered.com/app/" + appid + "/bundles/");
         listingUrl.searchParams.set("cc", cc);
         listingUrl.searchParams.set("l", "english");
-        const listingResponse = await fetch(listingUrl, { headers, signal: AbortSignal.timeout(12000) });
+        const listingResponse = await fetch(listingUrl, { headers: steamStoreHeaders, signal: AbortSignal.timeout(12000) });
         listingStatus = listingResponse.status;
         if (listingResponse.ok) listingIds = extractSteamBundleIds(await listingResponse.text());
       } catch (listingError) {
@@ -256,7 +264,7 @@ async function fetchSteamBundles(appid, cc) {
       bundleUrl.searchParams.set("cc", cc);
       bundleUrl.searchParams.set("l", "english");
       const resolved = await fetchJsonWithOptions(bundleUrl, {
-        headers: { ...headers, "Referer": pageUrl.toString(), "X-Requested-With": "XMLHttpRequest" },
+        headers: { ...steamStoreHeaders, "Referer": pageUrl.toString(), "X-Requested-With": "XMLHttpRequest" },
         signal: AbortSignal.timeout(15000)
       });
 
