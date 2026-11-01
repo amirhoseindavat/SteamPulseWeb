@@ -341,14 +341,14 @@ async function fetchSteamPreorders(cc) {
   if (!response.ok) throw new Error("Steam Pre-Purchase search failed (" + response.status + ")");
   const payload = await response.json();
   const html = String(payload.results_html || "");
-  const rows = html.match(/<a\\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\\s\\S]*?<\\/a>/gi) || [];
+  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
 
   const getClassText = (source, className) => {
-    const opening = new RegExp('<(?:div|span)\\\\b(?=[^>]*class=["\\\\'][^"\\\\']*\\\\b' + className + '\\\\b)[^>]*>', "i");
+    const opening = new RegExp('<(?:div|span)\\b(?=[^>]*class=["\'][^"\']*\\b' + className + '\\b)[^>]*>', "i");
     const match = opening.exec(source);
     if (!match) return "";
     const tagName = match[0].match(/^<([a-z]+)/i)?.[1] || "div";
-    const closing = new RegExp("</" + tagName + "\\\\s*>", "ig");
+    const closing = new RegExp("</" + tagName + "\\s*>", "ig");
     closing.lastIndex = match.index + match[0].length;
     const end = closing.exec(source);
     return end ? decodeSteamHtml(source.slice(match.index + match[0].length, end.index)) : "";
@@ -358,20 +358,20 @@ async function fetchSteamPreorders(cc) {
     const rowText = decodeSteamHtml(row.replace(/<[^>]*>/g, " "));
     if (!/pre[ -]?purchase/i.test(rowText)) return null;
 
-    const appIdValue = row.match(/data-ds-appid=["'](\\d+)/i)?.[1] ||
-      row.match(/\\/app\\/(\\d+)/i)?.[1];
+    const appIdValue = row.match(/data-ds-appid=["'](\d+)/i)?.[1] ||
+      row.match(/\/app\/(\d+)/i)?.[1];
     const id = Number(appIdValue);
     const title = getClassText(row, "title") ||
-      row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+      row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(title);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
 
     const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = decodeSteamHtml(getClassText(row, "search_released"));
     const priceHtml = getClassText(row, "discount_final_price");
-    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "";
+    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
     const priceText = decodeSteamHtml(priceHtml || priceContainer);
-    const priceMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    const priceMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
 
     return {
       id,
@@ -387,7 +387,6 @@ async function fetchSteamPreorders(cc) {
 
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
-
 async function fetchSteamTopSellers(cc) {
   const url = new URL("https://store.steampowered.com/search/results/");
   url.searchParams.set("query", "");
