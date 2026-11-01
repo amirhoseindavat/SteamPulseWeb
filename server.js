@@ -316,6 +316,8 @@ async function fetchSteamPreorders(cc) {
   // Steam sorts paid upcoming games from highest to lowest price.
   // Once the first row without a real price appears, all following rows are ignored.
   const url = new URL("https://store.steampowered.com/search/results?sort_by=Price_DESC&force_infinite=1&hwtype=0&category1=998&filter=popularcomingsoon&ndl=1&snr=1_7_7_popularcomingsoon_7");
+  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
+  url.searchParams.set("l", "english");
 
   let payload;
   let html = "";
