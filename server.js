@@ -1400,6 +1400,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const badgeList = badges && Array.isArray(badges.badges) ? badges.badges : [];
     const totalBadges = badges ? badgeList.length : null;
     const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
+    const gameCollector = badgeList.find((badge) => Number(badge.badgeid) === 13) || null;
     const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
     const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
     const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
@@ -1417,6 +1418,7 @@ app.get("/api/steam-profile", async (req, res) => {
       profileCustomization: customization ? { theme: customization.profile_theme || "", showcaseCount: Array.isArray(customization.slots) ? customization.slots.length : 0 } : null,
       favoriteBadge,
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
+      gameCollector: gameCollector ? { level: Number(gameCollector.level) || 1, xp: Number(gameCollector.xp) || 0, image: "https://community.fastly.steamstatic.com/public/images/badges/13_gamecollector/steamgamecollector" + (Number(gameCollector.level) || 1) + "_80.png" } : null,
       stats: {
         games: games ? games.length : null,
         hours: hours,
