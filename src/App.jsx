@@ -110,6 +110,10 @@ export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
   const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
+  const [profileRouteId, setProfileRouteId] = useState(() => {
+    const match = window.location.hash.match(/^#\/profile\/(\d{17})\/?$/);
+    return match ? match[1] : "";
+  });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
@@ -122,7 +126,7 @@ export default function App() {
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [results, setResults] = useState([]);
@@ -338,9 +342,10 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/(\d{17}))?\/?$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
+      setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
     };
     window.addEventListener("popstate", syncPageFromHash);
@@ -378,8 +383,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (currentPage === "profile" || steamProfile.trim()) loadSteamProfile();
-  }, [currentPage, steamProfile]);
+    if (currentPage === "profile" || steamProfile.trim()) loadSteamProfile(profileRouteId || steamProfile);
+  }, [currentPage, steamProfile, profileRouteId]);
 
   useEffect(() => {
     localStorage.setItem("steampulse-region", region);
@@ -398,8 +403,9 @@ export default function App() {
     setOwnershipError("");
   }
 
-  async function loadSteamProfile() {
-    if (!steamProfile.trim()) {
+  async function loadSteamProfile(profileOverride = "") {
+    const targetProfile = String(profileOverride || steamProfile || "").trim();
+    if (!targetProfile) {
       setSteamProfileData(null);
       setSteamProfileError("Add your Steam profile in Settings first, then save it.");
       return;
@@ -408,7 +414,7 @@ export default function App() {
     setSteamProfileError("");
     setSteamProfileData(null);
     try {
-      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile)}`, { headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {} });
+      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(targetProfile)}`, { headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {} });
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || "Could not load the Steam profile.");
       setSteamProfileData(data);
