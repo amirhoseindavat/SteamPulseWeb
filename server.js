@@ -323,7 +323,9 @@ async function fetchSteamPreorders() {
   searchUrl.searchParams.set("ndl", "1");
   searchUrl.searchParams.set("ignore_preferences", "1");
 
-  const response = await fetch(searchUrl, {
+  let response;
+  try {
+    response = await fetch(searchUrl, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -331,7 +333,14 @@ async function fetchSteamPreorders() {
       "Referer": "https://store.steampowered.com/"
     },
     signal: AbortSignal.timeout(20000)
-  });
+    });
+  } catch (error) {
+    const cause = error?.cause;
+    const details = [error?.name, error?.message, cause?.code, cause?.message]
+      .filter(Boolean)
+      .join(" | ");
+    throw new Error("Steam connection failed: " + (details || "unknown network error"));
+  }
   if (!response.ok) throw new Error("Steam Popular Upcoming page failed (" + response.status + ")");
 
   const html = await response.text();
