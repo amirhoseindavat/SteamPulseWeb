@@ -313,60 +313,54 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders() {
-  const searchUrl = new URL("https://store.steampowered.com/search/");
-  searchUrl.searchParams.set("hwtype", "0");
-  searchUrl.searchParams.set("maxprice", "60");
+  // Use Steam's search-results endpoint instead of the full HTML page.
+  // The endpoint returns a small JSON envelope containing the result-row HTML.
+  const searchUrl = new URL("https://store.steampowered.com/search/results/");
+  searchUrl.searchParams.set("query", "");
+  searchUrl.searchParams.set("start", "0");
+  searchUrl.searchParams.set("count", "50");
+  searchUrl.searchParams.set("dynamic_data", "");
+  searchUrl.searchParams.set("sort_by", "_ASC");
+  searchUrl.searchParams.set("snr", "1_7_7_7000_7");
+  searchUrl.searchParams.set("filter", "popularcomingsoon");
   searchUrl.searchParams.set("category1", "998");
   searchUrl.searchParams.set("os", "win");
   searchUrl.searchParams.set("supportedlang", "english,persian");
-  searchUrl.searchParams.set("filter", "popularcomingsoon");
-  searchUrl.searchParams.set("ndl", "1");
   searchUrl.searchParams.set("ignore_preferences", "1");
+  searchUrl.searchParams.set("infinite", "1");
 
-  let response;
+  let payload;
   try {
-    response = await fetch(searchUrl, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-      "Referer": "https://store.steampowered.com/"
-    },
-    signal: AbortSignal.timeout(20000)
+    payload = await fetchJson(searchUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": "https://store.steampowered.com/search/?filter=popularcomingsoon"
+      },
+      signal: AbortSignal.timeout(20000)
     });
   } catch (error) {
     const cause = error?.cause;
     const details = [error?.name, error?.message, cause?.code, cause?.message]
       .filter(Boolean)
       .join(" | ");
-    throw new Error("Steam connection failed: " + (details || "unknown network error"));
+    throw new Error("Steam Popular Upcoming API failed: " + (details || "unknown request error"));
   }
-  if (!response.ok) throw new Error("Steam Popular Upcoming page failed (" + response.status + ")");
 
-  const html = await response.text();
-  // Steam may reorder attributes or change the result wrapper from an anchor to a div.
-  // Inspect complete opening tags so class and AppID can appear in either order.
-  const starts = [];
-  for (const match of html.matchAll(/<(?:a|div)\b[^>]*>/gi)) {
-    const tag = match[0];
-    if (!/\bsearch_result_row\b/i.test(tag)) continue;
-    const appId = tag.match(/\bdata-ds-appid=["'](\d+)["']/i)?.[1];
-    if (appId) starts.push({ index: match.index, id: appId });
-  }
+  const html = String(payload?.results_html || "");
+  const rows = html.match(/<a\\b(?=[^>]*\\bdata-ds-appid=)[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
   const items = new Map();
 
-  for (let index = 0; index < starts.length; index++) {
-    const start = starts[index].index;
-    const end = index + 1 < starts.length ? starts[index + 1].index : html.length;
-    const row = html.slice(start, end);
-    const id = Number(starts[index].id);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+  for (const row of rows) {
+    const appIdText = row.match(/\\bdata-ds-appid=["'](\\d+)/i)?.[1];
+    const id = Number(appIdText);
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-    const image = row.match(/<div[^>]*class=["'][^"']*search_capsule[^"']*["'][^>]*>\s*<img[^>]+src=["']([^"']+)["']/i)?.[1] ||
-      row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<div[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
+    const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\\bsearch_released\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
 
     items.set(id, {
       id,
@@ -379,14 +373,13 @@ async function fetchSteamPreorders() {
   }
 
   if (!items.size) {
-    const pageTitle = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/\s+/g, " ").trim() || "unknown";
-    const markers = {
-      searchResultsRows: html.includes("search_resultsRows"),
-      searchResultRow: html.includes("search_result_row"),
-      appIdAttribute: html.includes("data-ds-appid"),
-      steamSearch: html.includes("store.steampowered.com/search")
-    };
-    throw new Error("Steam HTML did not contain parseable game rows (length: " + html.length + ", title: " + pageTitle + ", markers: " + JSON.stringify(markers) + ")");
+    throw new Error(
+      "Steam Popular Upcoming API returned no parseable rows (total_count: " +
+      String(payload?.total_count ?? "unknown") +
+      ", results_html length: " + html.length +
+      ", success: " + String(payload?.success ?? "unknown") +
+      ", response keys: " + Object.keys(payload || {}).join(",") + ")"
+    );
   }
 
   console.info("Steam Popular Upcoming: parsed " + items.size + " games");
