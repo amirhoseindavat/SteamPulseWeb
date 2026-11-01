@@ -335,19 +335,19 @@ async function fetchSteamPreorders() {
   if (!response.ok) throw new Error("Steam Popular Upcoming page failed (" + response.status + ")");
 
   const html = await response.text();
-  const rows = html.match(/<a\\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\\s\\S]*?<\\/a>/gi) || [];
+  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
   const items = new Map();
 
   for (const row of rows) {
-    const appIdValue = row.match(/data-ds-appid=["'](\\d+)/i)?.[1] || row.match(/\\/app\\/(\\d+)/i)?.[1];
+    const appIdValue = row.match(/data-ds-appid=["'](\d+)/i)?.[1] || row.match(/\/app\/(\d+)/i)?.[1];
     const id = Number(appIdValue);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
     const image = row.match(/<img[^>]+data-src=["']([^"']+)["']/i)?.[1] ||
       row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
 
     items.set(id, {
       id,
