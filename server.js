@@ -386,7 +386,7 @@ async function fetchSteamPreorders() {
     if (!name) continue;
 
     const image = getAttribute(row, "src") || getAttribute(row, "data-src") ||
-      row.match(/<img\\b[^>]*src=["']([^"']+)["']/i)?.[1] || "";
+      row.match(/<img\b[^>]*src=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = decodeSteamHtml(getClassContent(row, "search_released")).trim();
     const priceHtml = getClassContent(row, "search_price");
     const price = decodeSteamHtml(priceHtml).trim();
