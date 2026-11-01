@@ -315,18 +315,7 @@ function decodeSteamHtml(value = "") {
 async function fetchSteamPreorders(cc) {
   // Steam sorts paid upcoming games from highest to lowest price.
   // Once the first row without a real price appears, all following rows are ignored.
-  const url = new URL("https://store.steampowered.com/search/results/");
-  url.searchParams.set("query", "");
-  url.searchParams.set("start", "0");
-  url.searchParams.set("count", "50");
-  url.searchParams.set("sort_by", "Price_DESC");
-  url.searchParams.set("hwtype", "0");
-  url.searchParams.set("category1", "998");
-  url.searchParams.set("filter", "popularcomingsoon");
-  url.searchParams.set("ndl", "1");
-  url.searchParams.set("infinite", "1");
-  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
-  url.searchParams.set("l", "english");
+  const url = new URL("https://store.steampowered.com/search/results?sort_by=Price_DESC&force_infinite=1&hwtype=0&category1=998&filter=popularcomingsoon&ndl=1&snr=1_7_7_popularcomingsoon_7");
 
   let payload;
   let lastError;
@@ -541,7 +530,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v21:${cc}`;
+  const key = `discover:v22:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
