@@ -328,7 +328,7 @@ async function fetchSteamPreorders(cc) {
   const anchors = html.match(/<a\b(?=[^>]*href=["'][^"']*\/app\/\d+)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = [];
   const extractClass = (source, className) => {
-    const opening = new RegExp("<([a-z0-9]+)\\b(?=[^>]*class=[\\"'][^\\"']*\\b" + className + "\\b)[^>]*>", "i");
+    const opening = new RegExp(`<([a-z0-9]+)\\b(?=[^>]*class=["'][^"']*\\b${className}\\b)[^>]*>`, "i");
     const match = opening.exec(source);
     if (!match) return "";
     const tagName = match[1];
@@ -336,7 +336,7 @@ async function fetchSteamPreorders(cc) {
     const closing = new RegExp("</" + tagName + "\\s*>", "ig");
     closing.lastIndex = start;
     const end = closing.exec(source);
-    return end ? decodeSteamHtml(source.slice(start, end.index).replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim()) : "";
+    return end ? decodeSteamHtml(source.slice(start, end.index).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()) : "";
   };
   for (const anchor of anchors) {
     if (!/pre[ -]?purchase/i.test(anchor)) continue;
@@ -349,8 +349,8 @@ async function fetchSteamPreorders(cc) {
     const image = anchor.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = extractClass(anchor, "tab_item_details");
     const priceText = extractClass(anchor, "discount_final_price") ||
-      decodeSteamHtml(anchor.replace(/<[^>]*>/g, " ").replace(/\\s+/g, " "));
-    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+      decodeSteamHtml(anchor.replace(/<[^>]*>/g, " ").replace(/\s+/g, " "));
+    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
     items.push({
       id, name, type: "game",
       image: image.replace(/&amp;/g, "&"),
