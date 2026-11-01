@@ -2274,12 +2274,6 @@
 .steam-profile-page .steam-profile-badges{
   border-radius:16px;
 }
-.steam-profile-page .steam-profile-identity{
-  background:linear-gradient(115deg,rgba(103,119,170,.2),rgba(24,34,62,.5) 55%,rgba(119,92,205,.16)) !important;
-  border-color:rgba(205,215,255,.16) !important;
-  -webkit-backdrop-filter:blur(28px) saturate(175%) !important;
-  backdrop-filter:blur(28px) saturate(175%) !important;
-}
 .steam-profile-page .steam-profile-cover{opacity:.62}
 .app-shell[data-theme="light"] .steam-profile-page .steam-profile-hero.detail-card,
 .app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity,
@@ -2292,9 +2286,6 @@
   background:linear-gradient(135deg,rgba(255,255,255,.72),rgba(231,237,255,.48) 54%,rgba(226,218,255,.4)) !important;
   border-color:rgba(91,106,151,.2) !important;
   box-shadow:0 14px 34px rgba(65,78,120,.1),inset 0 1px 0 rgba(255,255,255,.88),inset 0 -1px 0 rgba(90,105,150,.06) !important;
-}
-.app-shell[data-theme="light"] .steam-profile-page .steam-profile-identity{
-  background:linear-gradient(115deg,rgba(255,255,255,.78),rgba(232,238,255,.52) 55%,rgba(225,217,255,.48)) !important;
 }
 
 
