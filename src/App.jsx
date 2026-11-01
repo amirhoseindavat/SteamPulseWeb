@@ -178,6 +178,7 @@ export default function App() {
     const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
     if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
     setCurrentPage(page);
+    setProfileRouteId("");
     if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
