@@ -295,6 +295,13 @@ async function fetchSteamBundles(appid, cc) {
           const originalPrice = bundle.original_price ?? bundle.initial_price;
           const finalValue = finalPrice != null && Number.isFinite(Number(finalPrice)) ? Number(finalPrice) / 100 : null;
           const originalValue = originalPrice != null && Number.isFinite(Number(originalPrice)) ? Number(originalPrice) / 100 : null;
+          // Steam's bundle discount_percent can be stale or inconsistent with
+          // the actual prices. Derive it from the original and final prices.
+          const savings = originalValue != null && finalValue != null && originalValue > 0
+            ? (finalValue < originalValue
+              ? String(Math.round((1 - finalValue / originalValue) * 100))
+              : "")
+            : (bundle.discount_percent != null ? String(bundle.discount_percent) : "");
           return {
             id,
             name: bundle.name || bundle.bundle_name || "Steam Bundle",
@@ -306,7 +313,7 @@ async function fetchSteamBundles(appid, cc) {
             originalPrice: bundle.formatted_original_price || (originalValue != null
               ? new Intl.NumberFormat("en-US", { style: "currency", currency }).format(originalValue)
               : null),
-            savings: bundle.discount_percent != null ? String(bundle.discount_percent) : "",
+            savings,
             appCount: Array.isArray(bundle.appids) ? bundle.appids.length : null,
             url: "https://store.steampowered.com/bundle/" + id + "/"
           };
