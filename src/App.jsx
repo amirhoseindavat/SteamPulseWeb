@@ -124,6 +124,7 @@ export default function App() {
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
   const [steamProfileData, setSteamProfileData] = useState(null);
+  const [personalSteamProfileData, setPersonalSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
   const [steamProfileError, setSteamProfileError] = useState("");
   const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
@@ -175,7 +176,7 @@ export default function App() {
   }, [currentPage, game?.name]);
 
   function navigateTo(page) {
-    const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
+    const nextHash = page === "game" && appid ? `#/game/${appid}` : page === "profile" && personalSteamProfileData?.profile?.steamId ? `#/profile/${personalSteamProfileData.profile.steamId}` : `#/${page}`;
     if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
     setCurrentPage(page);
     setProfileRouteId("");
@@ -419,6 +420,7 @@ export default function App() {
       const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error || "Could not load the Steam profile.");
       setSteamProfileData(data);
+      if (targetProfile === String(steamProfile || "").trim()) setPersonalSteamProfileData(data);
     } catch (e) {
       setSteamProfileError(e.message || "Could not load the Steam profile.");
     } finally {
@@ -426,6 +428,13 @@ export default function App() {
     }
   }
 
+
+  useEffect(() => {
+    if (currentPage !== "profile" || profileRouteId || !personalSteamProfileData?.profile?.steamId) return;
+    const ownProfileHash = `#/profile/${personalSteamProfileData.profile.steamId}`;
+    if (window.location.hash !== ownProfileHash) window.history.replaceState(null, "", ownProfileHash);
+    setProfileRouteId(personalSteamProfileData.profile.steamId);
+  }, [currentPage, profileRouteId, personalSteamProfileData?.profile?.steamId]);
 
   async function checkOwnership() {
     if (!steamProfile.trim() || !game) {
@@ -675,7 +684,7 @@ export default function App() {
         <div className="topbar-right">
           <button className="header-search-home" ref={headerSearchRef} onClick={() => navigateTo("home")} title="Go to Home" aria-label="Go to Home"><Search size={17} /><span>Search</span></button>
           <button className="theme-toggle" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
-          <button className={`avatar-button ${steamProfileData?.profile ? (steamProfileData.profile.currentGame ? "has-steam-game" : steamProfileData.profile.online ? "is-steam-online" : "is-steam-offline") : ""}`} title={steamProfileData?.profile?.currentGame ? `In game: ${steamProfileData.profile.currentGame.name}` : steamProfileData?.profile ? (steamProfileData.profile.online ? "Online" : "Offline") : "Steam profile"} aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{steamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={steamProfileData.profile.avatarAnimated || steamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}{steamProfileData?.profile && <i className="header-steam-status-dot" aria-hidden="true" />}</button></div>
+          <button className={`avatar-button ${personalSteamProfileData?.profile ? (personalSteamProfileData.profile.currentGame ? "has-steam-game" : personalSteamProfileData.profile.online ? "is-steam-online" : "is-steam-offline") : ""}`} title={personalSteamProfileData?.profile?.currentGame ? `In game: ${personalSteamProfileData.profile.currentGame.name}` : personalSteamProfileData?.profile ? (personalSteamProfileData.profile.online ? "Online" : "Offline") : "Steam profile"} aria-label="Open Steam profile" onClick={() => navigateTo("profile")}>{personalSteamProfileData?.profile?.avatar ? <img className="avatar steam-avatar" src={personalSteamProfileData.profile.avatarAnimated || personalSteamProfileData.profile.avatar} alt="" /> : <span className="avatar"><UserRound size={19} /></span>}{personalSteamProfileData?.profile && <i className="header-steam-status-dot" aria-hidden="true" />}</button></div>
       </header>
 
       <main className="main-content">
