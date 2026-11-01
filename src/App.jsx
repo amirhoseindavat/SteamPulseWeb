@@ -119,7 +119,7 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
-  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], topSellers: [] });
+  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
   const [discoveryTab, setDiscoveryTab] = useState("trending");
@@ -432,6 +432,7 @@ export default function App() {
           newReleases: data.newReleases || [],
           upcoming: data.upcoming || [],
           preorders: data.preorders || [],
+          preordersError: data.preordersError || "",
           topSellers: data.topSellers || []
         });
       })
@@ -904,7 +905,7 @@ export default function App() {
             {[["trending","Trending"],["new","New releases"],["upcoming","Coming soon"],["preorders","Pre-orders"]].map(([key,label]) => <button key={key} className={discoveryTab === key ? "active" : ""} onClick={() => setDiscoveryTab(key)}>{label}</button>)}
           </div>
           {discoveryError && <div className="discovery-message"><Info size={15} />{discoveryError}</div>}
-          {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.topSellers.length
+          {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.preorders.length && !discovery.topSellers.length
             ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Finding games worth your attention…</div>
             : <div className="discovery-grid">
               {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discoveryTab === "preorders" ? discovery.preorders : discovery.topSellers).map((item) => discoveryTab === "preorders" ? <article className="discovery-card preorder-discovery-card" key={item.id}>
@@ -915,7 +916,7 @@ export default function App() {
                 <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{discoveryTab === "upcoming" || discoveryTab === "new" ? <b>{item.price && Number(String(item.price).replace(/[^0-9,.-]/g, "").replace(/,/g, "")) > 0 ? item.price : "Price not announced"}</b> : item.price ? <b>{item.price}</b> : null}</span></span>
               </a>)}
             </div>}
-          {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discoveryTab === "preorders" ? discovery.preorders : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
+          {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discoveryTab === "preorders" ? discovery.preorders : discovery.topSellers).length && <div className="discovery-message">{discoveryTab === "preorders" && discovery.preordersError ? `Could not load Steam pre-orders: ${discovery.preordersError}` : "No titles available in this category right now."}</div>}
           <div className="discovery-sources"><span>Want deeper trend data?</span><a href="https://steamdb.info/stats/mostwished/?displayOnly=Game" target="_blank" rel="noreferrer">Most wishlisted <ExternalLink size={11} /></a><a href="https://steamdb.info/stats/wishlistactivity/?upcoming_only=1" target="_blank" rel="noreferrer">Rising wishlist activity <ExternalLink size={11} /></a><a href="https://steamdb.info/upcoming/" target="_blank" rel="noreferrer">Upcoming releases <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
         </section>
