@@ -294,7 +294,7 @@
 .profile-error p{margin:0 0 10px;color:#929fbb;font-size:13px}
 .steam-profile-hero{position:relative;overflow:hidden;padding:0}
 .steam-profile-cover{position:absolute;inset:0 0 auto;height:145px;background:linear-gradient(90deg,#171c35,#10172a);background-size:cover;background-position:center;opacity:.85}
-.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 18px;background:var(--panel,rgba(16,24,44,.92));border-radius:0 0 17px 17px}
+.steam-profile-identity{position:relative;display:flex;align-items:flex-end;gap:20px;padding:84px 26px 18px;background:var(--panel,rgba(16,24,44,.82));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);border-radius:0 0 17px 17px}
 .steam-profile-avatar-wrap{position:relative;display:block;width:112px;height:112px;flex:0 0 112px;z-index:2}
 .steam-profile-avatar{display:block;width:100%;height:100%;object-fit:cover;border:4px solid #101629;border-radius:18px;background:#0b1020}
 .steam-profile-avatar-frame {
