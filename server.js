@@ -24,7 +24,20 @@ async function fetchJsonRequest(url, options = {}) {
     error.retryAfter = response.headers.get("retry-after");
     throw error;
   }
-  return response.json();
+
+  // Steam occasionally responds with an empty body or non-JSON content.
+  // Read the body once so those upstream failures become actionable API errors.
+  const responseText = await response.text();
+  if (!responseText.trim()) {
+    throw new Error(`Steam returned an empty response (HTTP ${response.status}). Please retry in a moment.`);
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    const contentType = response.headers.get("content-type") || "unknown content type";
+    throw new Error(`Steam returned invalid JSON (${contentType}, HTTP ${response.status}). Please retry in a moment.`);
+  }
 }
 
 // Share identical simultaneous requests so repeated UI actions don't multiply Steam traffic.
