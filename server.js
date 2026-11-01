@@ -356,7 +356,16 @@ async function fetchSteamPreorders(cc) {
   }
   if (!html.trim()) throw new Error(lastError?.message || "Steam Pre-orders search failed.");
 
-  const rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
+  // The full Steam page contains scripts and other links before the actual
+  // results. Only parse anchors inside the explicit List Items section.
+  const listStart = html.indexOf("<!-- List Items -->");
+  const listEnd = listStart >= 0
+    ? html.indexOf("<!-- End List Items -->", listStart + "<!-- List Items -->".length)
+    : -1;
+  const listHtml = listStart >= 0
+    ? html.slice(listStart + "<!-- List Items -->".length, listEnd >= 0 ? listEnd : undefined)
+    : html;
+  const rows = listHtml.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = new Map();
 
   const getAttribute = (source, name) => {
@@ -396,18 +405,25 @@ async function fetchSteamPreorders(cc) {
     const name = decodeSteamHtml(titleHtml).trim();
     if (!name) continue;
 
-    // Read the visible text of the complete row instead of relying on a
-    // shallow search_price container: Steam nests price markup differently
-    // between full-page HTML and its AJAX response.
-    const rowText = decodeSteamHtml(row);
-    const currencyPattern = /(?:R\$|[$€£₴₽¥₹₩₺₫₱]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR|CAD|AUD|CHF|NOK|SEK|DKK|zł|руб\.?|₸)\s*[\d][\d.,]*(?:\s*(?:R\$|[$€£₴₽¥₹₩₺₫₱]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR|CAD|AUD|CHF|NOK|SEK|DKK|zł|руб\.?|₸))?/gi;
-    const priceMatches = rowText.match(currencyPattern) || [];
-    const price = [...new Set(priceMatches)].join(" / ").trim();
-    const hasPrice = priceMatches.length > 0 &&
-      !/\bfree(?:\s+to\s+play)?\b|price unavailable|not available|coming soon|to be announced/i.test(rowText);
+    // Steam provides a machine-readable minor-unit price on the price
+    // wrapper (e.g. data-price-final="6999") and a localized visible label.
+    // Prefer that numeric attribute; it works across every currency/locale.
+    const priceWrapper = row.match(/<(?:div|span)\b(?=[^>]*\bclass=["'][^"']*(?:search_price_discount_combined|discount_block)[^"']*["'])[^>]*>/i)?.[0] || "";
+    const priceContainer = row.match(/<div\b(?=[^>]*\bclass=["'][^"']*\bsearch_price_discount_combined\b[^"']*["'])[^>]*>/i)?.[0] || "";
+    const priceAttribute = getAttribute(priceWrapper, "data-price-final") ||
+      getAttribute(priceContainer, "data-price-final");
+    const visiblePriceHtml = getClassContent(row, "discount_final_price");
+    const visiblePrice = decodeSteamHtml(visiblePriceHtml).trim();
+    const numericPrice = Number(priceAttribute);
+    const hasNumericPrice = priceAttribute !== "" && Number.isFinite(numericPrice) && numericPrice > 0;
+    const hasVisiblePrice = Boolean(visiblePrice) &&
+      !/^free$/i.test(visiblePrice) &&
+      !/price unavailable|not available|coming soon|to be announced/i.test(visiblePrice);
+    const hasPrice = hasNumericPrice || hasVisiblePrice;
+    const price = visiblePrice || (hasNumericPrice ? priceAttribute : "");
 
-    // Steam's Price_DESC ordering puts unpriced entries after priced entries.
-    // Stop immediately at the first unpriced row, as requested.
+    // Steam's Price_DESC ordering puts unpriced/free entries after priced entries.
+    // Stop immediately at the first row without a paid price, as requested.
     if (!hasPrice) break;
 
     const image = getAttribute(row, "src") || getAttribute(row, "data-src") ||
@@ -435,8 +451,9 @@ async function fetchSteamPreorders(cc) {
       ", content-type: " + responseContentType +
       ", rows: " + rows.length +
       ", HTML length: " + html.length +
+      ", list marker found: " + (listStart >= 0) +
+      ", list rows: " + rows.length +
       ", first row: " + (rows[0] ? decodeSteamHtml(rows[0]).slice(0, 300) : "none") +
-      ", first row price matches: " + (rows[0] ? (decodeSteamHtml(rows[0]).match(currencyPattern) || []).join(" / ") : "none") +
       ", sample: " + html.slice(0, 500).replace(/\s+/g, " ") + ").");
   }
 
@@ -550,7 +567,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v25:${cc}`;
+  const key = `discover:v26:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
