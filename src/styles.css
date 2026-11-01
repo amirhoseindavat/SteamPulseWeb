@@ -2153,6 +2153,17 @@
   -webkit-backdrop-filter:none !important;
   backdrop-filter:none !important;
 }
+.app-shell .steam-profile-page .steam-profile-hero.detail-card,
+.app-shell .steam-profile-page .steam-profile-identity,
+.app-shell .steam-profile-page .profile-stat,
+.app-shell .steam-profile-page .profile-current-game,
+.app-shell .steam-profile-page .profile-recent,
+.app-shell .steam-profile-page .profile-account,
+.app-shell .steam-profile-page .steam-profile-badges{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+}
 .app-shell .steam-profile-page .steam-profile-cover{opacity:.62}
 .app-shell .site-footer{position:relative;isolation:isolate}
 .app-shell .site-footer:before{
