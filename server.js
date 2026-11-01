@@ -1401,6 +1401,23 @@ app.get("/api/steam-profile", async (req, res) => {
     const totalBadges = badges ? badgeList.length : null;
     const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
     const gameCollector = badgeList.find((badge) => Number(badge.badgeid) === 13) || null;
+    let gameCollectorImage = "";
+    if (gameCollector) {
+      try {
+        const badgePage = await fetch("https://steamcommunity.com/profiles/" + encodeURIComponent(steamId) + "/badges/13/?l=english", {
+          headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "text/html,application/xhtml+xml" },
+          signal: AbortSignal.timeout(7000)
+        });
+        if (badgePage.ok) {
+          const badgeHtml = await badgePage.text();
+          const imageMatch = badgeHtml.match(/(?:src|data-src)=["']([^"']*\/13_gamecollector\/[^"']+_80\.png(?:\?[^"']*)?)["']/i);
+          if (imageMatch) gameCollectorImage = imageMatch[1].startsWith("//") ? "https:" + imageMatch[1] : imageMatch[1];
+        }
+      } catch (badgeImageError) {
+        console.warn("Could not load Game Collector badge artwork:", badgeImageError.message || badgeImageError);
+      }
+      if (!gameCollectorImage) gameCollectorImage = "https://community.fastly.steamstatic.com/public/images/badges/13_gamecollector/40000_80.png";
+    }
     const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
     const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
     const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
@@ -1418,7 +1435,7 @@ app.get("/api/steam-profile", async (req, res) => {
       profileCustomization: customization ? { theme: customization.profile_theme || "", showcaseCount: Array.isArray(customization.slots) ? customization.slots.length : 0 } : null,
       favoriteBadge,
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
-      gameCollector: gameCollector ? { level: Number(gameCollector.level) || 1, xp: Number(gameCollector.xp) || 0, image: "https://community.fastly.steamstatic.com/public/images/badges/13_gamecollector/steamgamecollector" + (Number(gameCollector.level) || 1) + "_80.png" } : null,
+      gameCollector: gameCollector ? { level: Number(gameCollector.level) || 1, xp: Number(gameCollector.xp) || 0, image: gameCollectorImage } : null,
       stats: {
         games: games ? games.length : null,
         hours: hours,
