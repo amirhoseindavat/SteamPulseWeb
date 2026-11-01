@@ -1781,7 +1781,7 @@
 .app-shell .dlc-card.dlc-card-owned{
   border-color:rgba(80,213,163,.58);
   background:linear-gradient(110deg,rgba(25,83,66,.3),rgba(16,29,43,.88));
-  box-shadow:inset 3px 0 0 #50d5a3,0 5px 18px rgba(0,0,0,.12);
+  box-shadow:none;
 }
 .app-shell .dlc-card-owned .dlc-copy strong{color:#f0fff8}
 .app-shell .dlc-card-owned .dlc-ownership.is-owned{
@@ -1805,7 +1805,7 @@
 .app-shell[data-theme="light"] .dlc-card.dlc-card-owned{
   background:linear-gradient(110deg,#e9fbf2,#fff);
   border-color:#9bdcba;
-  box-shadow:inset 3px 0 0 #269d70,0 5px 18px rgba(31,85,64,.08);
+  box-shadow:none;
 }
 .app-shell[data-theme="light"] .dlc-card-owned .dlc-copy strong{color:#174c38}
 .app-shell[data-theme="light"] .dlc-card-owned .dlc-ownership.is-owned{
