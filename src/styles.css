@@ -1766,7 +1766,7 @@
 .app-shell .edition-card.edition-card-owned{
   border-color:rgba(80,213,163,.62);
   background:linear-gradient(135deg,rgba(24,83,67,.34),rgba(16,29,43,.92));
-  box-shadow:inset 3px 0 0 #50d5a3,0 5px 18px rgba(0,0,0,.12);
+  box-shadow:none;
 }
 .app-shell .edition-card-owned .edition-top-status{
   color:#72edbd;
@@ -1795,7 +1795,7 @@
 .app-shell[data-theme="light"] .edition-card.edition-card-owned{
   background:linear-gradient(135deg,#e7fbf2,#f8fffb);
   border-color:#78d8ae;
-  box-shadow:inset 3px 0 0 #269d70,0 5px 18px rgba(31,85,64,.08);
+  box-shadow:none;
 }
 .app-shell[data-theme="light"] .edition-card-owned .edition-top-status{
   color:#16764f;
