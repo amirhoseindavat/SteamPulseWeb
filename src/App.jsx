@@ -590,6 +590,7 @@ export default function App() {
   ));
   const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
   const price = money(game?.price_overview);
+  const hasStorePrice = Boolean(game?.price_overview && (game.price_overview.final != null || game.price_overview.final_formatted));
   const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
   const numericRegionalPrice = Number(regionalPriceInput);
   const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
@@ -907,7 +908,7 @@ export default function App() {
             : <div className="discovery-grid">
               {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).slice(0, 8).map((item) => <a className="discovery-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                 <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
-                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{item.price ? <b>{item.price}</b> : discoveryTab === "upcoming" ? <b>Price not announced</b> : null}</span></span>
+                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{discoveryTab === "upcoming" ? <b>{item.price && Number(String(item.price).replace(/[^0-9,.-]/g, "").replace(/,/g, "")) > 0 ? item.price : "Price not announced"}</b> : item.price ? <b>{item.price}</b> : null}</span></span>
               </a>)}
             </div>}
           {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
@@ -965,7 +966,7 @@ export default function App() {
 
           {game.type === "dlc" && <section className="dlc-parent-notice detail-card"><div className="dlc-parent-icon"><Library size={22} /></div><div className="dlc-parent-copy"><span className="section-kicker">DLC · BASE GAME REQUIRED</span><h3>This content requires the base game</h3><p>This is downloadable content, not a standalone game. You need to own the base game on Steam to access it.</p>{game.parent_game?.appid ? <><div className="dlc-parent-game"><img src={game.parent_game.header_image || ("https://cdn.akamai.steamstatic.com/steam/apps/" + game.parent_game.appid + "/header.jpg")} alt="" loading="lazy" /><div className="dlc-parent-game-info"><strong>{game.parent_game.name}</strong><small>Required base game</small></div></div><div className="dlc-parent-actions"><a className="dlc-parent-action dlc-parent-steam" href={"https://store.steampowered.com/app/" + game.parent_game.appid + "/"} target="_blank" rel="noreferrer">View base game on Steam <ExternalLink size={14} /></a><a className="dlc-parent-action dlc-parent-steampulse" href={"#/game/" + game.parent_game.appid}>View base game on SteamPulse <ChevronRight size={15} /></a></div></> : <p className="dlc-parent-unknown">Check the DLC store page for its required base game.</p>}</div></section>}
 
-          <div className="purchase-layout">
+          {hasStorePrice && <div className="purchase-layout">
             <div className="purchase-options-column">
             {game.type !== "edition" && ((game.editions || []).length > 0 || (game.bundles || []).length > 0) && <section className="extra-content-section purchase-options-panel">
               <div className="detail-header"><div><span className="section-kicker">PURCHASE OPTIONS</span><h2>Choose your version</h2><p className="purchase-hint">Select an edition or bundle to calculate its required keys and estimated cost.</p></div></div>
@@ -1009,7 +1010,7 @@ export default function App() {
                 <div className="calculator-result cost-result"><small>ESTIMATED COST</small><strong>{keyCount ? formatNumber(totalToman) : "—"} <span>toman</span></strong><p>{keyCount && liveKeyPriceToman > 0 ? `${keyCount} × ${formatNumber(liveKeyPriceToman)} toman` : shopDataError || regionalKeyPrice?.error || "Loading live shop key price…"}</p></div>
               </div>
             </section>
-          </div>
+          </div>}
 
           {game.type !== "dlc" && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
             <div className="deck-main">
