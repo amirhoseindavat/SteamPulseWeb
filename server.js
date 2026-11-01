@@ -313,38 +313,39 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders(cc) {
-  // Read multiple pages from Steam's Popular Coming Soon listing.
-  // Keep only rows explicitly labelled Pre-Purchase.
+  // Steam's Popular Upcoming ranking can omit paid preorder titles such as METRO 2039.
+  // Use the full Upcoming search sorted by price, then retain explicit Pre-Purchase rows.
   const pageSize = 50;
-  const maxPages = 3;
+  const maxPages = 5;
   const allItems = new Map();
   const headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest"
   };
 
   for (let page = 0; page < maxPages; page++) {
-    const url = new URL("https://store.steampowered.com/search/");
-    url.searchParams.set("hwtype", "0");
+    const url = new URL("https://store.steampowered.com/search/results/");
+    url.searchParams.set("query", "");
+    url.searchParams.set("start", String(page * pageSize));
+    url.searchParams.set("count", String(pageSize));
+    url.searchParams.set("dynamic_data", "");
+    url.searchParams.set("sort_by", "Price_DESC");
+    url.searchParams.set("sort_order", "DESC");
+    url.searchParams.set("filter", "comingsoon");
     url.searchParams.set("category1", "998");
     url.searchParams.set("os", "win");
     url.searchParams.set("supportedlang", "english,persian");
-    url.searchParams.set("filter", "popularcomingsoon");
-    url.searchParams.set("ndl", "1");
-    url.searchParams.set("start", String(page * pageSize));
-    url.searchParams.set("count", String(pageSize));
     url.searchParams.set("cc", cc.toLowerCase());
     url.searchParams.set("l", "english");
+    url.searchParams.set("infinite", "1");
 
     let response;
     let lastError;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        response = await fetch(url, {
-          headers,
-          signal: AbortSignal.timeout(15000)
-        });
-        if (!response.ok) throw new Error("Steam Popular Coming Soon failed (" + response.status + ")");
+        response = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+        if (!response.ok) throw new Error("Steam Upcoming search failed (" + response.status + ")");
         break;
       } catch (error) {
         lastError = error;
@@ -353,12 +354,13 @@ async function fetchSteamPreorders(cc) {
     }
 
     if (!response?.ok) {
-      if (page === 0) throw lastError || new Error("Steam Popular Coming Soon request failed");
-      console.warn("Steam preorder page " + (page + 1) + " could not be loaded; keeping results from previous pages:", lastError?.message);
+      if (page === 0) throw lastError || new Error("Steam Upcoming search failed");
+      console.warn("Steam preorder page " + (page + 1) + " failed; retaining earlier results:", lastError?.message);
       break;
     }
 
-    const html = await response.text();
+    const payload = await response.json();
+    const html = String(payload?.results_html || "");
     const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
     if (!rows.length) break;
 
@@ -369,13 +371,13 @@ async function fetchSteamPreorders(cc) {
       const name = decodeSteamHtml(titleHtml);
       if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-      const rowText = decodeSteamHtml(row.replace(/<[^>]*>/g, " "));
+      const rowText = decodeSteamHtml(row);
       if (!/pre[ -]?purchase/i.test(rowText)) continue;
 
       const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-      const releaseDateHtml = row.match(/class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
-      const priceHtml = row.match(/class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] ||
-        row.match(/class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
+      const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+      const priceHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] ||
+        row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
       const price = decodeSteamHtml(priceHtml).trim();
 
       allItems.set(id, {
@@ -390,9 +392,10 @@ async function fetchSteamPreorders(cc) {
       });
     }
 
-    // A short page means Steam has no further results to return.
+    const totalCount = Number(payload?.total_count);
+    if (Number.isFinite(totalCount) && (page + 1) * pageSize >= totalCount) break;
     if (rows.length < pageSize) break;
-    if (page < maxPages - 1) await new Promise((resolve) => setTimeout(resolve, 300));
+    if (page < maxPages - 1) await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
   return [...allItems.values()];
@@ -500,7 +503,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v8:${cc}`;
+  const key = `discover:v9:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
