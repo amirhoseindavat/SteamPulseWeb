@@ -473,7 +473,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v13`;
+  const key = `discover:v14`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -532,6 +532,7 @@ app.get("/api/discover", async (req, res) => {
       }));
     };
 
+    let preordersError = "";
     const [newReleases, upcoming, featuredTopSellers, fullTopSellers, preordersFromSteam] = await Promise.all([
       normalize(data?.new_releases?.items, "NEW"),
       normalize(data?.coming_soon?.items, "UPCOMING"),
@@ -541,7 +542,8 @@ app.get("/api/discover", async (req, res) => {
         return [];
       }),
       fetchSteamPreorders().catch((error) => {
-        console.warn("Could not load Steam Popular Upcoming page:", error.message);
+        preordersError = error.message || String(error);
+        console.error("Could not load Steam Popular Upcoming page:", preordersError);
         return [];
       })
     ]);
@@ -569,7 +571,7 @@ app.get("/api/discover", async (req, res) => {
     const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
     // Use Steam's explicit Pre-Purchase labels from its dedicated Upcoming Releases page.
     const preorders = preordersFromSteam;
-    const result = { newReleases, upcoming, preorders, topSellers };
+    const result = { newReleases, upcoming, preorders, preordersError, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
     }
