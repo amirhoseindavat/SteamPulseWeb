@@ -363,7 +363,7 @@ async function fetchSteamPreorders() {
     // Steam includes both purchasable pre-orders and ordinary Coming Soon pages
     // in Popular Upcoming. Only keep rows explicitly marked Pre-Purchase.
     const rowText = decodeSteamHtml(row);
-    if (!/\\bpre[\\s-]?purchase\\b/i.test(rowText)) continue;
+    if (!/\bpre[\s-]?purchase\b/i.test(rowText)) continue;
 
     const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
