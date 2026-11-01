@@ -369,20 +369,32 @@ async function fetchSteamPreorders() {
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-    // Steam includes both purchasable pre-orders and ordinary Coming Soon pages
-    // in Popular Upcoming. Only keep rows explicitly marked Pre-Purchase.
-    const rowText = decodeSteamHtml(row);
-    if (!/\bpre[\s-]?purchase\b/i.test(rowText)) continue;
-
     const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+    const releaseDate = decodeSteamHtml(releaseDateHtml);
+
+    // The AJAX result HTML often omits the visible "Pre-Purchase" label.
+    // A paid price plus an unreleased date is the reliable signal that Steam
+    // currently allows the product to be purchased before launch.
+    const priceFinalText = row.match(/\bdata-price-final=["'](\d+)/i)?.[1];
+    const priceHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_price\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+    const priceText = decodeSteamHtml(priceHtml);
+    const hasPaidPrice = priceFinalText != null
+      ? Number(priceFinalText) > 0
+      : Boolean(priceText && /\d/.test(priceText) && !/\bfree\b/i.test(priceText));
+
+    const parsedReleaseDate = Date.parse(releaseDate);
+    const isUnreleased = /^(coming soon|to be announced|tba)$/i.test(releaseDate) ||
+      (Number.isFinite(parsedReleaseDate) && parsedReleaseDate >= Date.now() - 24 * 60 * 60 * 1000);
+
+    if (!hasPaidPrice || !isUnreleased) continue;
 
     items.set(id, {
       id,
       name,
       type: "game",
       image: image.replace(/&amp;/g, "&"),
-      releaseDate: decodeSteamHtml(releaseDateHtml),
+      releaseDate,
       badge: "PRE-ORDER"
     });
   }
@@ -509,7 +521,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v15`;
+  const key = `discover:v16`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
