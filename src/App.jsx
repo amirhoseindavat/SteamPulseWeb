@@ -1010,7 +1010,7 @@ export default function App() {
                 </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
-          {game.type !== "dlc" && game.coming_soon && game.release_date && Number.isFinite(new Date(game.release_date).getTime()) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
+          {(game.type === "dlc" || game.coming_soon) && game.release_date && Number.isFinite(new Date(game.release_date).getTime()) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
           {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
