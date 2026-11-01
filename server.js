@@ -313,24 +313,20 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders(cc) {
-  // Use Steam's AJAX search endpoint, matching the user's working browser URL.
+  // Steam sorts paid upcoming games from highest to lowest price.
+  // Once the first row without a real price appears, all following rows are ignored.
   const url = new URL("https://store.steampowered.com/search/results/");
-  url.searchParams.set("force_infinite", "1");
-  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
-  url.searchParams.set("l", "english");
-  url.searchParams.set("hwtype", "0");
-  url.searchParams.set("maxprice", "60");
-  url.searchParams.set("category1", "998");
-  url.searchParams.set("os", "win");
-  url.searchParams.set("supportedlang", "english");
-  url.searchParams.set("hidef2p", "1");
-  url.searchParams.set("filter", "popularcomingsoon");
-  url.searchParams.set("ndl", "1");
-  url.searchParams.set("snr", "1_7_7_popularcomingsoon_7");
   url.searchParams.set("query", "");
   url.searchParams.set("start", "0");
   url.searchParams.set("count", "50");
+  url.searchParams.set("sort_by", "Price_DESC");
+  url.searchParams.set("hwtype", "0");
+  url.searchParams.set("category1", "998");
+  url.searchParams.set("filter", "popularcomingsoon");
+  url.searchParams.set("ndl", "1");
   url.searchParams.set("infinite", "1");
+  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
+  url.searchParams.set("l", "english");
 
   let payload;
   let lastError;
@@ -341,7 +337,7 @@ async function fetchSteamPreorders(cc) {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
           "Accept": "application/json, text/javascript, */*; q=0.01",
           "X-Requested-With": "XMLHttpRequest",
-          "Referer": "https://store.steampowered.com/search/?hwtype=0&filter=popularcomingsoon&maxprice=60&category1=998&os=win&supportedlang=english&hidef2p=1&ndl=1&snr=1_7_7_popularcomingsoon_7"
+          "Referer": "https://store.steampowered.com/search/?" + url.searchParams.toString()
         },
         signal: AbortSignal.timeout(20000)
       });
@@ -379,6 +375,20 @@ async function fetchSteamPreorders(cc) {
     return match ? source.slice(startIndex, match.index) : "";
   };
 
+  const parseReleaseDate = (value) => {
+    const text = String(value || "").trim();
+    if (!text || /coming soon|to be announced|tba|待定/i.test(text)) return Number.POSITIVE_INFINITY;
+
+    const quarter = text.match(/\bQ([1-4])\s*(?:,|of)?\s*(20\d{2})\b/i);
+    if (quarter) return Date.UTC(Number(quarter[2]), (Number(quarter[1]) - 1) * 3, 1);
+
+    const yearOnly = text.match(/\b(20\d{2})\b/);
+    if (/^\s*20\d{2}\s*$/.test(text)) return Date.UTC(Number(yearOnly[1]), 0, 1);
+
+    const timestamp = Date.parse(text);
+    return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+  };
+
   for (const row of rows) {
     const id = Number((getAttribute(row, "data-ds-appid") || getAttribute(row, "data-appid")).split(",")[0]);
     if (!Number.isSafeInteger(id) || id <= 0) continue;
@@ -387,14 +397,20 @@ async function fetchSteamPreorders(cc) {
     const name = decodeSteamHtml(titleHtml).trim();
     if (!name) continue;
 
+    const priceHtml = getClassContent(row, "search_price");
+    const price = decodeSteamHtml(priceHtml).trim();
+    const hasPrice = Boolean(price) &&
+      !/\bfree(?:\s+to\s+play)?\b|price unavailable|not available|coming soon|to be announced/i.test(price) &&
+      /(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i.test(price);
+
+    // Steam's Price_DESC ordering puts unpriced entries after priced entries.
+    // Stop immediately at the first unpriced row, as requested.
+    if (!hasPrice) break;
+
     const image = getAttribute(row, "src") || getAttribute(row, "data-src") ||
       row.match(/<img\b[^>]*src=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = decodeSteamHtml(getClassContent(row, "search_released")).trim();
-    const priceHtml = getClassContent(row, "search_price");
-    const price = decodeSteamHtml(priceHtml).trim();
 
-    // The search filter is authoritative; retain Steam's ranking and don't
-    // independently reinterpret release dates or remove valid upcoming entries.
     if (!items.has(id)) {
       items.set(id, {
         id,
@@ -403,20 +419,24 @@ async function fetchSteamPreorders(cc) {
         image: image.replace(/&amp;/g, "&"),
         releaseDate,
         price,
-        badge: "PRE-ORDER"
+        badge: "PRE-ORDER",
+        _releaseSort: parseReleaseDate(releaseDate)
       });
     }
   }
 
   if (!items.size) {
-    throw new Error("Steam Pre-orders endpoint returned no parseable games (success: " +
+    throw new Error("Steam Pre-orders search returned no priced games before the first unpriced result (success: " +
       String(payload.success) + ", total_count: " + String(payload.total_count) +
-      ", rows: " + rows.length + ", HTML length: " + html.length +
-      ", sample: " + html.slice(0, 900).replace(/\s+/g, " ") + ").");
+      ", rows: " + rows.length + ").");
   }
 
-  console.info("Steam Pre-orders: parsed " + items.size + " games from Steam search/results");
-  return [...items.values()];
+  const result = [...items.values()]
+    .sort((a, b) => a._releaseSort - b._releaseSort)
+    .map(({ _releaseSort, ...item }) => item);
+
+  console.info("Steam Pre-orders: retained " + result.length + " priced games and sorted by release date");
+  return result;
 }
 async function fetchSteamTopSellers(cc) {
   const url = new URL("https://store.steampowered.com/search/results/");
@@ -521,7 +541,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v20:${cc}`;
+  const key = `discover:v21:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
