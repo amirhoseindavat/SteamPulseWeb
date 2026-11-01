@@ -1402,6 +1402,7 @@ app.get("/api/steam-profile", async (req, res) => {
     const yearOfService = badgeList.find((badge) => Number(badge.badgeid) === 1) || null;
     const gameCollector = badgeList.find((badge) => Number(badge.badgeid) === 13) || null;
     let gameCollectorImage = "";
+    let gameCollectorGamesCount = null;
     if (gameCollector) {
       try {
         const badgePage = await fetch("https://steamcommunity.com/profiles/" + encodeURIComponent(steamId) + "/badges/13/?l=english", {
@@ -1417,7 +1418,45 @@ app.get("/api/steam-profile", async (req, res) => {
         console.warn("Could not load Game Collector badge artwork:", badgeImageError.message || badgeImageError);
       }
       if (!gameCollectorImage) gameCollectorImage = "https://community.fastly.steamstatic.com/public/images/badges/13_gamecollector/40000_80.png";
+
+      // Get the count from the actual Game Collector showcase on the public
+      // profile. GetOwnedGames also includes played free games and other
+      // licenses that Steam does not count toward this showcase.
+      try {
+        const profilePage = await fetch("https://steamcommunity.com/profiles/" + encodeURIComponent(steamId) + "/?l=english", {
+          headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "text/html,application/xhtml+xml" },
+          signal: AbortSignal.timeout(7000)
+        });
+        if (profilePage.ok) {
+          const profileHtml = await profilePage.text();
+          const plainText = profileHtml
+            .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+            .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+            .replace(/<[^>]*>/g, " ")
+            .replace(/&nbsp;|&#160;/gi, " ")
+            .replace(/&#44;|&comma;/gi, ",")
+            .replace(/&amp;/gi, "&")
+            .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+            .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+            .replace(/\s+/g, " ");
+
+          // Steam's showcase renders the total beside the "Games Owned"
+          // label. Support both label orders and comma-separated counts.
+          const countMatch =
+            plainText.match(/\b([\d,]+)\s+Games\s+Owned\b/i) ||
+            plainText.match(/\bGames\s+Owned\s*[:\-]?\s*([\d,]+)\b/i);
+          if (countMatch) {
+            const parsedCount = Number(countMatch[1].replace(/,/g, ""));
+            if (Number.isSafeInteger(parsedCount) && parsedCount >= 0) {
+              gameCollectorGamesCount = parsedCount;
+            }
+          }
+        }
+      } catch (profilePageError) {
+        console.warn("Could not read Steam Game Collector showcase count:", profilePageError.message || profilePageError);
+      }
     }
+    const displayedGamesCount = gameCollectorGamesCount ?? (games ? games.length : null);
     const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
     const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
     const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
@@ -1437,7 +1476,7 @@ app.get("/api/steam-profile", async (req, res) => {
       yearOfService: yearOfService ? { level: Number(yearOfService.level) || 1, image: "https://community.fastly.steamstatic.com/public/images/badges/02_years/steamyears" + (Number(yearOfService.level) || 1) + "_80.png", xp: Number(yearOfService.xp) || 0 } : null,
       gameCollector: gameCollector ? { level: Number(gameCollector.level) || 1, xp: Number(gameCollector.xp) || 0, image: gameCollectorImage } : null,
       stats: {
-        games: games ? games.length : null,
+        games: displayedGamesCount,
         hours: hours,
         level: levelResult.status === "fulfilled" && Number.isFinite(Number(levelResult.value?.response?.player_level)) ? Number(levelResult.value.response.player_level) : null,
         badges: totalBadges,
