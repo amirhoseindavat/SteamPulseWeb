@@ -345,8 +345,15 @@ async function fetchSteamPreorders() {
     throw new Error("Could not load Steam Popular Upcoming page: " + (error?.message || String(error)));
   }
 
-  // Parse the same anchor elements that Steam renders in the browser.
-  const rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
+  // Prefer Steam's classic search-result anchors. If Steam changes their
+  // wrapper/class markup, fall back to the app-id-bearing result elements.
+  let rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
+  if (!rows.length) {
+    const rowStarts = [...html.matchAll(/<[a-z][\w:-]*\b(?=[^>]*\bdata-ds-appid=["']\d+)[^>]*>/gi)];
+    rows = rowStarts.map((match, index) =>
+      html.slice(match.index, rowStarts[index + 1]?.index ?? html.length)
+    );
+  }
   const items = new Map();
 
   const getAttribute = (source, name) => {
@@ -385,8 +392,13 @@ async function fetchSteamPreorders() {
     throw new Error(
       "Steam Popular Upcoming page returned no parseable games (search_result_row markers: " +
       (html.match(/search_result_row/gi) || []).length +
+      ", data-ds-appid markers: " + (html.match(/data-ds-appid=/gi) || []).length +
+      ", data-ds-itemkey markers: " + (html.match(/data-ds-itemkey=/gi) || []).length +
+      ", app-link markers: " + (html.match(/href=["'][^"']*\\/app\\/\\d+/gi) || []).length +
+      ", candidate rows: " + rows.length +
+      ", title markers: " + (html.match(/class=["'][^"']*\\btitle\\b/gi) || []).length +
       ", HTML length: " + html.length +
-      ", page sample: " + html.slice(0, 700).replace(/\s+/g, " ") + ")"
+      ", result sample: " + (() => { const i = Math.max(html.indexOf("search_result"), html.indexOf("data-ds-appid"), html.indexOf("/app/")); return i >= 0 ? html.slice(Math.max(0, i - 250), i + 900).replace(/\\s+/g, " ") : html.slice(0, 700).replace(/\\s+/g, " "); })() + ")"
     );
   }
 
