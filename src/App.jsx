@@ -17,23 +17,6 @@ const REGIONS = [
   { code: "BR", label: "Brazil", currency: "BRL", usdRate: 5.4 }
 ];
 
-function countryFlagEmoji(country) {
-  const raw = String(country || "").trim();
-  const codes = {
-    "United States": "US", "United Kingdom": "GB", Germany: "DE", Ukraine: "UA",
-    Türkiye: "TR", Turkey: "TR", Canada: "CA", Australia: "AU", France: "FR",
-    Poland: "PL", Brazil: "BR", India: "IN", Japan: "JP", Netherlands: "NL",
-    Spain: "ES", Italy: "IT", Russia: "RU", Sweden: "SE", Norway: "NO",
-    Finland: "FI", Denmark: "DK", Switzerland: "CH", Austria: "AT",
-    Belgium: "BE", Portugal: "PT", Ireland: "IE", Czechia: "CZ",
-    Romania: "RO", Argentina: "AR", Mexico: "MX", "South Korea": "KR",
-    China: "CN", Taiwan: "TW", "New Zealand": "NZ"
-  };
-  const code = (codes[raw] || raw).toUpperCase();
-  return /^[A-Z]{2}$/.test(code)
-    ? String.fromCodePoint(...[...code].map((char) => 127397 + char.charCodeAt(0)))
-    : "🌍";
-}
 
 function money(price) {
   if (!price) return "Not available";
@@ -694,7 +677,7 @@ export default function App() {
               <div className="steam-profile-cover" />
               <div className="steam-profile-identity">
                 <span className="steam-profile-avatar-wrap"><img className="steam-profile-avatar" src={steamProfileData.profile.avatarAnimated || steamProfileData.profile.avatar} alt="" />{steamProfileData.profile.avatarFrame && <img className="steam-profile-avatar-frame" src={steamProfileData.profile.avatarFrame} alt="" aria-hidden="true" />}</span>
-                <div className="steam-profile-name"><span className="section-kicker"><UserRound size={13} /> STEAM ACCOUNT</span><div className="steam-profile-title-row"><h1>{steamProfileData.profile.name || "Steam user"}</h1>{(() => { const rawLevel = Number(steamProfileData.stats.level); const level = Number.isFinite(rawLevel) && rawLevel >= 0 ? Math.floor(rawLevel) : null; const shapes = ["hexagons", "shields", "books", "chevrons", "circles", "angles", "flags", "wings", "arrows", "crystals", "space", "water", "fire", "earth"]; const colors = ["#8b929a", "#e35d5b", "#e58b45", "#e2c34c", "#80b95b", "#66a8d8", "#9274d8", "#d77bbd", "#9f5965", "#b58b5a"]; const shape = level == null || level < 100 ? null : shapes[Math.min(shapes.length - 1, Math.floor(level / 100) - 1)]; const style = level == null ? {} : level < 100 ? { "--steam-level-color": colors[Math.floor(level / 10)] } : { backgroundImage: `url(https://community.fastly.steamstatic.com/public/shared/images/community/levels_${shape}.png)`, backgroundPosition: `0 -${Math.floor((level % 100) / 10) * 42}px` }; return <span className={`steam-level-frame steam-profile-level ${level != null && level >= 100 ? "is-sprite" : ""}`} style={style}><span>{level == null ? "—" : formatNumber(level)}</span></span>; })()}</div><p>{steamProfileData.profile.realName || "Steam community member"}{steamProfileData.profile.country ? ` · ${countryFlagEmoji(steamProfileData.profile.country)} ${steamProfileData.profile.country}` : ""}</p>{(() => { const status = String(steamProfileData.profile.status || "Offline").toLowerCase(); const isAway = status === "away" || status === "snooze"; const statusClass = steamProfileData.profile.currentGame ? "steam-in-game" : isAway ? "steam-away" : steamProfileData.profile.online ? "steam-online" : "steam-offline"; return <span className={statusClass}><i aria-hidden="true" />{steamProfileData.profile.status || "Offline"}</span>; })()}</div>
+                <div className="steam-profile-name"><span className="section-kicker"><UserRound size={13} /> STEAM ACCOUNT</span><div className="steam-profile-title-row"><h1>{steamProfileData.profile.name || "Steam user"}</h1>{(() => { const rawLevel = Number(steamProfileData.stats.level); const level = Number.isFinite(rawLevel) && rawLevel >= 0 ? Math.floor(rawLevel) : null; const shapes = ["hexagons", "shields", "books", "chevrons", "circles", "angles", "flags", "wings", "arrows", "crystals", "space", "water", "fire", "earth"]; const colors = ["#8b929a", "#e35d5b", "#e58b45", "#e2c34c", "#80b95b", "#66a8d8", "#9274d8", "#d77bbd", "#9f5965", "#b58b5a"]; const shape = level == null || level < 100 ? null : shapes[Math.min(shapes.length - 1, Math.floor(level / 100) - 1)]; const style = level == null ? {} : level < 100 ? { "--steam-level-color": colors[Math.floor(level / 10)] } : { backgroundImage: `url(https://community.fastly.steamstatic.com/public/shared/images/community/levels_${shape}.png)`, backgroundPosition: `0 -${Math.floor((level % 100) / 10) * 42}px` }; return <span className={`steam-level-frame steam-profile-level ${level != null && level >= 100 ? "is-sprite" : ""}`} style={style}><span>{level == null ? "—" : formatNumber(level)}</span></span>; })()}</div><p>{steamProfileData.profile.realName || "Steam community member"}{steamProfileData.profile.country ? <> · {steamProfileData.profile.countryCode && <img className="steam-profile-country-flag" src={`https://flagcdn.com/w40/${steamProfileData.profile.countryCode.toLowerCase()}.png`} alt="" loading="lazy" />} {steamProfileData.profile.country}</> : ""}</p>{(() => { const status = String(steamProfileData.profile.status || "Offline").toLowerCase(); const isAway = status === "away" || status === "snooze"; const statusClass = steamProfileData.profile.currentGame ? "steam-in-game" : isAway ? "steam-away" : steamProfileData.profile.online ? "steam-online" : "steam-offline"; return <span className={statusClass}><i aria-hidden="true" />{steamProfileData.profile.status || "Offline"}</span>; })()}</div>
                 <a className="profile-steam-link" href={steamProfileData.profile.url} target="_blank" rel="noreferrer"><ExternalLink size={15} /> View on Steam</a>
               </div>
               {steamProfileData.profile.summary && <p className="steam-profile-summary">{steamProfileData.profile.summary}</p>}
