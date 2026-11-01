@@ -1288,7 +1288,7 @@ function resolveSteamProfileId(profile, apiKey) {
   const value = String(profile || "").trim();
   const numeric = value.match(/^\d{17}$/);
   const profileUrl = value.match(/steamcommunity\.com\/profiles\/(\d{17})(?:\/|$|\?)/i);
-  const vanity = value.match(/steamcommunity\.com\/id\/([^/?#]+)/i);
+  const vanity = value.match(/steamcommunity\.com\/id\/([^/?#]+)/i) || ( /^[a-zA-Z0-9_-]{2,32}$/.test(value) ? [value, value] : null);
   if (numeric) return Promise.resolve(numeric[0]);
   if (profileUrl) return Promise.resolve(profileUrl[1]);
   if (!vanity) return Promise.reject(new Error("Use a Steam profile URL (/profiles/… or /id/…) or a 17-digit SteamID64."));
