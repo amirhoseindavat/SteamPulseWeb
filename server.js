@@ -350,11 +350,20 @@ async function fetchSteamPreorders() {
   }
 
   const html = String(payload?.results_html || "");
-  const rows = html.match(/<a\b(?=[^>]*\bdata-ds-appid=)[^>]*>[\s\S]*?<\/a>/gi) || [];
+
+  // Steam has changed the result-row wrapper markup over time. Anchor the
+  // parser on the app-id attribute instead of assuming every row is an <a>.
+  const rowStarts = [...html.matchAll(/<[a-z][\w:-]*\b(?=[^>]*\b(?:data-ds-appid|data-ds-itemkey)=)[^>]*>/gi)];
+  const rows = rowStarts.map((match, index) =>
+    html.slice(match.index, rowStarts[index + 1]?.index ?? html.length)
+  );
   const items = new Map();
 
   for (const row of rows) {
-    const appIdText = row.match(/\bdata-ds-appid=["'](\d+)/i)?.[1];
+    const appIdText =
+      row.match(/\bdata-ds-appid=["'](\d+)/i)?.[1] ||
+      row.match(/\bdata-ds-itemkey=["'](?:App_)?(\d+)/i)?.[1] ||
+      row.match(/\bdata-appid=["'](\d+)/i)?.[1];
     const id = Number(appIdText);
     const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
@@ -383,6 +392,12 @@ async function fetchSteamPreorders() {
       "Steam Popular Upcoming API returned no parseable rows (total_count: " +
       String(payload?.total_count ?? "unknown") +
       ", results_html length: " + html.length +
+      ", candidate rows: " + rows.length +
+      ", data-ds-appid markers: " + (html.match(/data-ds-appid=/gi) || []).length +
+      ", data-ds-itemkey markers: " + (html.match(/data-ds-itemkey=/gi) || []).length +
+      ", search_result_row markers: " + (html.match(/search_result_row/gi) || []).length +
+      ", pre-purchase markers: " + (html.match(/pre[\s-]?purchase/gi) || []).length +
+      ", html sample: " + html.slice(0, 700).replace(/\s+/g, " ") +
       ", success: " + String(payload?.success ?? "unknown") +
       ", response keys: " + Object.keys(payload || {}).join(",") + ")"
     );
