@@ -1012,7 +1012,7 @@ app.get("/api/game/:appid", async (req, res) => {
     const editions = packageGroups.flatMap((group) => (group.subs || []).map((sub) => ({
       packageId: Number(sub.packageid || sub.id) || null,
       name: cleanEditionName(sub.option_text || sub.name || group.title || group.name || "Steam edition"),
-      description: sub.option_description || group.description || "",
+      description: group.name === "subscriptions" ? (sub.option_text || group.description || "") : (sub.option_description || group.description || ""),
       kind: group.name || group.title || "EDITION",
       priceValue: sub.price_in_cents_with_discount != null ? Number(sub.price_in_cents_with_discount) / 100 : (sub.price_in_cents != null ? Number(sub.price_in_cents) / 100 : null),
       price: sub.price_in_cents_with_discount != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents_with_discount) / 100) : (sub.price_in_cents != null ? new Intl.NumberFormat("en-US", { style: "currency", currency: d.price_overview?.currency || "USD" }).format(Number(sub.price_in_cents) / 100) : null),
