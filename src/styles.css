@@ -1348,9 +1348,9 @@
   border-radius:6px;
   background:transparent;
   color:#91a2bb;
-  box-shadow:0 3px 10px rgba(0,0,0,.18);
+  box-shadow:none;
 }
-.bundle-thumb img{display:block;width:100%;height:100%;object-fit:cover;}
+.bundle-thumb img{display:block;width:100%;height:100%;border-radius:6px;object-fit:cover;}
 .bundle-thumb-empty{background:transparent;}
 .bundle-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;}
 .bundle-copy>strong{overflow:hidden;color:#e2e9f5;font-size:11px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap;}
