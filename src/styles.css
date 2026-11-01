@@ -2529,7 +2529,7 @@
 .app-shell[data-theme="light"] .profile-badge-level{color:#303a58}
 
 
-/* Game Collector badge sits beside the owned-games count. */
-.profile-stats-grid .profile-stat-value{gap:10px}
+/* Keep the owned-games count on the left and its Game Collector badge on the right. */
+.profile-stats-grid .profile-stat-value{width:100%;justify-content:space-between;gap:10px}
 .game-collector-inline-badge{display:block;width:48px;height:48px;flex:0 0 48px;object-fit:contain;filter:drop-shadow(0 2px 7px #0004)}
 @media(max-width:760px){.game-collector-inline-badge{width:40px;height:40px;flex-basis:40px}}
