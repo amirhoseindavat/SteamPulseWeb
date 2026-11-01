@@ -1383,6 +1383,26 @@
 @media(max-width:620px){.purchase-options-panel{padding:13px;}.bundle-select{gap:9px;padding:9px;}.bundle-calculate{font-size:0;gap:0;}.bundle-calculate svg{width:16px;height:16px;}.bundle-store-link{flex-basis:32px;}.purchase-editions-grid{grid-template-columns:1fr;}}
 
 
+/* Keep selected bundles visually identical to selected editions (including glass-surface overrides). */
+.app-shell .bundle-row.edition-card-selected{
+  background:linear-gradient(145deg,rgba(31,77,112,.72),rgba(18,43,69,.9));
+  border-color:#66c0f4;
+  box-shadow:0 0 0 2px rgba(102,192,244,.38),0 8px 26px rgba(0,0,0,.28);
+}
+.app-shell .bundle-row.edition-card-selected .bundle-select{
+  background:linear-gradient(110deg,rgba(102,192,244,.13),rgba(102,192,244,.035));
+}
+.app-shell .bundle-row.edition-card-selected .bundle-copy>strong{color:#fff;}
+.app-shell .bundle-row.edition-card-selected .bundle-calculate{color:#8bd8ff;}
+.app-shell[data-theme="light"] .bundle-row.edition-card-selected{
+  background:linear-gradient(145deg,#e2f2ff,#f2f8ff);
+  border-color:#2686c7;
+  box-shadow:0 0 0 2px rgba(38,134,199,.22),0 7px 20px rgba(38,75,110,.12);
+}
+.app-shell[data-theme="light"] .bundle-row.edition-card-selected .bundle-select{background:rgba(75,166,225,.09);}
+.app-shell[data-theme="light"] .bundle-row.edition-card-selected .bundle-copy>strong{color:#164e78;}
+.app-shell[data-theme="light"] .bundle-row.edition-card-selected .bundle-calculate{color:#126da8;}
+
 /* Bundle artwork sizing is defined in the shared .bundle-thumb rule. */
 .bundle-thumb img{
   width:100%;
