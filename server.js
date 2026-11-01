@@ -313,109 +313,83 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders() {
-  // Use Steam's search-results endpoint instead of the full HTML page.
-  // The endpoint returns a small JSON envelope containing the result-row HTML.
-  const searchUrl = new URL("https://store.steampowered.com/search/results/");
-  searchUrl.searchParams.set("query", "");
-  searchUrl.searchParams.set("start", "0");
-  searchUrl.searchParams.set("count", "50");
-  searchUrl.searchParams.set("dynamic_data", "");
-  searchUrl.searchParams.set("sort_by", "_ASC");
-  searchUrl.searchParams.set("snr", "1_7_7_7000_7");
-  searchUrl.searchParams.set("filter", "popularcomingsoon");
+  // Steam's normal search page returns the complete, server-rendered result
+  // rows. This is the same HTML page used by the Steam website itself.
+  const searchUrl = new URL("https://store.steampowered.com/search/");
+  searchUrl.searchParams.set("hwtype", "0");
+  searchUrl.searchParams.set("maxprice", "60");
   searchUrl.searchParams.set("category1", "998");
   searchUrl.searchParams.set("os", "win");
   searchUrl.searchParams.set("supportedlang", "english,persian");
-  searchUrl.searchParams.set("l", "english");
-  searchUrl.searchParams.set("ignore_preferences", "1");
-  searchUrl.searchParams.set("infinite", "1");
+  searchUrl.searchParams.set("filter", "popularcomingsoon");
+  searchUrl.searchParams.set("ndl", "1");
 
-  let payload;
+  let html;
   try {
-    payload = await fetchJson(searchUrl, {
+    const response = await fetch(searchUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "X-Requested-With": "XMLHttpRequest",
-        "Referer": "https://store.steampowered.com/search/?filter=popularcomingsoon"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9"
       },
       signal: AbortSignal.timeout(20000)
     });
+
+    if (!response.ok) {
+      throw new Error(`Steam search page returned HTTP ${response.status}.`);
+    }
+
+    html = await response.text();
+    if (!html.trim()) throw new Error("Steam returned an empty search page.");
   } catch (error) {
-    const cause = error?.cause;
-    const details = [error?.name, error?.message, cause?.code, cause?.message]
-      .filter(Boolean)
-      .join(" | ");
-    throw new Error("Steam Popular Upcoming API failed: " + (details || "unknown request error"));
+    throw new Error("Could not load Steam Popular Upcoming page: " + (error?.message || String(error)));
   }
 
-  const html = String(payload?.results_html || "");
-
-  // Steam has changed the result-row wrapper markup over time. Anchor the
-  // parser on the app-id attribute instead of assuming every row is an <a>.
-  const rowStarts = [...html.matchAll(/<[a-z][\w:-]*\b(?=[^>]*\b(?:data-ds-appid|data-ds-itemkey)=)[^>]*>/gi)];
-  const rows = rowStarts.map((match, index) =>
-    html.slice(match.index, rowStarts[index + 1]?.index ?? html.length)
-  );
+  // Parse the same anchor elements that Steam renders in the browser.
+  const rows = html.match(/<a\\b(?=[^>]*\\bclass=["'][^"']*\\bsearch_result_row\\b)[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
   const items = new Map();
 
+  const getAttribute = (source, name) => {
+    const escaped = name.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&");
+    return source.match(new RegExp("\\\\b" + escaped + "=[\\\"']([^\\\"']*)[\\\"']", "i"))?.[1] || "";
+  };
+
   for (const row of rows) {
-    const appIdText =
-      row.match(/\bdata-ds-appid=["'](\d+)/i)?.[1] ||
-      row.match(/\bdata-ds-itemkey=["'](?:App_)?(\d+)/i)?.[1] ||
-      row.match(/\bdata-appid=["'](\d+)/i)?.[1];
+    const appIdText = getAttribute(row.slice(0, row.indexOf(">") + 1), "data-ds-appid") ||
+      getAttribute(row.slice(0, row.indexOf(">") + 1), "data-appid");
     const id = Number(appIdText);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+    if (!Number.isSafeInteger(id) || id <= 0) continue;
+
+    const titleHtml = row.match(/<span\\b[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
-    if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
+    if (!name) continue;
 
-    const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
-    const releaseDate = decodeSteamHtml(releaseDateHtml);
-
-    // The AJAX result HTML often omits the visible "Pre-Purchase" label.
-    // A paid price plus an unreleased date is the reliable signal that Steam
-    // currently allows the product to be purchased before launch.
-    const priceFinalText = row.match(/\bdata-price-final=["'](\d+)/i)?.[1];
-    const priceHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_price\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
-    const priceText = decodeSteamHtml(priceHtml);
-    const hasPaidPrice = priceFinalText != null
-      ? Number(priceFinalText) > 0
-      : Boolean(priceText && /\d/.test(priceText) && !/\bfree\b/i.test(priceText));
-
-    const parsedReleaseDate = Date.parse(releaseDate);
-    const isUnreleased = /^(coming soon|to be announced|tba)$/i.test(releaseDate) ||
-      (Number.isFinite(parsedReleaseDate) && parsedReleaseDate >= Date.now() - 24 * 60 * 60 * 1000);
-
-    if (!hasPaidPrice || !isUnreleased) continue;
+    const image = getAttribute(row, "src") || getAttribute(row, "data-src");
+    const releaseDateHtml = row.match(/<(?:div|span)\\b[^>]*class=["'][^"']*\\bsearch_released\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const priceHtml = row.match(/<(?:div|span)\\b[^>]*class=["'][^"']*\\bsearch_price\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const price = decodeSteamHtml(priceHtml);
 
     items.set(id, {
       id,
       name,
       type: "game",
       image: image.replace(/&amp;/g, "&"),
-      releaseDate,
+      releaseDate: decodeSteamHtml(releaseDateHtml),
+      price,
       badge: "PRE-ORDER"
     });
   }
 
   if (!items.size) {
     throw new Error(
-      "Steam Popular Upcoming API returned no parseable rows (total_count: " +
-      String(payload?.total_count ?? "unknown") +
-      ", results_html length: " + html.length +
-      ", candidate rows: " + rows.length +
-      ", data-ds-appid markers: " + (html.match(/data-ds-appid=/gi) || []).length +
-      ", data-ds-itemkey markers: " + (html.match(/data-ds-itemkey=/gi) || []).length +
-      ", search_result_row markers: " + (html.match(/search_result_row/gi) || []).length +
-      ", pre-purchase markers: " + (html.match(/pre[\s-]?purchase/gi) || []).length +
-      ", html sample: " + html.slice(0, 700).replace(/\s+/g, " ") +
-      ", success: " + String(payload?.success ?? "unknown") +
-      ", response keys: " + Object.keys(payload || {}).join(",") + ")"
+      "Steam Popular Upcoming page returned no parseable games (search_result_row markers: " +
+      (html.match(/search_result_row/gi) || []).length +
+      ", HTML length: " + html.length +
+      ", page sample: " + html.slice(0, 700).replace(/\\s+/g, " ") + ")"
     );
   }
 
-  console.info("Steam Pre-orders: parsed " + items.size + " purchasable games");
+  console.info("Steam Pre-orders: parsed " + items.size + " games from the Steam search page");
   return [...items.values()];
 }
 async function fetchSteamTopSellers(cc) {
@@ -521,7 +495,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v16`;
+  const key = `discover:v17`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -617,7 +591,7 @@ app.get("/api/discover", async (req, res) => {
     // Top Sellers must contain purchasable games only; featured-category
     // entries can otherwise leak in with a zero or missing price.
     const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
-    // Use Steam's explicit Pre-Purchase labels from its dedicated Upcoming Releases page.
+    // Steam's popularcomingsoon search filter supplies the preorder/upcoming results.
     const preorders = preordersFromSteam;
     const result = { newReleases, upcoming, preorders, preordersError, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
