@@ -313,16 +313,13 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders(cc) {
-  // Steam's explore/upcoming page is personalized and does not reliably expose
-  // the same Pre-Purchase labels to anonymous requests. Use the store search
-  // endpoint's Coming Soon results and keep only rows explicitly marked
-  // Pre-Purchase by Steam.
   const url = new URL("https://store.steampowered.com/search/results/");
   url.searchParams.set("query", "");
   url.searchParams.set("start", "0");
   url.searchParams.set("count", "50");
   url.searchParams.set("dynamic_data", "");
-  url.searchParams.set("sort_by", "Released_DESC");
+  url.searchParams.set("sort_by", "_ASC");
+  url.searchParams.set("snr", "1_7_7_7000_7");
   url.searchParams.set("filter", "comingsoon");
   url.searchParams.set("category1", "998");
   url.searchParams.set("os", "win");
@@ -330,53 +327,46 @@ async function fetchSteamPreorders(cc) {
   url.searchParams.set("l", "english");
   url.searchParams.set("infinite", "1");
 
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "application/json, text/javascript, */*; q=0.01",
-      "X-Requested-With": "XMLHttpRequest"
-    },
-    signal: AbortSignal.timeout(12000)
-  });
-  if (!response.ok) throw new Error("Steam Pre-Purchase search failed (" + response.status + ")");
+  let response;
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!response.ok) throw new Error("Steam Pre-Purchase search failed (" + response.status + ")");
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+  }
+  if (!response?.ok) throw lastError || new Error("Steam Pre-Purchase search failed");
+
   const payload = await response.json();
   const html = String(payload.results_html || "");
   const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
-
-  const getClassText = (source, className) => {
-    const opening = new RegExp('<(?:div|span)\\b(?=[^>]*class=["\'][^"\']*\\b' + className + '\\b)[^>]*>', "i");
-    const match = opening.exec(source);
-    if (!match) return "";
-    const tagName = match[0].match(/^<([a-z]+)/i)?.[1] || "div";
-    const closing = new RegExp("</" + tagName + "\\s*>", "ig");
-    closing.lastIndex = match.index + match[0].length;
-    const end = closing.exec(source);
-    return end ? decodeSteamHtml(source.slice(match.index + match[0].length, end.index)) : "";
-  };
-
   const items = rows.map((row) => {
-    const rowText = decodeSteamHtml(row.replace(/<[^>]*>/g, " "));
-    if (!/pre[ -]?purchase/i.test(rowText)) return null;
-
-    const appIdValue = row.match(/data-ds-appid=["'](\d+)/i)?.[1] ||
-      row.match(/\/app\/(\d+)/i)?.[1];
+    const appIdValue = row.match(/data-ds-appid=["'](\d+)/i)?.[1] || row.match(/\/app\/(\d+)/i)?.[1];
     const id = Number(appIdValue);
-    const title = getClassText(row, "title") ||
-      row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
-    const name = decodeSteamHtml(title);
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+    const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
 
-    const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDate = decodeSteamHtml(getClassText(row, "search_released"));
-    const priceHtml = getClassText(row, "discount_final_price");
-    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
-    const priceText = decodeSteamHtml(priceHtml || priceContainer);
-    const priceMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    const rowText = decodeSteamHtml(row);
+    const priceMatch = rowText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    const explicitlyPreorder = /pre[ -]?purchase/i.test(rowText);
+    if (!explicitlyPreorder && !priceMatch) return null;
 
+    const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
+    const releaseDate = decodeSteamHtml(row.match(/class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "");
     return {
-      id,
-      name,
-      type: "game",
+      id, name, type: "game",
       image: image.replace(/&amp;/g, "&"),
       releaseDate,
       price: priceMatch ? priceMatch[0] : "Price unavailable",
@@ -384,7 +374,6 @@ async function fetchSteamPreorders(cc) {
       badge: "PRE-PURCHASE"
     };
   }).filter(Boolean);
-
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 async function fetchSteamTopSellers(cc) {
@@ -402,15 +391,26 @@ async function fetchSteamTopSellers(cc) {
   url.searchParams.set("l", "english");
   url.searchParams.set("infinite", "1");
 
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "application/json, text/javascript, */*; q=0.01",
-      "X-Requested-With": "XMLHttpRequest"
-    },
-    signal: AbortSignal.timeout(12000)
-  });
-  if (!response.ok) throw new Error("Steam Top Sellers search failed (" + response.status + ")");
+  let response;
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!response.ok) throw new Error("Steam Top Sellers search failed (" + response.status + ")");
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+  }
+  if (!response?.ok) throw lastError || new Error("Steam Top Sellers search failed");
   const payload = await response.json();
   const html = String(payload.results_html || "");
   const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
@@ -479,7 +479,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v5:${cc}`;
+  const key = `discover:v6:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -1270,6 +1270,8 @@ app.get("/api/steam-profile", async (req, res) => {
     const visibility = Number(player.communityvisibilitystate);
     const hours = games ? Math.round(games.reduce((sum, item) => sum + Number(item.playtime_forever || 0), 0) / 60) : null;
     const countryNames = { US: "United States", GB: "United Kingdom", DE: "Germany", UA: "Ukraine", TR: "Türkiye", CA: "Canada", AU: "Australia", FR: "France", PL: "Poland", BR: "Brazil", IN: "India", JP: "Japan" };
+    const currentGameAppId = /^\d+$/.test(String(player.gameid || "")) ? Number(player.gameid) : null;
+    const currentGameImage = currentGameAppId ? await fetchSteamHeaderImage(currentGameAppId) : "";
     const profile = {
       steamId: String(player.steamid),
       name: player.personaname || "Steam user",
@@ -1284,7 +1286,8 @@ app.get("/api/steam-profile", async (req, res) => {
       status: ({ 0: "Offline", 1: "Online", 2: "Busy", 3: "Away", 4: "Snooze", 5: "Looking to trade", 6: "Looking to play" })[Number(player.personastate || 0)] || "Online",
       currentGame: player.gameextrainfo ? {
         name: String(player.gameextrainfo),
-        appid: /^\d+$/.test(String(player.gameid || "")) ? Number(player.gameid) : null
+        appid: currentGameAppId,
+        image: currentGameImage
       } : null,
       created: player.timecreated ? new Date(Number(player.timecreated) * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "",
       lastLogoff: player.lastlogoff ? new Date(Number(player.lastlogoff) * 1000).toLocaleString("en-US") : "",
