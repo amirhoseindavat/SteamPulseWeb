@@ -390,7 +390,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:${cc}`;
+  const key = `discover:v2:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
