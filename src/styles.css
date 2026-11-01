@@ -2476,3 +2476,8 @@
 /* Keep discovery artwork fully visible instead of cropping it. */
 .discovery-image-wrap img{object-fit:contain}
 .discovery-card:hover .discovery-image-wrap img{transform:none}
+
+/* Steam search capsules are 231x87: match their native ratio edge-to-edge. */
+.discovery-image-wrap{aspect-ratio:231/87}
+.discovery-image-wrap img{width:100%;height:100%;object-fit:cover}
+.discovery-card:hover .discovery-image-wrap img{transform:none}
