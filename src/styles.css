@@ -2463,3 +2463,12 @@
   .game-region-box{flex:1 1 0;min-width:0}
   .game-region-box .region-select-trigger{padding-left:3px;padding-right:3px}
 }
+
+
+/* Pre-orders use only Steam search-page data; keep the action clear and price-free. */
+.preorder-discovery-card{cursor:default}
+.preorder-discovery-card:hover{cursor:default}
+.preorder-discovery-card .discovery-card-copy{align-items:stretch}
+.preorder-discovery-card .discovery-card-meta{justify-content:flex-start;margin-top:0}
+.preorder-open-button{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:auto;padding:9px 11px;border:1px solid #8b6cff55;border-radius:7px;background:#8b6cff18;color:#d6caff;text-decoration:none;font-size:10px;font-weight:700;transition:background .18s,border-color .18s}
+.preorder-open-button:hover{background:#8b6cff30;border-color:#a58bff}
