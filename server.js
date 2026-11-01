@@ -337,7 +337,7 @@ async function fetchSteamPreorders() {
   const html = await response.text();
   // Steam's search rows contain nested anchors, so don't stop at the first </a>.
   // Split by each result's data-ds-appid and parse the full result block instead.
-  const starts = [...html.matchAll(/<a\\b(?=[^>]*\\bdata-ds-appid=["'](\\d+)["'])[^>]*class=["'][^"']*search_result_row[^"']*["']/gi)];
+  const starts = [...html.matchAll(/<a\b(?=[^>]*\bdata-ds-appid=["'](\d+)["'])[^>]*class=["'][^"']*search_result_row[^"']*["']/gi)];
   const items = new Map();
 
   for (let index = 0; index < starts.length; index++) {
@@ -345,13 +345,13 @@ async function fetchSteamPreorders() {
     const end = index + 1 < starts.length ? starts[index + 1].index : html.length;
     const row = html.slice(start, end);
     const id = Number(starts[index][1]);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-    const image = row.match(/<div[^>]*class=["'][^"']*search_capsule[^"']*["'][^>]*>\\s*<img[^>]+src=["']([^"']+)["']/i)?.[1] ||
+    const image = row.match(/<div[^>]*class=["'][^"']*search_capsule[^"']*["'][^>]*>\s*<img[^>]+src=["']([^"']+)["']/i)?.[1] ||
       row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<div[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<div[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "";
 
     items.set(id, {
       id,
