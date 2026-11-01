@@ -213,10 +213,17 @@ async function fetchSteamBundles(appid, cc) {
       pageUrl.searchParams.set("cc", cc);
       pageUrl.searchParams.set("l", "english");
 
-      const appResponse = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
-      if (!appResponse.ok) throw new Error("Steam app page request failed (" + appResponse.status + ")");
-      const appHtml = await appResponse.text();
-      const appIds = extractSteamBundleIds(appHtml);
+      // Treat the app page and bundles listing as independent discovery sources.
+      // Steam can fail one route while the other remains reachable.
+      let appIds = [];
+      let appPageStatus = "error";
+      try {
+        const appResponse = await fetch(pageUrl, { headers, signal: AbortSignal.timeout(15000) });
+        appPageStatus = appResponse.status;
+        if (appResponse.ok) appIds = extractSteamBundleIds(await appResponse.text());
+      } catch (appPageError) {
+        console.warn("[SteamPulse bundles] AppID " + appid + ": app page request failed: " + appPageError.message);
+      }
 
       let listingIds = [];
       let listingStatus = "unavailable";
@@ -233,7 +240,7 @@ async function fetchSteamBundles(appid, cc) {
       }
 
       const bundleIds = [...new Set([...appIds, ...listingIds])].slice(0, 40);
-      console.info("[SteamPulse bundles] AppID " + appid + " cc=" + cc + " attempt=" + attempt + ": appIds=" + appIds.length + ", listingIds=" + listingIds.length + ", listingStatus=" + listingStatus + ", uniqueIds=" + bundleIds.length);
+      console.info("[SteamPulse bundles] AppID " + appid + " cc=" + cc + " attempt=" + attempt + ": appPageStatus=" + appPageStatus + ", appIds=" + appIds.length + ", listingIds=" + listingIds.length + ", listingStatus=" + listingStatus + ", uniqueIds=" + bundleIds.length);
 
       if (!bundleIds.length) {
         if (attempt === 1) {
