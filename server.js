@@ -313,53 +313,78 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders(cc) {
-  const url = new URL("https://store.steampowered.com/explore/upcoming/");
+  // Steam's explore/upcoming page is personalized and does not reliably expose
+  // the same Pre-Purchase labels to anonymous requests. Use the store search
+  // endpoint's Coming Soon results and keep only rows explicitly marked
+  // Pre-Purchase by Steam.
+  const url = new URL("https://store.steampowered.com/search/results/");
+  url.searchParams.set("query", "");
+  url.searchParams.set("start", "0");
+  url.searchParams.set("count", "50");
+  url.searchParams.set("dynamic_data", "");
+  url.searchParams.set("sort_by", "Released_DESC");
+  url.searchParams.set("filter", "comingsoon");
+  url.searchParams.set("category1", "998");
+  url.searchParams.set("os", "win");
   url.searchParams.set("cc", cc.toLowerCase());
   url.searchParams.set("l", "english");
+  url.searchParams.set("infinite", "1");
+
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml"
+      "Accept": "application/json, text/javascript, */*; q=0.01",
+      "X-Requested-With": "XMLHttpRequest"
     },
-    signal: AbortSignal.timeout(15000)
+    signal: AbortSignal.timeout(12000)
   });
-  if (!response.ok) throw new Error("Steam Upcoming Releases page failed (" + response.status + ")");
-  const html = await response.text();
-  const anchors = html.match(/<a\b(?=[^>]*href=["'][^"']*\/app\/\d+)[^>]*>[\s\S]*?<\/a>/gi) || [];
-  const items = [];
-  const extractClass = (source, className) => {
-    const opening = new RegExp(`<([a-z0-9]+)\\b(?=[^>]*class=["'][^"']*\\b${className}\\b)[^>]*>`, "i");
+  if (!response.ok) throw new Error("Steam Pre-Purchase search failed (" + response.status + ")");
+  const payload = await response.json();
+  const html = String(payload.results_html || "");
+  const rows = html.match(/<a\\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\\s\\S]*?<\\/a>/gi) || [];
+
+  const getClassText = (source, className) => {
+    const opening = new RegExp('<(?:div|span)\\\\b(?=[^>]*class=["\\\\'][^"\\\\']*\\\\b' + className + '\\\\b)[^>]*>', "i");
     const match = opening.exec(source);
     if (!match) return "";
-    const tagName = match[1];
-    const start = match.index + match[0].length;
-    const closing = new RegExp("</" + tagName + "\\s*>", "ig");
-    closing.lastIndex = start;
+    const tagName = match[0].match(/^<([a-z]+)/i)?.[1] || "div";
+    const closing = new RegExp("</" + tagName + "\\\\s*>", "ig");
+    closing.lastIndex = match.index + match[0].length;
     const end = closing.exec(source);
-    return end ? decodeSteamHtml(source.slice(start, end.index).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()) : "";
+    return end ? decodeSteamHtml(source.slice(match.index + match[0].length, end.index)) : "";
   };
-  for (const anchor of anchors) {
-    if (!/pre[ -]?purchase/i.test(anchor)) continue;
-    const href = anchor.match(/href=["'][^"']*\/app\/(\d+)[^"']*["']/i);
-    const id = Number(href?.[1]);
-    if (!Number.isSafeInteger(id) || id <= 0) continue;
-    const name = extractClass(anchor, "tab_item_name") ||
-      decodeSteamHtml(anchor.match(/<img[^>]+alt=["']([^"']+)["']/i)?.[1] || "");
-    if (!name) continue;
-    const image = anchor.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDate = extractClass(anchor, "tab_item_details");
-    const priceText = extractClass(anchor, "discount_final_price") ||
-      decodeSteamHtml(anchor.replace(/<[^>]*>/g, " ").replace(/\s+/g, " "));
-    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
-    items.push({
-      id, name, type: "game",
+
+  const items = rows.map((row) => {
+    const rowText = decodeSteamHtml(row.replace(/<[^>]*>/g, " "));
+    if (!/pre[ -]?purchase/i.test(rowText)) return null;
+
+    const appIdValue = row.match(/data-ds-appid=["'](\\d+)/i)?.[1] ||
+      row.match(/\\/app\\/(\\d+)/i)?.[1];
+    const id = Number(appIdValue);
+    const title = getClassText(row, "title") ||
+      row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const name = decodeSteamHtml(title);
+    if (!Number.isSafeInteger(id) || id <= 0 || !name) return null;
+
+    const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
+    const releaseDate = decodeSteamHtml(getClassText(row, "search_released"));
+    const priceHtml = getClassText(row, "discount_final_price");
+    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "";
+    const priceText = decodeSteamHtml(priceHtml || priceContainer);
+    const priceMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+
+    return {
+      id,
+      name,
+      type: "game",
       image: image.replace(/&amp;/g, "&"),
       releaseDate,
-      price: currencyMatch ? currencyMatch[0] : "Price unavailable",
+      price: priceMatch ? priceMatch[0] : "Price unavailable",
       priceValue: null,
       badge: "PRE-PURCHASE"
-    });
-  }
+    };
+  }).filter(Boolean);
+
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
@@ -455,7 +480,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v4:${cc}`;
+  const key = `discover:v5:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
