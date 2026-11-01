@@ -148,6 +148,7 @@ export default function App() {
   const [appid, setAppid] = useState("");
   const [inputId, setInputId] = useState("");
   const [game, setGame] = useState(null);
+  const [gameBackground, setGameBackground] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMoreDlc, setLoadingMoreDlc] = useState(false);
   const [error, setError] = useState("");
@@ -190,7 +191,7 @@ export default function App() {
     const nextHash = page === "game" && appid ? `#/game/${appid}` : `#/${page}`;
     if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
     setCurrentPage(page);
-    if (page !== "game") { setGame(null); setError(""); }
+    if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -219,6 +220,7 @@ export default function App() {
     setSearchOpen(false);
     // Hide the previous game's details immediately so stale art never remains visible.
     setGame(null);
+    setGameBackground(null);
     setRegionalPriceInput("");
     setSelectedEditionName("");
     setPurchaseTab("editions");
@@ -228,6 +230,12 @@ export default function App() {
       if (requestId !== gameRequestRef.current) return;
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
+      const preferredBackground = typeof data.background_raw === "string" && /page_bg_raw/i.test(data.background_raw)
+        ? data.background_raw
+        : (Array.isArray(data.screenshots) && data.screenshots.length
+          ? data.screenshots[Math.floor(Math.random() * data.screenshots.length)]
+          : data.background_raw || null);
+      setGameBackground(preferredBackground);
       // Keep the base game's default Steam edition selected in the purchase options.
       const baseGamePrice = data.price_overview?.final != null ? Number(data.price_overview.final) / 100 : null;
       const defaultEdition = (data.editions || []).find((edition) =>
@@ -662,8 +670,8 @@ export default function App() {
   const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
 
   return (
-    <div className={`app-shell${game?.background_raw ? " has-game-background" : ""}`} data-theme={theme}>
-      {game?.background_raw && <div className="game-background-blur" style={{ backgroundImage: `url("${game.background_raw}")` }} aria-hidden="true" />}
+    <div className={`app-shell${gameBackground ? " has-game-background" : ""}`} data-theme={theme}>
+      {gameBackground && <div className="game-background-blur" style={{ backgroundImage: `url("${gameBackground}")` }} aria-hidden="true" />}
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar">
         <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigateTo("home"); }} aria-label="SteamPulse Home">
