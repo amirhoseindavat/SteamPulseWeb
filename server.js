@@ -313,8 +313,6 @@ function decodeSteamHtml(value = "") {
 
 
 async function fetchSteamPreorders() {
-  // Read the exact Steam Popular Upcoming search page once. All card data,
-  // including the capsule image, comes directly from its search-result HTML.
   const searchUrl = new URL("https://store.steampowered.com/search/");
   searchUrl.searchParams.set("hwtype", "0");
   searchUrl.searchParams.set("maxprice", "60");
@@ -323,42 +321,53 @@ async function fetchSteamPreorders() {
   searchUrl.searchParams.set("supportedlang", "english,persian");
   searchUrl.searchParams.set("filter", "popularcomingsoon");
   searchUrl.searchParams.set("ndl", "1");
+  searchUrl.searchParams.set("ignore_preferences", "1");
 
   const response = await fetch(searchUrl, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
       "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9"
+      "Accept-Language": "en-US,en;q=0.9",
+      "Referer": "https://store.steampowered.com/"
     },
-    signal: AbortSignal.timeout(15000)
+    signal: AbortSignal.timeout(20000)
   });
   if (!response.ok) throw new Error("Steam Popular Upcoming page failed (" + response.status + ")");
 
   const html = await response.text();
-  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
+  // Steam's search rows contain nested anchors, so don't stop at the first </a>.
+  // Split by each result's data-ds-appid and parse the full result block instead.
+  const starts = [...html.matchAll(/<a\\b(?=[^>]*\\bdata-ds-appid=["'](\\d+)["'])[^>]*class=["'][^"']*search_result_row[^"']*["']/gi)];
   const items = new Map();
 
-  for (const row of rows) {
-    const appIdValue = row.match(/data-ds-appid=["'](\d+)/i)?.[1] || row.match(/\/app\/(\d+)/i)?.[1];
-    const id = Number(appIdValue);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+  for (let index = 0; index < starts.length; index++) {
+    const start = starts[index].index;
+    const end = index + 1 < starts.length ? starts[index + 1].index : html.length;
+    const row = html.slice(start, end);
+    const id = Number(starts[index][1]);
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-    const image = row.match(/<img[^>]+data-src=["']([^"']+)["']/i)?.[1] ||
+    const image = row.match(/<div[^>]*class=["'][^"']*search_capsule[^"']*["'][^>]*>\\s*<img[^>]+src=["']([^"']+)["']/i)?.[1] ||
       row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<div[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\\s\\S]*?)<\\/div>/i)?.[1] || "";
 
     items.set(id, {
       id,
       name,
       type: "game",
       image: image.replace(/&amp;/g, "&"),
-      releaseDate: decodeSteamHtml(releaseDateHtml).trim(),
+      releaseDate: decodeSteamHtml(releaseDateHtml),
       badge: "POPULAR UPCOMING"
     });
   }
 
+  if (!items.size) {
+    throw new Error("Steam returned HTML but no search_result_row entries were parsed (HTML length: " + html.length + ")");
+  }
+
+  console.info("Steam Popular Upcoming: parsed " + items.size + " games");
   return [...items.values()];
 }
 async function fetchSteamTopSellers(cc) {
@@ -464,7 +473,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v12`;
+  const key = `discover:v13`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
