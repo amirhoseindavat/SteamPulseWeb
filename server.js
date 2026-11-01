@@ -316,7 +316,7 @@ async function fetchSteamPreorders(cc) {
   // Match the Steam Popular Upcoming search, including its $60 price cap.
   // Keep explicit Pre-Purchase rows for the preorder tab.
   const pageSize = 50;
-  const maxPages = 5;
+  const maxPages = 20;
   const allItems = new Map();
   const headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
@@ -373,9 +373,6 @@ async function fetchSteamPreorders(cc) {
       const name = decodeSteamHtml(titleHtml);
       if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
-      const rowText = decodeSteamHtml(row);
-      if (!/pre[ -]?purchase/i.test(rowText)) continue;
-
       const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
       const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*search_released[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
       const priceHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] ||
@@ -390,7 +387,7 @@ async function fetchSteamPreorders(cc) {
         releaseDate: decodeSteamHtml(releaseDateHtml).trim(),
         price: price || "Price unavailable",
         priceValue: null,
-        badge: "PRE-PURCHASE"
+        badge: "POPULAR UPCOMING"
       });
     }
 
@@ -505,7 +502,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v10:${cc}`;
+  const key = `discover:v11:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
