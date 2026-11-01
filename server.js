@@ -336,7 +336,7 @@ async function fetchSteamPreorders() {
     });
 
     if (!response.ok) {
-      throw new Error(\`Steam search page returned HTTP \${response.status}.\`);
+      throw new Error("Steam search page returned HTTP " + response.status + ".");
     }
 
     html = await response.text();
