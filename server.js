@@ -323,12 +323,12 @@ async function fetchSteamPreorders(cc) {
   let lastError;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
+      // Match the working standalone C# HttpClient request as closely as possible:
+      // only send its browser User-Agent. In particular, do not send AJAX-specific
+      // headers or a synthetic Referer; Steam may serve a different result set for them.
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-          "Accept": "application/json, text/javascript, */*; q=0.01",
-          "X-Requested-With": "XMLHttpRequest",
-          "Referer": "https://store.steampowered.com/search/?" + url.searchParams.toString()
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         },
         signal: AbortSignal.timeout(20000)
       });
