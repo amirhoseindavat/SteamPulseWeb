@@ -111,7 +111,7 @@ export default function App() {
   const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [profileRouteId, setProfileRouteId] = useState(() => {
-    const match = window.location.hash.match(/^#\/profile\/(\d{17})\/?$/);
+    const match = window.location.hash.match(/^#\/profile\/([^/?#]+)\/?$/);
     return match ? match[1] : "";
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
@@ -344,7 +344,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/(\d{17}))?\/?$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
