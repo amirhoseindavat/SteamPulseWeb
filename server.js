@@ -373,6 +373,15 @@ async function fetchSteamPreorders() {
 
     const image = getAttribute(row, "src") || getAttribute(row, "data-src");
     const releaseDateHtml = row.match(/<(?:div|span)\b[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
+    const releaseDate = decodeSteamHtml(releaseDateHtml).trim();
+    // Steam's popularcomingsoon filter can occasionally leak old catalog entries.
+    // Drop rows with an explicit release date in the past, while keeping
+    // undated / "Coming Soon" / "To be announced" entries.
+    const parsedReleaseDate = Date.parse(releaseDate);
+    if (releaseDate && Number.isFinite(parsedReleaseDate) && parsedReleaseDate < Date.now() - 86400000) {
+      continue;
+    }
+
     const priceHtml = row.match(/<(?:div|span)\b[^>]*class=["'][^"']*\bsearch_price\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
     const price = decodeSteamHtml(priceHtml);
 
@@ -381,7 +390,7 @@ async function fetchSteamPreorders() {
       name,
       type: "game",
       image: image.replace(/&amp;/g, "&"),
-      releaseDate: decodeSteamHtml(releaseDateHtml),
+      releaseDate,
       price,
       badge: "PRE-ORDER"
     });
@@ -507,7 +516,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v17`;
+  const key = `discover:v18`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
