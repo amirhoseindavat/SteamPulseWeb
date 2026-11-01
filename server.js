@@ -312,28 +312,28 @@ async function fetchSteamPreorders(cc) {
   });
   if (!response.ok) throw new Error("Steam Upcoming Releases page failed (" + response.status + ")");
   const html = await response.text();
-  const anchors = html.match(/<a\\b[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
+  const anchors = html.match(/<a\b[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = [];
   const extractClass = (source, className) => {
-    const tags = source.match(/<(?:div|span)\\b[^>]*>[\\s\\S]*?<\\/(?:div|span)>/gi) || [];
+    const tags = source.match(/<(?:div|span)\b[^>]*>[\s\S]*?<\/(?:div|span)>/gi) || [];
     const element = tags.find((tag) => {
       const classes = tag.match(/class=["']([^"']+)["']/i)?.[1] || "";
-      return classes.split(/\\s+/).includes(className);
+      return classes.split(/\s+/).includes(className);
     });
-    return element ? decodeSteamHtml(element.replace(/^<(?:div|span)\\b[^>]*>/i, "").replace(/<\\/(?:div|span)>$/i, "")) : "";
+    return element ? decodeSteamHtml(element.replace(/^<(?:div|span)\b[^>]*>/i, "").replace(/<\/(?:div|span)>$/i, "")) : "";
   };
   for (const anchor of anchors) {
     if (!/pre[ -]?purchase/i.test(anchor)) continue;
-    const href = anchor.match(/href=["'][^"']*\\/app\\/(\\d+)[^"']*["']/i);
+    const href = anchor.match(/href=["'][^"']*\/app\/(\d+)[^"']*["']/i);
     const id = Number(href?.[1]);
     if (!Number.isSafeInteger(id) || id <= 0) continue;
     const name = extractClass(anchor, "tab_item_name") || decodeSteamHtml(anchor.match(/<img[^>]+alt=["']([^"']+)["']/i)?.[1] || "");
     if (!name) continue;
     const image = anchor.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
     const releaseDate = extractClass(anchor, "tab_item_details");
-    const priceHtml = anchor.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const priceHtml = anchor.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
     const priceText = decodeSteamHtml(priceHtml);
-    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
     items.push({
       id, name, type: "game",
       image: image.replace(/&amp;/g, "&"),
@@ -532,8 +532,6 @@ app.get("/api/discover", async (req, res) => {
     // Top Sellers must contain purchasable games only; featured-category
     // entries can otherwise leak in with a zero or missing price.
     const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
-    // Steam's coming-soon feed also contains titles already available for
-    // pre-purchase. Surface those separately when Steam provides a paid price.
     // Use Steam's explicit Pre-Purchase labels from its dedicated Upcoming Releases page.
     const preorders = preordersFromSteam;
     const result = { newReleases, upcoming, preorders, topSellers };
