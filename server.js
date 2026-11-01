@@ -335,9 +335,15 @@ async function fetchSteamPreorders() {
   if (!response.ok) throw new Error("Steam Popular Upcoming page failed (" + response.status + ")");
 
   const html = await response.text();
-  // Steam's search rows contain nested anchors, so don't stop at the first </a>.
-  // Split by each result's data-ds-appid and parse the full result block instead.
-  const starts = [...html.matchAll(/<a\b(?=[^>]*\bdata-ds-appid=["'](\d+)["'])[^>]*class=["'][^"']*search_result_row[^"']*["']/gi)];
+  // Steam may reorder attributes or change the result wrapper from an anchor to a div.
+  // Inspect complete opening tags so class and AppID can appear in either order.
+  const starts = [];
+  for (const match of html.matchAll(/<(?:a|div)\b[^>]*>/gi)) {
+    const tag = match[0];
+    if (!/\bsearch_result_row\b/i.test(tag)) continue;
+    const appId = tag.match(/\bdata-ds-appid=["'](\d+)["']/i)?.[1];
+    if (appId) starts.push({ index: match.index, id: appId });
+  }
   const items = new Map();
 
   for (let index = 0; index < starts.length; index++) {
@@ -364,7 +370,14 @@ async function fetchSteamPreorders() {
   }
 
   if (!items.size) {
-    throw new Error("Steam returned HTML but no search_result_row entries were parsed (HTML length: " + html.length + ")");
+    const pageTitle = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/\s+/g, " ").trim() || "unknown";
+    const markers = {
+      searchResultsRows: html.includes("search_resultsRows"),
+      searchResultRow: html.includes("search_result_row"),
+      appIdAttribute: html.includes("data-ds-appid"),
+      steamSearch: html.includes("store.steampowered.com/search")
+    };
+    throw new Error("Steam HTML did not contain parseable game rows (length: " + html.length + ", title: " + pageTitle + ", markers: " + JSON.stringify(markers) + ")");
   }
 
   console.info("Steam Popular Upcoming: parsed " + items.size + " games");
