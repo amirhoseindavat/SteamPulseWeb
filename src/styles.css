@@ -2520,3 +2520,10 @@
 
 /* Use an actual flag image in the Steam profile instead of platform-dependent flag emoji glyphs. */
 .steam-profile-name .steam-profile-country-flag{display:inline-block;width:18px;height:13px;object-fit:cover;vertical-align:-2px;border-radius:2px;margin:0 3px;box-shadow:0 0 0 1px rgba(0,0,0,.16)}
+
+
+/* Steam Game Collector badge */
+.profile-badge-art{display:flex;align-items:center;gap:12px;min-height:64px}
+.game-collector-stat .profile-badge-image{width:64px;height:64px;object-fit:contain;flex:0 0 64px}
+.profile-badge-level{font-size:13px;font-weight:800;color:var(--text,#edf0ff)}
+.app-shell[data-theme="light"] .profile-badge-level{color:#303a58}
