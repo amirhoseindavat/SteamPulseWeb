@@ -119,7 +119,7 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
-  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], topSellers: [] });
+  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
   const [discoveryTab, setDiscoveryTab] = useState("trending");
@@ -431,6 +431,7 @@ export default function App() {
         if (!cancelled) setDiscovery({
           newReleases: data.newReleases || [],
           upcoming: data.upcoming || [],
+          preorders: data.preorders || [],
           topSellers: data.topSellers || []
         });
       })
@@ -894,24 +895,24 @@ export default function App() {
               setDiscoveryLoading(true); setDiscoveryError("");
               fetch(`/api/discover?cc=${region}&refresh=1`)
                 .then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || data.detail || "Refresh failed."); return data; })
-                .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], topSellers: data.topSellers || [] }))
+                .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], preorders: data.preorders || [], topSellers: data.topSellers || [] }))
                 .catch((e) => setDiscoveryError(e.message || "Refresh failed."))
                 .finally(() => setDiscoveryLoading(false));
             }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>
           </div>
           <div className="discovery-tabs">
-            {[["trending","Trending"],["new","New releases"],["upcoming","Coming soon"]].map(([key,label]) => <button key={key} className={discoveryTab === key ? "active" : ""} onClick={() => setDiscoveryTab(key)}>{label}</button>)}
+            {[["trending","Trending"],["new","New releases"],["upcoming","Coming soon"],["preorders","Pre-orders"]].map(([key,label]) => <button key={key} className={discoveryTab === key ? "active" : ""} onClick={() => setDiscoveryTab(key)}>{label}</button>)}
           </div>
           {discoveryError && <div className="discovery-message"><Info size={15} />{discoveryError}</div>}
           {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.topSellers.length
             ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Finding games worth your attention…</div>
             : <div className="discovery-grid">
-              {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).slice(0, 8).map((item) => <a className="discovery-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+              {(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discoveryTab === "preorders" ? discovery.preorders : discovery.topSellers).slice(0, 8).map((item) => <a className="discovery-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                 <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
-                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{discoveryTab === "upcoming" ? <b>{item.price && Number(String(item.price).replace(/[^0-9,.-]/g, "").replace(/,/g, "")) > 0 ? item.price : "Price not announced"}</b> : item.price ? <b>{item.price}</b> : null}</span></span>
+                <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}{discoveryTab === "upcoming" || discoveryTab === "preorders" || discoveryTab === "new" ? <b>{item.price && Number(String(item.price).replace(/[^0-9,.-]/g, "").replace(/,/g, "")) > 0 ? item.price : "Price not announced"}</b> : item.price ? <b>{item.price}</b> : null}</span></span>
               </a>)}
             </div>}
-          {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
+          {!discoveryLoading && !discoveryError && !(discoveryTab === "new" ? discovery.newReleases : discoveryTab === "upcoming" ? discovery.upcoming : discoveryTab === "preorders" ? discovery.preorders : discovery.topSellers).length && <div className="discovery-message">No titles available in this category right now.</div>}
           <div className="discovery-sources"><span>Want deeper trend data?</span><a href="https://steamdb.info/stats/mostwished/?displayOnly=Game" target="_blank" rel="noreferrer">Most wishlisted <ExternalLink size={11} /></a><a href="https://steamdb.info/stats/wishlistactivity/?upcoming_only=1" target="_blank" rel="noreferrer">Rising wishlist activity <ExternalLink size={11} /></a><a href="https://steamdb.info/upcoming/" target="_blank" rel="noreferrer">Upcoming releases <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
         </section>
