@@ -396,11 +396,15 @@ async function fetchSteamPreorders(cc) {
     const name = decodeSteamHtml(titleHtml).trim();
     if (!name) continue;
 
-    const priceHtml = getClassContent(row, "search_price");
-    const price = decodeSteamHtml(priceHtml).trim();
-    const hasPrice = Boolean(price) &&
-      !/\bfree(?:\s+to\s+play)?\b|price unavailable|not available|coming soon|to be announced/i.test(price) &&
-      /(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*[\d.,]+|[\d.,]+\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i.test(price);
+    // Read the visible text of the complete row instead of relying on a
+    // shallow search_price container: Steam nests price markup differently
+    // between full-page HTML and its AJAX response.
+    const rowText = decodeSteamHtml(row);
+    const currencyPattern = /(?:R\$|[$€£₴₽¥₹₩₺₫₱]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR|CAD|AUD|CHF|NOK|SEK|DKK|zł|руб\.?|₸)\s*[\d][\d.,]*(?:\s*(?:R\$|[$€£₴₽¥₹₩₺₫₱]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR|CAD|AUD|CHF|NOK|SEK|DKK|zł|руб\.?|₸))?/gi;
+    const priceMatches = rowText.match(currencyPattern) || [];
+    const price = [...new Set(priceMatches)].join(" / ").trim();
+    const hasPrice = priceMatches.length > 0 &&
+      !/\bfree(?:\s+to\s+play)?\b|price unavailable|not available|coming soon|to be announced/i.test(rowText);
 
     // Steam's Price_DESC ordering puts unpriced entries after priced entries.
     // Stop immediately at the first unpriced row, as requested.
@@ -431,6 +435,8 @@ async function fetchSteamPreorders(cc) {
       ", content-type: " + responseContentType +
       ", rows: " + rows.length +
       ", HTML length: " + html.length +
+      ", first row: " + (rows[0] ? decodeSteamHtml(rows[0]).slice(0, 300) : "none") +
+      ", first row price matches: " + (rows[0] ? (decodeSteamHtml(rows[0]).match(currencyPattern) || []).join(" / ") : "none") +
       ", sample: " + html.slice(0, 500).replace(/\s+/g, " ") + ").");
   }
 
