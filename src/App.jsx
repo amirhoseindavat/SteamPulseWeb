@@ -213,11 +213,15 @@ export default function App() {
       if (requestId !== gameRequestRef.current) return;
       if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
       setGame(data);
-      const preferredBackground = typeof data.background_raw === "string" && /page_bg_raw/i.test(data.background_raw)
-        ? data.background_raw
-        : (Array.isArray(data.screenshots) && data.screenshots.length
-          ? data.screenshots[Math.floor(Math.random() * data.screenshots.length)]
-          : data.background_raw || null);
+      const isDlcPage = String(data.type || "").toLowerCase() === "dlc";
+      const randomScreenshot = Array.isArray(data.screenshots) && data.screenshots.length
+        ? data.screenshots[Math.floor(Math.random() * data.screenshots.length)]
+        : null;
+      const preferredBackground = isDlcPage
+        ? (randomScreenshot || data.background_raw || null)
+        : (typeof data.background_raw === "string" && /page_bg_raw/i.test(data.background_raw)
+          ? data.background_raw
+          : (randomScreenshot || data.background_raw || null));
       setGameBackground(preferredBackground);
       // Keep the base game's default Steam edition selected in the purchase options.
       const baseGamePrice = data.price_overview?.final != null ? Number(data.price_overview.final) / 100 : null;
@@ -958,7 +962,7 @@ export default function App() {
 
         {currentPage === "game" && game && <>
           <section className="game-hero">
-            <div className="hero-art" style={{backgroundImage: game?.library_hero ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.library_hero}")` : hero ? `linear-gradient(90deg, rgba(8,13,27,.92) 0%, rgba(8,13,27,.82) 48%, rgba(8,13,27,.58) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
+            <div className="hero-art" style={{backgroundImage: game.type === "dlc" && game.background_raw ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.background_raw}")` : game?.library_hero ? `linear-gradient(90deg, rgba(8,13,27,.82) 0%, rgba(8,13,27,.68) 48%, rgba(8,13,27,.5) 100%), url("${game.library_hero}")` : hero ? `linear-gradient(90deg, rgba(8,13,27,.92) 0%, rgba(8,13,27,.82) 48%, rgba(8,13,27,.58) 100%), url("${hero}")` : "linear-gradient(120deg,#172541,#111827)"}} />
             <div className="hero-header-image"><img src={game.header_image || hero || ""} alt={`${game.name} header`} onError={(event) => { event.currentTarget.style.visibility = "hidden"; }} /></div>
             <div className="hero-content">
               <div className="hero-topline game-hero-topline"></div>
