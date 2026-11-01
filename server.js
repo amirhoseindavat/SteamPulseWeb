@@ -349,8 +349,10 @@ async function fetchSteamPreorders() {
   const rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = new Map();
 
-  const getAttribute = (source, name) =>
-    source.match(new RegExp("\\b" + name + "=[\\"']([^\\"']*)[\\"']", "i"))?.[1] || "";
+  const getAttribute = (source, name) => {
+    const match = source.match(new RegExp("\\b" + name + "=(?:\\x22([^\\x22]*)\\x22|'([^']*)')", "i"));
+    return match?.[1] || match?.[2] || "";
+  };
 
   for (const row of rows) {
     const openingTag = row.slice(0, row.indexOf(">") + 1);
