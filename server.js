@@ -318,6 +318,8 @@ async function fetchSteamPreorders(cc) {
   const url = new URL("https://store.steampowered.com/search/results?sort_by=Price_DESC&force_infinite=1&hwtype=0&category1=998&filter=popularcomingsoon&ndl=1&snr=1_7_7_popularcomingsoon_7");
 
   let payload;
+  let html = "";
+  let responseContentType = "";
   let lastError;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -331,20 +333,28 @@ async function fetchSteamPreorders(cc) {
         signal: AbortSignal.timeout(20000)
       });
       if (!response.ok) throw new Error("Steam Pre-orders search failed (HTTP " + response.status + ")");
-      payload = await response.json();
+      responseContentType = response.headers.get("content-type") || "";
+      const responseText = await response.text();
+      try {
+        payload = JSON.parse(responseText.replace(/^\\uFEFF/, "").trim());
+        html = String(payload.results_html || "");
+      } catch {
+        // Steam may answer the same URL with a complete HTML document rather
+        // than the AJAX JSON envelope. Parse result rows from that HTML directly.
+        html = responseText;
+      }
+      if (!html.trim()) throw new Error("Steam Pre-orders response was empty.");
+      if (!html.includes("search_result_row") && !payload?.results_html) {
+        throw new Error("Steam returned HTML instead of search results (content-type: " +
+          responseContentType + ", preview: " + html.slice(0, 180).replace(/\\s+/g, " ") + ").");
+      }
       break;
     } catch (error) {
       lastError = error;
       if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
     }
   }
-  if (!payload) throw new Error(lastError?.message || "Steam Pre-orders search failed.");
-
-  const html = String(payload.results_html || "");
-  if (!html.trim()) {
-    throw new Error("Steam Pre-orders endpoint returned no results_html (success: " +
-      String(payload.success) + ", total_count: " + String(payload.total_count) + ").");
-  }
+  if (!html.trim()) throw new Error(lastError?.message || "Steam Pre-orders search failed.");
 
   const rows = html.match(/<a\b(?=[^>]*\bclass=["'][^"']*\bsearch_result_row\b)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = new Map();
@@ -530,7 +540,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v22:${cc}`;
+  const key = `discover:v23:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
