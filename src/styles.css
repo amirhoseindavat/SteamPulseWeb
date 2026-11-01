@@ -2481,3 +2481,31 @@
 .discovery-image-wrap{aspect-ratio:231/87}
 .discovery-image-wrap img{width:100%;height:100%;object-fit:cover}
 .discovery-card:hover .discovery-image-wrap img{transform:none}
+
+/* Animated release countdown above the game stats strip. */
+.release-countdown{
+  position:relative;display:grid;gap:15px;margin:0 0 16px;padding:18px 22px 16px;overflow:hidden;
+  border:1px solid rgba(151,126,255,.3);border-radius:16px;
+  background:linear-gradient(115deg,rgba(91,65,177,.2),rgba(23,31,56,.76) 55%,rgba(75,58,143,.2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 12px 32px rgba(0,0,0,.12);
+}
+.release-countdown:before{content:"";position:absolute;width:240px;height:240px;top:-180px;right:12%;border-radius:50%;background:rgba(145,112,255,.2);filter:blur(45px);pointer-events:none}
+.release-countdown-heading{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.release-countdown-live{display:inline-flex;align-items:center;gap:8px;color:#c9baff;font-size:10px;font-weight:850;letter-spacing:1.35px}
+.release-countdown-live i{width:7px;height:7px;border-radius:50%;background:#a58aff;box-shadow:0 0 0 4px rgba(165,138,255,.13),0 0 13px rgba(165,138,255,.8);animation:release-pulse 1.8s ease-in-out infinite}
+.release-countdown-date{color:var(--muted);font-size:11px;font-weight:650}
+.release-countdown-units{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.release-countdown-unit{display:grid;justify-items:center;gap:5px;min-width:0;padding:10px 6px 8px;border:1px solid rgba(180,164,255,.14);border-radius:11px;background:rgba(7,12,27,.34)}
+.release-countdown-number{color:var(--text,#f4f1ff);font:800 clamp(25px,4vw,36px)/1 'DM Mono',monospace;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(160,132,255,.25);animation:release-tick .35s ease both}
+.release-countdown-unit>span{color:var(--muted);font-size:9px;font-weight:800;letter-spacing:1.2px}
+.release-countdown-track{position:relative;height:2px;overflow:hidden;border-radius:99px;background:rgba(165,138,255,.13)}
+.release-countdown-track span{display:block;width:38%;height:100%;border-radius:inherit;background:linear-gradient(90deg,transparent,#a58aff,#d4c7ff,transparent);animation:release-scan 3s ease-in-out infinite}
+@keyframes release-tick{from{opacity:.35;transform:translateY(-5px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes release-pulse{50%{opacity:.45;box-shadow:0 0 0 7px rgba(165,138,255,.04),0 0 5px rgba(165,138,255,.35)}}
+@keyframes release-scan{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+.app-shell[data-theme="light"] .release-countdown{border-color:rgba(126,101,215,.22);background:linear-gradient(115deg,rgba(235,229,255,.9),rgba(255,255,255,.88) 55%,rgba(239,233,255,.88));box-shadow:inset 0 1px 0 #fff,0 12px 28px rgba(73,58,130,.08)}
+.app-shell[data-theme="light"] .release-countdown-unit{background:rgba(255,255,255,.64);border-color:rgba(126,101,215,.15)}
+.app-shell[data-theme="light"] .release-countdown-number{color:#32245d}
+.app-shell[data-theme="light"] .release-countdown-live{color:#7050c6}
+@media(max-width:520px){.release-countdown{padding:15px 13px;gap:12px}.release-countdown-units{gap:6px}.release-countdown-unit{padding:10px 3px 8px}.release-countdown-unit>span{font-size:8px;letter-spacing:.7px}.release-countdown-number{font-size:clamp(21px,7vw,29px)}}
+@media(prefers-reduced-motion:reduce){.release-countdown-number,.release-countdown-live i,.release-countdown-track span{animation:none!important}}
