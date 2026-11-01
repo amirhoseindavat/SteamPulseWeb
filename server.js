@@ -298,6 +298,54 @@ function decodeSteamHtml(value = "") {
     .trim();
 }
 
+
+async function fetchSteamPreorders(cc) {
+  const url = new URL("https://store.steampowered.com/explore/upcoming/");
+  url.searchParams.set("cc", cc.toLowerCase());
+  url.searchParams.set("l", "english");
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml"
+    },
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!response.ok) throw new Error("Steam Upcoming Releases page failed (" + response.status + ")");
+  const html = await response.text();
+  const anchors = html.match(/<a\\b[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
+  const items = [];
+  const extractClass = (source, className) => {
+    const tags = source.match(/<(?:div|span)\\b[^>]*>[\\s\\S]*?<\\/(?:div|span)>/gi) || [];
+    const element = tags.find((tag) => {
+      const classes = tag.match(/class=["']([^"']+)["']/i)?.[1] || "";
+      return classes.split(/\\s+/).includes(className);
+    });
+    return element ? decodeSteamHtml(element.replace(/^<(?:div|span)\\b[^>]*>/i, "").replace(/<\\/(?:div|span)>$/i, "")) : "";
+  };
+  for (const anchor of anchors) {
+    if (!/pre[ -]?purchase/i.test(anchor)) continue;
+    const href = anchor.match(/href=["'][^"']*\\/app\\/(\\d+)[^"']*["']/i);
+    const id = Number(href?.[1]);
+    if (!Number.isSafeInteger(id) || id <= 0) continue;
+    const name = extractClass(anchor, "tab_item_name") || decodeSteamHtml(anchor.match(/<img[^>]+alt=["']([^"']+)["']/i)?.[1] || "");
+    if (!name) continue;
+    const image = anchor.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
+    const releaseDate = extractClass(anchor, "tab_item_details");
+    const priceHtml = anchor.match(/<(?:div|span)[^>]*class=["'][^"']*discount_final_price[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const priceText = decodeSteamHtml(priceHtml);
+    const currencyMatch = priceText.match(/(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\\s*[\\d.,]+|[\\d.,]+\\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i);
+    items.push({
+      id, name, type: "game",
+      image: image.replace(/&amp;/g, "&"),
+      releaseDate,
+      price: currencyMatch ? currencyMatch[0] : "Price unavailable",
+      priceValue: null,
+      badge: "PRE-PURCHASE"
+    });
+  }
+  return [...new Map(items.map((item) => [item.id, item])).values()];
+}
+
 async function fetchSteamTopSellers(cc) {
   const url = new URL("https://store.steampowered.com/search/results/");
   url.searchParams.set("query", "");
@@ -390,7 +438,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v2:${cc}`;
+  const key = `discover:v3:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -449,12 +497,16 @@ app.get("/api/discover", async (req, res) => {
       }));
     };
 
-    const [newReleases, upcoming, featuredTopSellers, fullTopSellers] = await Promise.all([
+    const [newReleases, upcoming, featuredTopSellers, fullTopSellers, preordersFromSteam] = await Promise.all([
       normalize(data?.new_releases?.items, "NEW"),
       normalize(data?.coming_soon?.items, "UPCOMING"),
       normalize(data?.top_sellers?.items, "TOP SELLER"),
       fetchSteamTopSellers(cc).catch((error) => {
         console.warn("Could not load the full Steam Top Sellers list:", error.message);
+        return [];
+      }),
+      fetchSteamPreorders(cc).catch((error) => {
+        console.warn("Could not load Steam Pre-Purchase listings:", error.message);
         return [];
       })
     ]);
@@ -482,10 +534,8 @@ app.get("/api/discover", async (req, res) => {
     const topSellers = [...topSellerMap.values()].filter(hasPaidPrice).slice(0, 50);
     // Steam's coming-soon feed also contains titles already available for
     // pre-purchase. Surface those separately when Steam provides a paid price.
-    const preorders = upcoming.filter(hasPaidPrice).map((item) => ({
-      ...item,
-      badge: "PRE-PURCHASE"
-    }));
+    // Use Steam's explicit Pre-Purchase labels from its dedicated Upcoming Releases page.
+    const preorders = preordersFromSteam;
     const result = { newReleases, upcoming, preorders, topSellers };
     if (!result.newReleases.length && !result.upcoming.length && !result.topSellers.length) {
       return res.status(502).json({ error: "Steam returned no discovery categories. Please try again shortly." });
