@@ -312,10 +312,12 @@ function decodeSteamHtml(value = "") {
 }
 
 
-async function fetchSteamPreorders() {
+async function fetchSteamPreorders(cc) {
   // Use Steam's AJAX search endpoint, matching the user's working browser URL.
   const url = new URL("https://store.steampowered.com/search/results/");
   url.searchParams.set("force_infinite", "1");
+  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
+  url.searchParams.set("l", "english");
   url.searchParams.set("hwtype", "0");
   url.searchParams.set("maxprice", "60");
   url.searchParams.set("category1", "998");
@@ -519,7 +521,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = `discover:v19`;
+  const key = `discover:v20:${cc}`;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
@@ -587,7 +589,7 @@ app.get("/api/discover", async (req, res) => {
         console.warn("Could not load the full Steam Top Sellers list:", error.message);
         return [];
       }),
-      fetchSteamPreorders().catch((error) => {
+      fetchSteamPreorders(cc).catch((error) => {
         preordersError = error.message || String(error);
         console.error("Could not load Steam Popular Upcoming page:", preordersError);
         return [];
