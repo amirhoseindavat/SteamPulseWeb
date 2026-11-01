@@ -323,6 +323,8 @@ async function fetchSteamPreorders() {
   searchUrl.searchParams.set("supportedlang", "english,persian");
   searchUrl.searchParams.set("filter", "popularcomingsoon");
   searchUrl.searchParams.set("ndl", "1");
+  // Bypass Steam account/content preferences that can silently reduce the result set to zero.
+  searchUrl.searchParams.set("ignore_preferences", "1");
 
   let html;
   try {
