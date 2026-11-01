@@ -315,12 +315,12 @@ async function fetchSteamPreorders(cc) {
   const anchors = html.match(/<a\b(?=[^>]*href=["'][^"']*\/app\/\d+)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = [];
   const extractClass = (source, className) => {
-    const opening = new RegExp("<([a-z0-9]+)\\\\b(?=[^>]*class=[\\"'][^\\"']*\\\\b" + className + "\\\\b)[^>]*>", "i");
+    const opening = new RegExp("<([a-z0-9]+)\\b(?=[^>]*class=[\\"'][^\\"']*\\b" + className + "\\b)[^>]*>", "i");
     const match = opening.exec(source);
     if (!match) return "";
     const tagName = match[1];
     const start = match.index + match[0].length;
-    const closing = new RegExp("</" + tagName + "\\\\s*>", "ig");
+    const closing = new RegExp("</" + tagName + "\\s*>", "ig");
     closing.lastIndex = start;
     const end = closing.exec(source);
     return end ? decodeSteamHtml(source.slice(start, end.index).replace(/<[^>]*>/g, " ").replace(/\\s+/g, " ").trim()) : "";
