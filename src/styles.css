@@ -2510,3 +2510,10 @@
 .app-shell[data-theme="light"] .release-countdown-live{color:#7050c6}
 @media(max-width:520px){.release-countdown{margin:14px 12px;padding:15px 13px;gap:12px}.release-countdown-units{gap:6px}.release-countdown-unit{padding:10px 3px 8px}.release-countdown-unit>span{font-size:8px;letter-spacing:.7px}.release-countdown-number{font-size:clamp(21px,7vw,29px)}}
 @media(prefers-reduced-motion:reduce){.release-countdown-number,.release-countdown-live i,.release-countdown-track span{animation:none!important}}
+
+
+/* Keep the navigation sticky to the viewport while preserving page overflow clipping. */
+.app-shell{overflow:clip;}
+.topbar{position:sticky;top:0;z-index:200;}
+.site-footer-version{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid rgba(161,138,255,.28);border-radius:7px;background:rgba(139,108,255,.1);color:#a995ff;font:10px 'DM Mono',monospace;letter-spacing:.6px;}
+.app-shell[data-theme="light"] .site-footer-version{color:#7156c9;border-color:rgba(113,86,201,.22);background:rgba(139,108,255,.07);}
