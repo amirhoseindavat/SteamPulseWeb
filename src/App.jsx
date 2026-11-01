@@ -354,7 +354,7 @@ export default function App() {
       const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
-      if (nextPage !== "game") { setGame(null); setLoading(false); }
+      if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
     };
     window.addEventListener("popstate", syncPageFromHash);
     if (window.location.hash) syncPageFromHash();
