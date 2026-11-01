@@ -349,18 +349,18 @@ async function fetchSteamPreorders() {
   }
 
   const html = String(payload?.results_html || "");
-  const rows = html.match(/<a\\b(?=[^>]*\\bdata-ds-appid=)[^>]*>[\\s\\S]*?<\\/a>/gi) || [];
+  const rows = html.match(/<a\b(?=[^>]*\bdata-ds-appid=)[^>]*>[\s\S]*?<\/a>/gi) || [];
   const items = new Map();
 
   for (const row of rows) {
-    const appIdText = row.match(/\\bdata-ds-appid=["'](\\d+)/i)?.[1];
+    const appIdText = row.match(/\bdata-ds-appid=["'](\d+)/i)?.[1];
     const id = Number(appIdText);
-    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\\btitle\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/span>/i)?.[1] || "";
+    const titleHtml = row.match(/<span[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
     const name = decodeSteamHtml(titleHtml);
     if (!Number.isSafeInteger(id) || id <= 0 || !name) continue;
 
     const image = row.match(/<img[^>]+(?:src|data-src)=["']([^"']+)["']/i)?.[1] || "";
-    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\\bsearch_released\\b[^"']*["'][^>]*>([\\s\\S]*?)<\\/(?:div|span)>/i)?.[1] || "";
+    const releaseDateHtml = row.match(/<(?:div|span)[^>]*class=["'][^"']*\bsearch_released\b[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|span)>/i)?.[1] || "";
 
     items.set(id, {
       id,
