@@ -67,6 +67,14 @@ function DeckCompatibilityIcon({ status, size = 18 }) {
 }
 
 
+function hasCompleteReleaseDate(value) {
+  const dateText = String(value || "").trim();
+  const includesDay = /\\b\\d{4}-\\d{2}-\\d{2}\\b/.test(dateText)
+    || /\\b\\d{1,2}(?:st|nd|rd|th)?\\s+[A-Za-z]{3,}\\b.*\\b\\d{4}\\b/i.test(dateText)
+    || /\\b[A-Za-z]{3,}\\s+\\d{1,2}(?:st|nd|rd|th)?,?\\s+\\d{4}\\b/i.test(dateText);
+  return includesDay && Number.isFinite(new Date(dateText).getTime());
+}
+
 function ReleaseCountdown({ releaseDate }) {
   const target = new Date(releaseDate).getTime();
   const [now, setNow] = useState(Date.now());
@@ -1010,7 +1018,7 @@ export default function App() {
                 </div>
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
-          {(game.type === "dlc" || game.coming_soon) && game.release_date && Number.isFinite(new Date(game.release_date).getTime()) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
+          {(game.type === "dlc" || game.coming_soon) && hasCompleteReleaseDate(game.release_date) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
           {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
