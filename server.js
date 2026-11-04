@@ -198,6 +198,23 @@ function extractSteamBundleIds(html = "") {
   return [...ids];
 }
 
+
+function extractSteamFranchise(html) {
+  const anchorMatch = String(html || "").match(/<a\b(?=[^>]*\bclass=["'][^"']*\bfranchise_notice\b[^"']*["'])[^>]*>[\s\S]*?<\/a>/i);
+  if (!anchorMatch) return null;
+
+  const anchor = anchorMatch[0];
+  const href = anchor.match(/\bhref=["']([^"']+)["']/i)?.[1];
+  const name = anchor.match(/<div\b(?=[^>]*\bclass=["'][^"']*\bfranchise_name\b)[^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  const background = anchor.match(/<div\b(?=[^>]*\bclass=["'][^"']*\bbackground_image\b)[^>]*\bstyle=["'][^"']*background-image\s*:\s*url\((['"]?)(.*?)\1\)[^"']*["']/i)?.[2];
+  if (!href || !name) return null;
+
+  const clean = (value) => decodeSteamHtml(value).trim();
+  const url = clean(href);
+  if (!/^https?:\/\/store\.steampowered\.com\/franchise\//i.test(url)) return null;
+  return { url, name: clean(name).replace(/\s+/g, " "), image: background ? clean(background) : "" };
+}
+
 async function fetchSteamBundles(appid, cc) {
   const startedAt = Date.now();
   const currency = cc === "GB" ? "GBP" : cc === "DE" ? "EUR" : cc === "TR" ? "TRY" : cc === "PL" ? "PLN" : cc === "BR" ? "BRL" : cc === "IN" ? "INR" : cc === "UA" ? "UAH" : cc === "AR" ? "ARS" : "USD";
@@ -224,11 +241,16 @@ async function fetchSteamBundles(appid, cc) {
       // Treat the app page and bundles listing as independent discovery sources.
       // Steam can fail one route while the other remains reachable.
       let appIds = [];
+      let franchise = null;
       let appPageStatus = "error";
       try {
         const appResponse = await fetch(pageUrl, { headers: steamStoreHeaders, signal: AbortSignal.timeout(15000) });
         appPageStatus = appResponse.status;
-        if (appResponse.ok) appIds = extractSteamBundleIds(await appResponse.text());
+        if (appResponse.ok) {
+          const appHtml = await appResponse.text();
+          appIds = extractSteamBundleIds(appHtml);
+          franchise = extractSteamFranchise(appHtml);
+        }
       } catch (appPageError) {
         console.warn("[SteamPulse bundles] AppID " + appid + ": app page request failed: " + appPageError.message);
       }
@@ -256,7 +278,7 @@ async function fetchSteamBundles(appid, cc) {
           continue;
         }
         console.warn("[SteamPulse bundles] AppID " + appid + ": no bundle IDs discovered after 2 attempts (" + (Date.now() - startedAt) + "ms)");
-        return [];
+        return { bundles: [], franchise };
       }
 
       const bundleUrl = new URL("https://store.steampowered.com/actions/ajaxresolvebundles");
@@ -321,7 +343,7 @@ async function fetchSteamBundles(appid, cc) {
 
       console.info("[SteamPulse bundles] AppID " + appid + " cc=" + cc + ": requestedIds=" + bundleIds.length + ", resolvedBundles=" + bundles.length + ", rawItems=" + rawBundles.length + ", duration=" + (Date.now() - startedAt) + "ms");
       if (!bundles.length) console.warn("[SteamPulse bundles] AppID " + appid + ": Steam returned no resolvable bundle data for discovered IDs.");
-      return bundles;
+      return { bundles, franchise };
     } catch (error) {
       if (attempt === 1) {
         console.warn("[SteamPulse bundles] AppID " + appid + " attempt 1 failed; retrying: " + error.message);
@@ -331,7 +353,7 @@ async function fetchSteamBundles(appid, cc) {
       }
     }
   }
-  return [];
+  return { bundles: [], franchise: null };
 }
 
 function decodeSteamHtml(value = "") {
@@ -1272,11 +1294,11 @@ app.get("/api/game/:appid/bundles", async (req, res) => {
   const key = `bundles:${appid}:${cc}`;
   const hit = cached(key);
   if (hit) return res.json(hit);
-  const bundles = await fetchSteamBundles(appid, cc);
+  const result = await fetchSteamBundles(appid, cc);
   // Negative results may reflect transient or incomplete Steam HTML.
   // Retry discovery soon instead of caching an empty result for five minutes.
-  const ttl = bundles.length ? CACHE_TTL : 30 * 1000;
-  return res.json(saveCache(key, { bundles }, ttl));
+  const ttl = result.bundles.length || result.franchise ? CACHE_TTL : 30 * 1000;
+  return res.json(saveCache(key, result, ttl));
 });
 
 app.get("/api/game/:appid/dlc", async (req, res) => {
