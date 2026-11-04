@@ -252,7 +252,7 @@ export default function App() {
             if (!bundleData || !Array.isArray(bundleData.bundles)) return;
             if (requestId !== gameRequestRef.current) return;
             setGame((current) => String(current?.appid) === String(id)
-              ? { ...current, bundles: bundleData.bundles }
+              ? { ...current, bundles: bundleData.bundles, franchise: bundleData.franchise || null }
               : current);
           })
           .catch(() => {});
@@ -1019,6 +1019,11 @@ export default function App() {
             <div className="hero-corner">APP/{game.appid}</div>
           </section>
           {(game.type === "dlc" || game.coming_soon) && hasCompleteReleaseDate(game.release_date) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
+          {game.franchise?.url && <a className="steam-franchise-notice" href={game.franchise.url} target="_blank" rel="noreferrer" style={game.franchise.image ? { "--franchise-image": 'url("' + game.franchise.image + '")' } : undefined}>
+            <span className="steam-franchise-background" />
+            <span className="steam-franchise-copy"><small>EXPLORE THE FRANCHISE</small><strong>{game.franchise.name}</strong><span>View the entire collection on Steam <ExternalLink size={13} /></span></span>
+            <span className="steam-franchise-arrow"><ChevronRight size={20} /></span>
+          </a>}
           {game.type !== "dlc" && <section className="stats-strip">
             <Strip label="CURRENT PRICE" value={price} icon={Tag} />
             <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
