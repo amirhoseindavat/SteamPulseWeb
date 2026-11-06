@@ -1,7 +1,5 @@
 const STEAM_REQUEST_TIMEOUT_MS = 10000;
 const inflightRequests = new Map();
-const previousRegionalSellPrices = new Map();
-const CACHE_TTL = 5 * 60 * 1000;
 
 
 async function fetchJsonRequest(url, options = {}) {
@@ -33,7 +31,7 @@ async function fetchJsonRequest(url, options = {}) {
 }
 
 // Share identical simultaneous requests so repeated UI actions don't multiply Steam traffic.
-function fetchJson(url, options = {}) {
+export function fetchJson(url, options = {}) {
   const key = `${String(url)}|json|${options.headers ? JSON.stringify(options.headers) : ""}`;
   if (inflightRequests.has(key)) return inflightRequests.get(key);
   const request = fetchJsonRequest(url, options).finally(() => inflightRequests.delete(key));
@@ -41,11 +39,11 @@ function fetchJson(url, options = {}) {
   return request;
 }
 
-async function fetchJsonWithOptions(url, options = {}) {
+export async function fetchJsonWithOptions(url, options = {}) {
   return fetchJson(url, options);
 }
 
-async function fetchSteamDbLogo(appid) {
+export async function fetchSteamDbLogo(appid) {
   try {
     const response = await fetch(`https://steamdb.info/app/${encodeURIComponent(appid)}/`, {
       headers: {
@@ -68,7 +66,7 @@ async function fetchSteamDbLogo(appid) {
   }
 }
 
-async function fetchSteamHeaderImage(appid) {
+export async function fetchSteamHeaderImage(appid) {
   const fallback = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/header.jpg`;
   try {
     const data = await fetchJson(
@@ -83,7 +81,7 @@ async function fetchSteamHeaderImage(appid) {
   }
 }
 
-async function mapWithConcurrency(items, concurrency, mapper) {
+export async function mapWithConcurrency(items, concurrency, mapper) {
   const results = new Array(items.length);
   let nextIndex = 0;
   async function worker() {
