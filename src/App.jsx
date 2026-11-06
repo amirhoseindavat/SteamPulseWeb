@@ -11,7 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
 import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
-import { Search, Settings, Calculator, X, Sparkles } from "lucide-react";
+import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
@@ -679,7 +679,6 @@ export default function App() {
           loadGame={loadGame}
         />}
 
-        {currentPage === "home" && !loading && <section className="welcome-panel"><Sparkles size={28} /><h2>Your next favorite game is out there</h2><p>Search the Steam catalog or open Trending to discover what’s hot and what’s free right now.</p></section>}
 
         <GamePage
           currentPage={currentPage}
