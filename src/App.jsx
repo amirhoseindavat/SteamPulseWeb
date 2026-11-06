@@ -14,6 +14,7 @@ import { money, formatNumber } from "./utils/formatters";
 import { readApiResponse } from "./utils/api";
 import { useSteamAccount } from "./hooks/useSteamAccount";
 import { useDiscoveryData } from "./hooks/useDiscoveryData";
+import { useGameOwnership } from "./hooks/useGameOwnership";
 import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
@@ -26,9 +27,6 @@ export default function App() {
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [ownership, setOwnership] = useState(null);
-  const [ownershipLoading, setOwnershipLoading] = useState(false);
-  const [ownershipError, setOwnershipError] = useState("");
   const [steamProfileData, setSteamProfileData] = useState(null);
   const [personalSteamProfileData, setPersonalSteamProfileData] = useState(null);
   const [steamProfileLoading, setSteamProfileLoading] = useState(false);
@@ -274,8 +272,7 @@ export default function App() {
     setSteamApiKey(cleanApiKey);
     localStorage.setItem("steampulse-api-key", cleanApiKey);
     localStorage.setItem("steampulse-region", region);
-    setOwnership(null);
-    setOwnershipError("");
+    resetOwnership();
   }
 
   async function loadSteamProfile(profileOverride = "") {
@@ -330,33 +327,12 @@ export default function App() {
     return () => { cancelled = true; };
   }, [currentPage, profileRouteId, steamProfile, steamApiKey, personalSteamProfileData?.profile?.steamId]);
 
-  async function checkOwnership() {
-    if (!steamProfile.trim() || !game) {
-      setOwnershipError("Add your Steam profile in Settings first.");
-      return;
-    }
-    setOwnershipLoading(true);
-    setOwnershipError("");
-    try {
-      const appids = [...new Set([Number(game.appid), ...(game.dlc || []).map((item) => Number(item.appid))].filter(Number.isFinite))];
-      const response = await fetch("/api/ownership-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {}) },
-        body: JSON.stringify({ profile: steamProfile, appids })
-      });
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || "Could not check this Steam library.");
-      setOwnership(data);
-    } catch (e) {
-      setOwnershipError(e.message || "Ownership check failed.");
-    } finally {
-      setOwnershipLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (currentPage === "game" && game?.appid && game.type !== "dlc" && steamProfile && steamApiKey) checkOwnership();
-  }, [currentPage, game?.appid, steamProfile, steamApiKey]);
+  const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
+    game,
+    currentPage,
+    steamProfile,
+    steamApiKey
+  });
 
   useEffect(() => {
     let cancelled = false;
