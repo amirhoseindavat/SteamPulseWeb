@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import AppHeader from "./components/AppHeader";
+import SiteFooter from "./components/SiteFooter";
 import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
 import { hasCompleteReleaseDate } from "./utils/releaseDate";
@@ -1004,12 +1005,7 @@ export default function App() {
           </section>
         </>}
       </main>
-      <footer className="site-footer">
-        <span className="site-footer-brand">SteamPulse</span>
-        <span>© All rights reserved</span>
-        <span className="site-footer-version">v1.0</span>
-        <span className="site-footer-credit">Made with <span aria-label="love">❤️</span> by <img src="https://codemage.ir/img/favicon.png" alt="CodeMage" loading="lazy" /><a href="https://codemage.ir/" target="_blank" rel="noreferrer">CodeMage</a></span>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
