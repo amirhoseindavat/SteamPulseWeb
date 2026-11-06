@@ -11,6 +11,8 @@ import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
 import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
+import { readApiResponse } from "./utils/api";
+import { useSteamAccount } from "./hooks/useSteamAccount";
 import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
@@ -23,10 +25,6 @@ export default function App() {
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
-  const [steamCartDetails, setSteamCartDetails] = useState([]);
-  const [steamCartDetailsLoading, setSteamCartDetailsLoading] = useState(false);
-  const [steamCartDetailsError, setSteamCartDetailsError] = useState("");
   const [ownership, setOwnership] = useState(null);
   const [ownershipLoading, setOwnershipLoading] = useState(false);
   const [ownershipError, setOwnershipError] = useState("");
@@ -75,6 +73,8 @@ export default function App() {
   const headerSearchRef = useRef(null);
   const debounceRef = useRef(null);
 
+  const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
+
 
   useEffect(() => {
     const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
@@ -89,18 +89,6 @@ export default function App() {
     setProfileRouteId("");
     if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function readApiResponse(response) {
-    const text = await response.text();
-    if (!text.trim()) {
-      throw new Error("The SteamPulse API returned an empty response. Make sure both the Vite client and Express server are running with npm run dev.");
-    }
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new Error("The API returned a non-JSON response. Open the app through the Vite dev server and check that the Express API is running on port 3001.");
-    }
   }
 
   async function loadGame(id = appid, cc = region) {
@@ -260,24 +248,6 @@ export default function App() {
     window.addEventListener("popstate", syncPageFromHash);
     if (window.location.hash) syncPageFromHash();
     return () => window.removeEventListener("popstate", syncPageFromHash);
-  }, []);
-
-  useEffect(() => {
-    const receiveSteamAccount = (event) => {
-      if (event.source !== window || event.data?.source !== "STEAMPULSE_CONNECT" || event.data?.type !== "ACCOUNT_SNAPSHOT") return;
-      setSteamAccountSnapshot(event.data.snapshot || null);
-    };
-    const requestSteamAccount = (refresh = false) => {
-      window.postMessage({ source: "STEAMPULSE_PAGE", type: refresh ? "REFRESH_ACCOUNT_SNAPSHOT" : "GET_ACCOUNT_SNAPSHOT" }, window.location.origin);
-    };
-    window.addEventListener("message", receiveSteamAccount);
-    requestSteamAccount();
-    requestSteamAccount(true);
-    const syncTimer = window.setInterval(() => requestSteamAccount(true), 60000);
-    return () => {
-      window.removeEventListener("message", receiveSteamAccount);
-      window.clearInterval(syncTimer);
-    };
   }, []);
 
   useEffect(() => {
@@ -503,12 +473,6 @@ export default function App() {
     return () => { cancelled = true; };
   }, [region]);
 
-  const steamAccountData = steamAccountSnapshot?.data || null;
-  const steamAccountConnected = steamAccountSnapshot?.loginStatus === "connected";
-  const steamWishlist = new Set((steamAccountData?.rgWishlist || []).map(Number));
-  const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
-  const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
-  const steamCartApps = (steamAccountData?.rgAppsInCart || []).map(Number);
   const isOwnSteamProfile = Boolean(
     steamProfileData?.profile?.steamId &&
     (
@@ -516,37 +480,6 @@ export default function App() {
       (/^\d{17}$/.test(steamProfile.trim()) && steamProfileData.profile.steamId === steamProfile.trim())
     )
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    const appIds = [...new Set(steamCartApps.filter((id) => Number.isSafeInteger(id) && id > 0))].join(",");
-    if (!steamAccountConnected || !appIds) {
-      setSteamCartDetails([]);
-      setSteamCartDetailsError("");
-      setSteamCartDetailsLoading(false);
-      return () => { cancelled = true; };
-    }
-
-    setSteamCartDetailsLoading(true);
-    setSteamCartDetailsError("");
-    fetch(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}`)
-      .then(async (response) => {
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load cart details.");
-        return data;
-      })
-      .then((data) => {
-        if (!cancelled) setSteamCartDetails(data.items || []);
-      })
-      .catch((error) => {
-        if (!cancelled) setSteamCartDetailsError(error.message || "Cart details are temporarily unavailable.");
-      })
-      .finally(() => {
-        if (!cancelled) setSteamCartDetailsLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [steamAccountConnected, steamCartApps.join(","), region]);
 
 
   const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
