@@ -18,7 +18,6 @@ import { useGameOwnership } from "./hooks/useGameOwnership";
 import { useSteamProfile } from "./hooks/useSteamProfile";
 import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
-import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
