@@ -182,8 +182,8 @@ export default function GamePage({
             </div>}
             {activeTab === "screenshots" && <div className="screenshots-grid">{(game.screenshots || []).length ? game.screenshots.map((src, i) => <a href={src} target="_blank" rel="noreferrer" key={src} className="screenshot-card"><img src={src} loading="lazy" alt={`${game.name} screenshot ${i + 1}`} /><span><ImageIcon size={14} /> SCREENSHOT {String(i + 1).padStart(2,"0")} <ExternalLink size={13} /></span></a>) : <div className="empty-card">No screenshots are available for this title.</div>}</div>}
             {activeTab === "videos" && <div className="videos-grid">{(game.movies || []).length ? game.movies.map((movie, i) => <article className="video-card" key={`${movie.webm || movie.mp4}-${i}`}><a href={movie.mp4 || movie.webm} target="_blank" rel="noreferrer" className="video-thumb"><img src={movie.thumbnail} loading="lazy" alt="" /><span><Gamepad2 size={18} /></span></a><div className="video-copy"><strong>{movie.name || `${game.name} video ${i + 1}`}</strong><a href={movie.mp4 || movie.webm} target="_blank" rel="noreferrer">Watch video <ExternalLink size={13} /></a></div></article>) : <div className="empty-card">No videos are available for this title.</div>}</div>}
-             <GameNewsSection activeTab={activeTab} game={game} />
-             <RequirementsSection game={game} />
+             <GameNewsSection activeTab={activeTab} game={game} hero={hero} />
+             <RequirementsSection activeTab={activeTab} game={game} />
             </div>
           </section>
         </>}
