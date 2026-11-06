@@ -164,6 +164,8 @@ export default function GamePage({
             dlcSectionCount={dlcSectionCount}
             loadMoreDlc={loadMoreDlc}
             loadingMoreDlc={loadingMoreDlc}
+            loadGame={loadGame}
+            region={region}
           />
 
           <section className="detail-section">
