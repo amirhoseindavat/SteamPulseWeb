@@ -13,6 +13,7 @@ import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
 import { readApiResponse } from "./utils/api";
 import { useSteamAccount } from "./hooks/useSteamAccount";
+import { useDiscoveryData } from "./hooks/useDiscoveryData";
 import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
@@ -49,13 +50,6 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
-  const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
-  const [discoveryLoading, setDiscoveryLoading] = useState(true);
-  const [discoveryError, setDiscoveryError] = useState("");
-  const [discoveryTab, setDiscoveryTab] = useState("trending");
-  const [freeGames, setFreeGames] = useState([]);
-  const [freeGamesLoading, setFreeGamesLoading] = useState(true);
-  const [freeGamesError, setFreeGamesError] = useState("");
   const [shopData, setShopData] = useState(null);
   const [shopDataLoading, setShopDataLoading] = useState(false);
   const [shopDataError, setShopDataError] = useState("");
@@ -74,6 +68,7 @@ export default function App() {
   const debounceRef = useRef(null);
 
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
+  const { discovery, discoveryLoading, discoveryError, discoveryTab, setDiscoveryTab, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
 
 
   useEffect(() => {
@@ -365,32 +360,6 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    setDiscoveryLoading(true);
-    setDiscoveryError("");
-    fetch(`/api/discover?cc=${region}`)
-      .then(async (response) => {
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || data.detail || "Could not load game discovery.");
-        return data;
-      })
-      .then((data) => {
-        if (!cancelled) setDiscovery({
-          newReleases: data.newReleases || [],
-          upcoming: data.upcoming || [],
-          preorders: data.preorders || [],
-          preordersError: data.preordersError || "",
-          topSellers: data.topSellers || []
-        });
-      })
-      .catch((e) => {
-        if (!cancelled) setDiscoveryError(e.message || "Game discovery is temporarily unavailable.");
-      })
-      .finally(() => { if (!cancelled) setDiscoveryLoading(false); });
-    return () => { cancelled = true; };
-  }, [region]);
-
-  useEffect(() => {
-    let cancelled = false;
     let timer;
     const loadShopData = async () => {
       setShopDataLoading(true);
@@ -456,22 +425,6 @@ export default function App() {
     const timer = setInterval(loadRegionalMarket, 60000);
     return () => { cancelled = true; clearInterval(timer); };
   }, [currentPage]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setFreeGamesLoading(true);
-    setFreeGamesError("");
-    fetch(`/api/free-games?cc=${region}`)
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load free Steam games.");
-        return data;
-      })
-      .then((data) => { if (!cancelled) setFreeGames(data.items || []); })
-      .catch((e) => { if (!cancelled) setFreeGamesError(e.message || "Free promotions are temporarily unavailable."); })
-      .finally(() => { if (!cancelled) setFreeGamesLoading(false); });
-    return () => { cancelled = true; };
-  }, [region]);
 
   const isOwnSteamProfile = Boolean(
     steamProfileData?.profile?.steamId &&
