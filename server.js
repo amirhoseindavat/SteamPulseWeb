@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { fetchJson, fetchJsonWithOptions, fetchSteamHeaderImage, fetchSteamDbLogo, mapWithConcurrency } from "./server/services/steamClient.js";
+import { fetchJson, fetchJsonWithOptions, fetchSteamHeaderImage, mapWithConcurrency } from "./server/services/steamClient.js";
 import { CACHE_TTL, cached, saveCache } from "./server/utils/cache.js";
 
 import { registerMarketRoutes } from "./server/routes/market.js";
@@ -10,6 +10,7 @@ import { registerProfileRoutes } from "./server/routes/profile.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
+const previousRegionalSellPrices = new Map();
 app.use(cors());
 app.use(express.json());
 
