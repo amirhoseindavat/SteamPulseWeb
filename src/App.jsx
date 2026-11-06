@@ -518,7 +518,7 @@ export default function App() {
     steamProfileData?.profile?.steamId &&
     (
       steamProfileData.profile.steamId === personalSteamProfileData?.profile?.steamId ||
-      (/^\\d{17}$/.test(steamProfile.trim()) && steamProfileData.profile.steamId === steamProfile.trim())
+      (/^\d{17}$/.test(steamProfile.trim()) && steamProfileData.profile.steamId === steamProfile.trim())
     )
   );
 
