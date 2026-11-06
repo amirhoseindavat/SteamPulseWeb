@@ -1,117 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { REGIONS } from "./config/regions";
+import { money, formatNumber } from "./utils/formatters";
+import { hasCompleteReleaseDate } from "./utils/releaseDate";
+import RegionSelect from "./components/RegionSelect";
+import KeyRoundIcon from "./components/KeyRoundIcon";
+import SteamDeckMark from "./components/SteamDeckMark";
+import DeckCompatibilityIcon from "./components/DeckCompatibilityIcon";
+import ReleaseCountdown from "./components/ReleaseCountdown";
+import Strip from "./components/Strip";
 import {
   Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Heart, PackageOpen, ShoppingCart,
   Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
   Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
 } from "lucide-react";
-
-const REGIONS = [
-  { code: "US", label: "United States", currency: "USD", usdRate: 1 },
-  { code: "GB", label: "United Kingdom", currency: "GBP", usdRate: 0.79 },
-  { code: "DE", label: "Germany", currency: "EUR", usdRate: 0.92 },
-  { code: "TR", label: "Türkiye", currency: "USD", usdRate: 1 },
-  { code: "AR", label: "Argentina", currency: "USD", usdRate: 1 },
-  { code: "PL", label: "Poland", currency: "PLN", usdRate: 3.7 },
-  { code: "UA", label: "Ukraine", currency: "UAH", usdRate: 41.5 },
-  { code: "IN", label: "India", currency: "INR", usdRate: 88 },
-  { code: "BR", label: "Brazil", currency: "BRL", usdRate: 5.4 }
-];
-
-
-function money(price) {
-  if (!price) return "Not available";
-  if (price.final_formatted) return price.final_formatted;
-  if (Number.isFinite(price.final) && price.currency) {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: price.currency }).format(price.final / 100);
-  }
-  return "Not available";
-}
-function formatNumber(value) {
-  return value == null ? "—" : new Intl.NumberFormat("en-US").format(value);
-}
-
-function RegionSelect({ value, onChange, regions = REGIONS, ariaLabel = "Steam price region" }) {
-  const [open, setOpen] = useState(false);
-  const selected = regions.find((item) => item.code === value) || regions[0];
-  return <div className={`region-select-control custom-region-select ${open ? "is-open" : ""}`}>
-    <button type="button" className="region-select-trigger" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
-      <img className="region-select-flag" src={`https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`} alt="" />
-      <span className="region-select-value">{selected.label} <small>({selected.code} · {selected.currency})</small></span>
-      <ChevronRight className="region-select-chevron" size={15} />
-    </button>
-    {open && <div className="region-select-menu" role="listbox" aria-label={ariaLabel}>
-      {regions.map((item) => <button type="button" role="option" aria-selected={item.code === value} key={item.code} className={`region-select-option ${item.code === value ? "active" : ""}`} onClick={() => { onChange(item.code); setOpen(false); }}>
-        <img src={`https://flagcdn.com/w40/${item.code.toLowerCase()}.png`} alt="" />
-        <span>{item.label}<small>{item.code} · {item.currency}</small></span>
-        {item.code === value && <CheckCircle2 size={15} />}
-      </button>)}
-    </div>}
-  </div>;
-}
-
-function KeyRoundIcon() { return <Tag size={20} />; }
-function TicketIcon() { return <Gift size={20} />; }
-
-function SteamDeckMark({ size = 18 }) {
-  return <svg className="steam-deck-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.777 4.302a5.698 5.698 0 1 1 0 11.396v3.19a8.889 8.889 0 1 0 0-17.777v3.191Zm0 9.587a3.889 3.889 0 1 0 0-7.778 3.889 3.889 0 0 0 0 7.778Z" /></svg>;
-}
-
-function DeckCompatibilityIcon({ status, size = 18 }) {
-  const icons = {
-    verified: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/verified_18.png",
-    playable: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/playable_18.png",
-    unsupported: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/unsupported_18.png",
-    unknown: "https://cdn.steamstatic.com/steamcommunity/public/images/steamworks_docs/english/unknown_18.png"
-  };
-  return <img className="steam-deck-rating-icon" src={icons[status] || icons.unknown} width={size} height={size} alt="" />;
-}
-
-
-function hasCompleteReleaseDate(value) {
-  const dateText = String(value || "").trim();
-  const includesDay = /\b\d{4}-\d{2}-\d{2}\b/.test(dateText)
-    || /\b\d{1,2}(?:st|nd|rd|th)?\s+[A-Za-z]{3,}\b.*\b\d{4}\b/i.test(dateText)
-    || /\b[A-Za-z]{3,}\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}\b/i.test(dateText);
-  return includesDay && Number.isFinite(new Date(dateText).getTime());
-}
-function ReleaseCountdown({ releaseDate }) {
-  const target = new Date(releaseDate).getTime();
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    if (!Number.isFinite(target) || target <= Date.now()) return undefined;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [target]);
-
-  const remaining = target - now;
-  if (!Number.isFinite(target) || remaining <= 0) return null;
-
-  const units = [
-    { label: "DAYS", value: Math.floor(remaining / 86400000) },
-    { label: "HOURS", value: Math.floor((remaining % 86400000) / 3600000) },
-    { label: "MINUTES", value: Math.floor((remaining % 3600000) / 60000) },
-    { label: "SECONDS", value: Math.floor((remaining % 60000) / 1000) }
-  ];
-
-  return <section className="release-countdown detail-card" aria-label="Countdown to release">
-    <div className="release-countdown-heading">
-      <span className="release-countdown-live"><i /> COUNTDOWN TO RELEASE</span>
-      <span className="release-countdown-date">{releaseDate}</span>
-    </div>
-    <div className="release-countdown-units">
-      {units.map((unit) => <div className="release-countdown-unit" key={unit.label}>
-        <strong key={unit.value} className="release-countdown-number">{String(unit.value).padStart(2, "0")}</strong>
-        <span>{unit.label}</span>
-      </div>)}
-    </div>
-    <div className="release-countdown-track"><span /></div>
-  </section>;
-}
-
-function Strip({ label, value, icon: Icon }) {
-  return <div className="strip-item"><span className="strip-icon"><Icon size={16} /></span><span><small>{label}</small><strong>{value || "—"}</strong></span></div>;
-}
 
 export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
