@@ -621,7 +621,7 @@ registerMarketRoutes(app, { fetchJson, mapWithConcurrency, previousRegionalSellP
 
 registerProfileRoutes(app, { fetchJson, fetchSteamHeaderImage, mapWithConcurrency });
 
-registerDiscoveryRoutes(app, { fetchJson, cached, saveCache, CACHE_TTL, mapWithConcurrency, decodeSteamHtml });
+const { fetchSteamBundles, decodeSteamHtml } = registerDiscoveryRoutes(app, { fetchJson, fetchJsonWithOptions, cached, saveCache, CACHE_TTL, mapWithConcurrency });
 
 app.listen(PORT, () => {
   console.log(`SteamPulse API listening on http://localhost:${PORT}`);
