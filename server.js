@@ -22,7 +22,7 @@ registerMarketRoutes(app, { fetchJson, mapWithConcurrency, previousRegionalSellP
 
 registerProfileRoutes(app, { fetchJson, fetchSteamHeaderImage, mapWithConcurrency });
 
-const { fetchSteamBundles, decodeSteamHtml } = registerDiscoveryRoutes(app, { fetchJson, fetchJsonWithOptions, cached, saveCache, CACHE_TTL, mapWithConcurrency });
+const { fetchSteamBundles } = registerDiscoveryRoutes(app, { fetchJson, fetchJsonWithOptions, cached, saveCache, CACHE_TTL, mapWithConcurrency });
 
 registerGameRoutes(app, { fetchJson, cached, saveCache, CACHE_TTL, mapWithConcurrency, fetchSteamBundles });
 
