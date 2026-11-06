@@ -11,17 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
 import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
-import { hasCompleteReleaseDate } from "./utils/releaseDate";
-import RegionSelect from "./components/RegionSelect";
-import SteamDeckMark from "./components/SteamDeckMark";
-import DeckCompatibilityIcon from "./components/DeckCompatibilityIcon";
-import ReleaseCountdown from "./components/ReleaseCountdown";
-import Strip from "./components/Strip";
-import {
-  Search, Gamepad2, Activity, CalendarDays, ExternalLink, Monitor, Apple, Settings, Save, Library, ShieldCheck, UserRound, Trophy, Clock3, UsersRound, Calculator, Heart, PackageOpen, ShoppingCart,
-  Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Gift,
-  Sparkles, Image as ImageIcon, Info, CheckCircle2, AlertTriangle, CircleHelp, CircleX, Sun, Moon
-} from "lucide-react";
+import { Search, Settings, Calculator, X, Sparkles } from "lucide-react";
 
 export default function App() {
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
