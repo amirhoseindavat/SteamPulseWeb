@@ -41,8 +41,6 @@ export default function MarketPage({ shopDataError, shopDataLoading, regionalMar
             </div>
             <p className="market-footnote"><Info size={14} /> Prices are refreshed automatically every 60 seconds. Last source update: {shopData.LastUpdateDate || (shopData.LastUpdate ? new Date(Number(shopData.LastUpdate) * 1000).toLocaleString() : "not provided")}.</p>
           </>}
-        </section>}
-
-        <CalculatorPage region={region} setRegion={setRegion} conversionMode={conversionMode} setConversionMode={setConversionMode} conversionAmount={conversionAmount} setConversionAmount={setConversionAmount} selectedRegion={selectedRegion} conversionResult={conversionResult} conversionResultFormatted={conversionResultFormatted} conversionResultLabel={conversionResultLabel} regionalKeyPrice={regionalKeyPrice} regionalKeyPriceForCalculation={regionalKeyPriceForCalculation} liveKeyPriceToman={liveKeyPriceToman} shopDataError={shopDataError} />
+    </section>
   );
 }
