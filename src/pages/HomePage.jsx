@@ -30,6 +30,7 @@ export default function HomePage({
   setFreeGames
 }) {
   return (
+    <>
         {currentPage === "home" && <section className="intro">
           <div className="eyebrow"><Sparkles size={14} /> YOUR STEAM COMMAND CENTER</div>
           <h1>Every game.<br /><span>One pulse.</span></h1>
@@ -124,5 +125,6 @@ export default function HomePage({
           <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
         </section>
+    </>
   );
 }
