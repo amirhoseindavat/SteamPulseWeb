@@ -228,14 +228,14 @@ export default function App() {
     resetOwnership();
   }
 
-  const { ownership, ownershipLoading, ownershipError, resetOwnership }  const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
+  const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
     game,
     currentPage,
     steamProfile,
     steamApiKey
   });
 
-  const gamePackageIds  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
+  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
   const allGameEditions = game?.editions || [];
   const gameEditions = allGameEditions;
   const gameBundles = game?.bundles || [];
