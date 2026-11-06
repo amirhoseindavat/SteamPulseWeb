@@ -16,6 +16,7 @@ import { useSteamAccount } from "./hooks/useSteamAccount";
 import { useDiscoveryData } from "./hooks/useDiscoveryData";
 import { useGameOwnership } from "./hooks/useGameOwnership";
 import { useSteamProfile } from "./hooks/useSteamProfile";
+import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
 import { Search, Settings, Calculator, X } from "lucide-react";
 
@@ -32,9 +33,6 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
-  const [results, setResults] = useState([]);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [appid, setAppid] = useState("");
   const [inputId, setInputId] = useState("");
   const [game, setGame] = useState(null);
@@ -52,7 +50,6 @@ export default function App() {
   const gameRequestRef = useRef(0);
   const searchRef = useRef(null);
   const headerSearchRef = useRef(null);
-  const debounceRef = useRef(null);
 
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
   const { discovery, discoveryLoading, discoveryError, discoveryTab, setDiscoveryTab, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
@@ -65,6 +62,10 @@ export default function App() {
     regionalKeyPrice, regionalMarketData, regionalMarketLoading,
     regionalMarketError, regionalMarketUpdatedAt, refreshShopData
   } = useMarketData(region, currentPage);
+  const {
+    results, setResults, searchOpen, setSearchOpen, searching,
+    searchGames, onSearchChange, chooseGame
+  } = useGameSearch({ region, loadGame, setQuery, setInputId, setError });
 
 
   useEffect(() => {
@@ -180,46 +181,6 @@ export default function App() {
     }
   }
 
-  async function searchGames(term) {
-    if (term.trim().length < 2) {
-      setResults([]);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${region}`);
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || data.detail || "Search failed.");
-      setResults(data.items || []);
-      setSearchOpen(true);
-    } catch (e) {
-      setResults([]);
-      setError(e.message || "Steam search failed. Check that the API server is running.");
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  function onSearchChange(value) {
-    setQuery(value);
-    setSearchOpen(true);
-    clearTimeout(debounceRef.current);
-    if (/^\d+$/.test(value.trim())) {
-      setResults([]);
-      return;
-    }
-    debounceRef.current = setTimeout(() => searchGames(value), 300);
-  }
-
-  function chooseGame(item) {
-    setQuery(item.name);
-    setInputId(String(item.id));
-    setSearchOpen(false);
-    loadGame(item.id, region);
-  }
-
   useEffect(() => {
     const syncPageFromHash = () => {
       const hash = window.location.hash;
@@ -248,7 +209,6 @@ export default function App() {
     document.addEventListener("mousedown", close);
     return () => {
       document.removeEventListener("mousedown", close);
-      clearTimeout(debounceRef.current);
     };
   }, []);
 
