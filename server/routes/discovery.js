@@ -1,4 +1,4 @@
-export function registerDiscoveryRoutes(app, { fetchJson, cached, saveCache, CACHE_TTL, mapWithConcurrency, decodeSteamHtml }) {
+export function registerDiscoveryRoutes(app, { fetchJson, fetchJsonWithOptions, cached, saveCache, CACHE_TTL, mapWithConcurrency }) {
 app.get("/api/search", async (req, res) => {
   const term = String(req.query.term || "").trim();
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
@@ -734,4 +734,5 @@ app.get("/api/free-games", async (req, res) => {
     });
   }
 });
+  return { fetchSteamBundles, decodeSteamHtml };
 }
