@@ -634,7 +634,7 @@ export default function App() {
               </div>
               {steamProfileData.profile.summary && <p className="steam-profile-summary">{steamProfileData.profile.summary}</p>}
             </section>
-            <section className="profile-stats-grid">
+            <section className={`profile-stats-grid ${isOwnSteamProfile ? "profile-stats-grid-own" : "profile-stats-grid-other"}`}>
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Library size={19} /><span>Games owned</span></div><div className="profile-stat-value"><strong>{steamProfileData.stats.games == null ? "Private" : formatNumber(steamProfileData.stats.games)}</strong>{steamProfileData.gameCollector && <img className="game-collector-inline-badge" src={steamProfileData.gameCollector.image} alt={`Game Collector Level ${steamProfileData.gameCollector.level}`} title={`Game Collector · Level ${formatNumber(steamProfileData.gameCollector.level)}`} loading="lazy" />}</div></div>
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Clock3 size={19} /><span>Total playtime</span></div><strong className="profile-stat-value">{steamProfileData.stats.hours == null ? "Private" : `${formatNumber(steamProfileData.stats.hours)} hrs`}</strong></div>
               {isOwnSteamProfile && Array.isArray(steamAccountData?.rgWishlist) && <div className="profile-stat detail-card"><div className="profile-stat-heading"><Heart size={19} /><span>Wishlist</span></div><strong className="profile-stat-value">{formatNumber(steamWishlist.size)}</strong></div>}
