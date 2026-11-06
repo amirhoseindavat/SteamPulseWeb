@@ -21,7 +21,7 @@ export function useMarketData(region, currentPage) {
         const response = await fetch("/api/shop-data");
         const data = await readApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
-        const keyPrice = Number(String(data.Key ?? "").replace(/[\\s,٬]/g, ""));
+        const keyPrice = Number(String(data.Key ?? "").replace(/[\s,٬]/g, ""));
         if (!Number.isFinite(keyPrice) || keyPrice <= 0) throw new Error("The shop API returned an invalid key price.");
         if (!cancelled) { setShopData({ ...data, Key: keyPrice }); setShopDataUpdatedAt(new Date()); }
       } catch (error) {
