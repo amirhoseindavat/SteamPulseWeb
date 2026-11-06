@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 
 import { registerMarketRoutes } from "./server/routes/market.js";
+import { registerDiscoveryRoutes } from "./server/routes/discovery.js";
+import { registerProfileRoutes } from "./server/routes/profile.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
