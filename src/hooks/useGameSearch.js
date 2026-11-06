@@ -33,7 +33,7 @@ export function useGameSearch({ region, loadGame, setQuery, setInputId, setError
     setQuery(value);
     setSearchOpen(true);
     clearTimeout(debounceRef.current);
-    if (/^\\d+$/.test(value.trim())) {
+    if (/^\d+$/.test(value.trim())) {
       setResults([]);
       return;
     }
