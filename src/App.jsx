@@ -349,6 +349,27 @@ export default function App() {
     setProfileRouteId(personalSteamProfileData.profile.steamId);
   }, [currentPage, profileRouteId, personalSteamProfileData?.profile?.steamId]);
 
+  // When a profile URL is opened directly, resolve the saved account separately
+  // so we can reliably distinguish the signed-in user's profile from another user.
+  useEffect(() => {
+    if (currentPage !== "profile" || !profileRouteId || !steamProfile.trim()) return;
+    if (personalSteamProfileData?.profile?.steamId) return;
+    let cancelled = false;
+    fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile.trim())}`, {
+      headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {}
+    })
+      .then(async (response) => {
+        const data = await readApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Could not resolve the saved Steam profile.");
+        return data;
+      })
+      .then((data) => {
+        if (!cancelled) setPersonalSteamProfileData(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [currentPage, profileRouteId, steamProfile, steamApiKey, personalSteamProfileData?.profile?.steamId]);
+
   async function checkOwnership() {
     if (!steamProfile.trim() || !game) {
       setOwnershipError("Add your Steam profile in Settings first.");
@@ -493,6 +514,13 @@ export default function App() {
   const steamOwnedApps = new Set((steamAccountData?.rgOwnedApps || []).map(Number));
   const steamOwnedPackages = new Set((steamAccountData?.rgOwnedPackages || []).map(Number));
   const steamCartApps = (steamAccountData?.rgAppsInCart || []).map(Number);
+  const isOwnSteamProfile = Boolean(
+    steamProfileData?.profile?.steamId &&
+    (
+      steamProfileData.profile.steamId === personalSteamProfileData?.profile?.steamId ||
+      (/^\\d{17}$/.test(steamProfile.trim()) && steamProfileData.profile.steamId === steamProfile.trim())
+    )
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -608,7 +636,7 @@ export default function App() {
             <section className="profile-stats-grid">
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Library size={19} /><span>Games owned</span></div><div className="profile-stat-value"><strong>{steamProfileData.stats.games == null ? "Private" : formatNumber(steamProfileData.stats.games)}</strong>{steamProfileData.gameCollector && <img className="game-collector-inline-badge" src={steamProfileData.gameCollector.image} alt={`Game Collector Level ${steamProfileData.gameCollector.level}`} title={`Game Collector · Level ${formatNumber(steamProfileData.gameCollector.level)}`} loading="lazy" />}</div></div>
               <div className="profile-stat detail-card"><div className="profile-stat-heading"><Clock3 size={19} /><span>Total playtime</span></div><strong className="profile-stat-value">{steamProfileData.stats.hours == null ? "Private" : `${formatNumber(steamProfileData.stats.hours)} hrs`}</strong></div>
-              {Array.isArray(steamAccountData?.rgWishlist) && <div className="profile-stat detail-card"><div className="profile-stat-heading"><Heart size={19} /><span>Wishlist</span></div><strong className="profile-stat-value">{formatNumber(steamWishlist.size)}</strong></div>}
+              {isOwnSteamProfile && Array.isArray(steamAccountData?.rgWishlist) && <div className="profile-stat detail-card"><div className="profile-stat-heading"><Heart size={19} /><span>Wishlist</span></div><strong className="profile-stat-value">{formatNumber(steamWishlist.size)}</strong></div>}
               
               {steamProfileData.yearOfService && <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Years of Service</span></div><span className="profile-badge-art"><img className="profile-badge-image" src={steamProfileData.yearOfService.image} alt="Years of Service badge" loading="lazy" /></span></div>}
               <div className="profile-stat profile-badge-stat detail-card"><div className="profile-stat-heading"><Trophy size={19} /><span>Badges earned</span></div><strong className="profile-stat-value">{steamProfileData.stats.badges == null ? "—" : formatNumber(steamProfileData.stats.badges)}</strong></div>
