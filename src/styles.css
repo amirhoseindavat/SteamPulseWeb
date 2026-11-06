@@ -2242,3 +2242,8 @@
   .steam-franchise-copy strong{font-size:15px;}
   .steam-franchise-copy>span{font-size:10px;}
 }
+
+
+/* Profile stats: four columns on desktop, two on compact screens. */
+.profile-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:760px){.profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
