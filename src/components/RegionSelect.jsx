@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { REGIONS } from "../config/regions";
 import { ChevronRight, CheckCircle2 } from "lucide-react";
 
 export default function RegionSelect({ value, onChange, regions = REGIONS, ariaLabel = "Steam price region" }) {
