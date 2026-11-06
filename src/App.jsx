@@ -260,6 +260,7 @@ export default function App() {
   function saveSettings() {
     const cleanProfile = steamProfileDraft.trim();
     setSteamProfile(cleanProfile);
+    setPersonalSteamProfileData(null);
     localStorage.setItem("steampulse-profile", cleanProfile);
     const cleanApiKey = steamApiKeyDraft.trim();
     setSteamApiKey(cleanApiKey);
