@@ -2244,6 +2244,9 @@
 }
 
 
-/* Profile stats: four columns on desktop, two on compact screens. */
-.profile-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+/* Profile stats: five columns for the signed-in account, four for other profiles. */
+@media(min-width:761px){
+ .profile-stats-grid.profile-stats-grid-own{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .profile-stats-grid.profile-stats-grid-other{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 @media(max-width:760px){.profile-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
