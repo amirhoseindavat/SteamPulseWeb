@@ -3,7 +3,6 @@ import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
 import { hasCompleteReleaseDate } from "./utils/releaseDate";
 import RegionSelect from "./components/RegionSelect";
-import KeyRoundIcon from "./components/KeyRoundIcon";
 import SteamDeckMark from "./components/SteamDeckMark";
 import DeckCompatibilityIcon from "./components/DeckCompatibilityIcon";
 import ReleaseCountdown from "./components/ReleaseCountdown";
