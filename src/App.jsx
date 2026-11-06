@@ -677,10 +677,7 @@ export default function App() {
           setQuery={setQuery}
           setInputId={setInputId}
           loadGame={loadGame}
-        />}se profile</div>
-        </section>
-
-        </>}
+        />}
 
         {currentPage === "home" && !loading && <section className="welcome-panel"><Sparkles size={28} /><h2>Your next favorite game is out there</h2><p>Search the Steam catalog or open Trending to discover what’s hot and what’s free right now.</p></section>}
 
