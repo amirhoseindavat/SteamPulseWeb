@@ -656,6 +656,7 @@ export default function App() {
           region={region}
           setRegion={setRegion}
           freeGames={freeGames}
+          loading={loading}
           freeGamesLoading={freeGamesLoading}
           setFreeGamesLoading={setFreeGamesLoading}
           freeGamesError={freeGamesError}
