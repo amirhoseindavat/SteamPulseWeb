@@ -15,6 +15,8 @@ import { readApiResponse } from "./utils/api";
 import { useSteamAccount } from "./hooks/useSteamAccount";
 import { useDiscoveryData } from "./hooks/useDiscoveryData";
 import { useGameOwnership } from "./hooks/useGameOwnership";
+import { useSteamProfile } from "./hooks/useSteamProfile";
+import { useMarketData } from "./hooks/useMarketData";
 import { Search, Settings, Calculator, X } from "lucide-react";
 
 export default function App() {
@@ -27,10 +29,6 @@ export default function App() {
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [steamProfileData, setSteamProfileData] = useState(null);
-  const [personalSteamProfileData, setPersonalSteamProfileData] = useState(null);
-  const [steamProfileLoading, setSteamProfileLoading] = useState(false);
-  const [steamProfileError, setSteamProfileError] = useState("");
   const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
@@ -48,17 +46,8 @@ export default function App() {
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
-  const [shopData, setShopData] = useState(null);
-  const [shopDataLoading, setShopDataLoading] = useState(false);
-  const [shopDataError, setShopDataError] = useState("");
-  const [shopDataUpdatedAt, setShopDataUpdatedAt] = useState(null);
-  const [regionalKeyPrice, setRegionalKeyPrice] = useState(null);
   const [conversionMode, setConversionMode] = useState("currency-to-keys");
   const [conversionAmount, setConversionAmount] = useState("18");
-  const [regionalMarketData, setRegionalMarketData] = useState([]);
-  const [regionalMarketLoading, setRegionalMarketLoading] = useState(false);
-  const [regionalMarketError, setRegionalMarketError] = useState("");
-  const [regionalMarketUpdatedAt, setRegionalMarketUpdatedAt] = useState(null);
   const calculatorRef = useRef(null);
   const gameRequestRef = useRef(0);
   const searchRef = useRef(null);
@@ -67,6 +56,15 @@ export default function App() {
 
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
   const { discovery, discoveryLoading, discoveryError, discoveryTab, setDiscoveryTab, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
+  const {
+    steamProfileData, personalSteamProfileData, setPersonalSteamProfileData,
+    steamProfileLoading, steamProfileError, loadSteamProfile, isOwnSteamProfile
+  } = useSteamProfile({ currentPage, profileRouteId, setProfileRouteId, steamProfile, steamApiKey });
+  const {
+    shopData, shopDataLoading, shopDataError, shopDataUpdatedAt,
+    regionalKeyPrice, regionalMarketData, regionalMarketLoading,
+    regionalMarketError, regionalMarketUpdatedAt, refreshShopData
+  } = useMarketData(region, currentPage);
 
 
   useEffect(() => {
@@ -255,10 +253,6 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (currentPage === "profile" || steamProfile.trim()) loadSteamProfile(profileRouteId || steamProfile);
-  }, [currentPage, steamProfile, profileRouteId]);
-
-  useEffect(() => {
     localStorage.setItem("steampulse-region", region);
     if (game) loadGame(appid, region);
   }, [region]);
@@ -266,7 +260,6 @@ export default function App() {
   function saveSettings() {
     const cleanProfile = steamProfileDraft.trim();
     setSteamProfile(cleanProfile);
-    setPersonalSteamProfileData(null);
     localStorage.setItem("steampulse-profile", cleanProfile);
     const cleanApiKey = steamApiKeyDraft.trim();
     setSteamApiKey(cleanApiKey);
@@ -275,143 +268,14 @@ export default function App() {
     resetOwnership();
   }
 
-  async function loadSteamProfile(profileOverride = "") {
-    const targetProfile = String(profileOverride || steamProfile || "").trim();
-    if (!targetProfile) {
-      setSteamProfileData(null);
-      setSteamProfileError("Add your Steam profile in Settings first, then save it.");
-      return;
-    }
-    setSteamProfileLoading(true);
-    setSteamProfileError("");
-    setSteamProfileData(null);
-    try {
-      const response = await fetch(`/api/steam-profile?profile=${encodeURIComponent(targetProfile)}`, { headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {} });
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || "Could not load the Steam profile.");
-      setSteamProfileData(data);
-      if (targetProfile === String(steamProfile || "").trim()) setPersonalSteamProfileData(data);
-    } catch (e) {
-      setSteamProfileError(e.message || "Could not load the Steam profile.");
-    } finally {
-      setSteamProfileLoading(false);
-    }
-  }
-
-
-  useEffect(() => {
-    if (currentPage !== "profile" || profileRouteId || !personalSteamProfileData?.profile?.steamId) return;
-    const ownProfileHash = `#/profile/${personalSteamProfileData.profile.steamId}`;
-    if (window.location.hash !== ownProfileHash) window.history.replaceState(null, "", ownProfileHash);
-    setProfileRouteId(personalSteamProfileData.profile.steamId);
-  }, [currentPage, profileRouteId, personalSteamProfileData?.profile?.steamId]);
-
-  // When a profile URL is opened directly, resolve the saved account separately
-  // so we can reliably distinguish the signed-in user's profile from another user.
-  useEffect(() => {
-    if (currentPage !== "profile" || !profileRouteId || !steamProfile.trim()) return;
-    if (personalSteamProfileData?.profile?.steamId) return;
-    let cancelled = false;
-    fetch(`/api/steam-profile?profile=${encodeURIComponent(steamProfile.trim())}`, {
-      headers: steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {}
-    })
-      .then(async (response) => {
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not resolve the saved Steam profile.");
-        return data;
-      })
-      .then((data) => {
-        if (!cancelled) setPersonalSteamProfileData(data);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [currentPage, profileRouteId, steamProfile, steamApiKey, personalSteamProfileData?.profile?.steamId]);
-
-  const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
+  const { ownership, ownershipLoading, ownershipError, resetOwnership }  const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
     game,
     currentPage,
     steamProfile,
     steamApiKey
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    let timer;
-    const loadShopData = async () => {
-      setShopDataLoading(true);
-      setShopDataError("");
-      try {
-        const response = await fetch("/api/shop-data");
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
-        const keyPrice = Number(String(data.Key ?? "").replace(/[\s,٬]/g, ""));
-        if (!Number.isFinite(keyPrice) || keyPrice <= 0) throw new Error("The shop API returned an invalid key price.");
-        if (!cancelled) { setShopData({ ...data, Key: keyPrice }); setShopDataUpdatedAt(new Date()); }
-      } catch (error) {
-        if (!cancelled) setShopDataError(error.message || "Live key prices are temporarily unavailable.");
-      } finally {
-        if (!cancelled) setShopDataLoading(false);
-      }
-    };
-    loadShopData();
-    timer = setInterval(loadShopData, 60000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer;
-    const loadRegionalKeyPrice = async () => {
-      try {
-        const response = await fetch(`/api/key-price?region=${encodeURIComponent(region)}`);
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load this region's Steam key price.");
-        if (!cancelled) setRegionalKeyPrice(data);
-      } catch (error) {
-        if (!cancelled) setRegionalKeyPrice({ region, error: error.message || "Steam key price unavailable." });
-      }
-    };
-    setRegionalKeyPrice(null);
-    loadRegionalKeyPrice();
-    timer = setInterval(loadRegionalKeyPrice, 60000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, [region]);
-
-  useEffect(() => {
-    if (currentPage !== "market") return;
-    let cancelled = false;
-    const loadRegionalMarket = async () => {
-      setRegionalMarketLoading(true);
-      setRegionalMarketError("");
-      try {
-        const response = await fetch("/api/market-regions");
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load Steam Market regional prices.");
-        if (!cancelled) {
-          setRegionalMarketData(Array.isArray(data.regions) ? data.regions : []);
-          setRegionalMarketUpdatedAt(new Date());
-        }
-      } catch (error) {
-        if (!cancelled) setRegionalMarketError(error.message || "Steam Market data is temporarily unavailable.");
-      } finally {
-        if (!cancelled) setRegionalMarketLoading(false);
-      }
-    };
-    loadRegionalMarket();
-    const timer = setInterval(loadRegionalMarket, 60000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, [currentPage]);
-
-  const isOwnSteamProfile = Boolean(
-    steamProfileData?.profile?.steamId &&
-    (
-      steamProfileData.profile.steamId === personalSteamProfileData?.profile?.steamId ||
-      (/^\d{17}$/.test(steamProfile.trim()) && steamProfileData.profile.steamId === steamProfile.trim())
-    )
-  );
-
-
-  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
+  const gamePackageIds  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
   const allGameEditions = game?.editions || [];
   const gameEditions = allGameEditions;
   const gameBundles = game?.bundles || [];
@@ -494,7 +358,7 @@ export default function App() {
 
         {currentPage === "cart" && <CartPage steamCartApps={steamCartApps} steamAccountConnected={steamAccountConnected} steamCartDetailsError={steamCartDetailsError} steamCartDetailsLoading={steamCartDetailsLoading} uniqueCartDetails={uniqueCartDetails} cartTotalFormatted={cartTotalFormatted} cartOriginalTotalFormatted={cartOriginalTotalFormatted} cartSavingsMinor={cartSavingsMinor} cartSavingsFormatted={cartSavingsFormatted} cartKeyCount={cartKeyCount} region={region} regionalKeyPriceForCalculation={regionalKeyPriceForCalculation} cartCurrency={cartCurrency} />}
 
-        {currentPage === "market" && <MarketPage shopDataError={shopDataError} shopDataLoading={shopDataLoading} regionalMarketError={regionalMarketError} regionalMarketLoading={regionalMarketLoading} regionalMarketData={regionalMarketData} regionalMarketUpdatedAt={regionalMarketUpdatedAt} shopData={shopData} shopDataUpdatedAt={shopDataUpdatedAt} region={region} onRefresh={() => { setShopDataLoading(true); setShopDataError(""); fetch("/api/shop-data").then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || "Could not load live key prices."); return data; }).then((data) => { setShopData(data); setShopDataUpdatedAt(new Date()); }).catch((error) => setShopDataError(error.message || "Refresh failed.")).finally(() => setShopDataLoading(false)); }} />}
+        {currentPage === "market" && <MarketPage shopDataError={shopDataError} shopDataLoading={shopDataLoading} regionalMarketError={regionalMarketError} regionalMarketLoading={regionalMarketLoading} regionalMarketData={regionalMarketData} regionalMarketUpdatedAt={regionalMarketUpdatedAt} shopData={shopData} shopDataUpdatedAt={shopDataUpdatedAt} region={region} onRefresh={refreshShopData} />}
 
         {(currentPage === "home" || currentPage === "games") && <HomePage
           currentPage={currentPage}
