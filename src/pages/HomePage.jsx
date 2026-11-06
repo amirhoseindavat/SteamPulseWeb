@@ -23,6 +23,7 @@ export default function HomePage({
   region,
   setRegion,
   freeGames,
+  loading,
   freeGamesLoading,
   setFreeGamesLoading,
   freeGamesError,
@@ -125,6 +126,8 @@ export default function HomePage({
           <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
         </section>
+      {currentPage === "home" && !loading && <section className="welcome-panel"><Sparkles size={28} /><h2>Your next favorite game is out there</h2><p>Search the Steam catalog or open Trending to discover what’s hot and what’s free right now.</p></section>}
+
     </>
   );
 }
