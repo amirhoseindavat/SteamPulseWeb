@@ -10,7 +10,7 @@ function cleanText(value) {
 
 function extractEvents(html) {
   const parsed = new DOMParser().parseFromString(html, "text/html");
-  const headings = [...parsed.querySelectorAll("h3")];
+  const headings = [...parsed.querySelectorAll("h3, h4")];
   const events = [];
   let section = "upcoming";
 
