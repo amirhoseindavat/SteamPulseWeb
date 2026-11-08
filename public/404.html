@@ -9,7 +9,7 @@
         var projectBase = "/SteamPulseWeb/";
         var base = window.location.pathname.startsWith(projectBase) ? projectBase : "/";
         var route = window.location.pathname.slice(base.length - 1) || "/";
-        var destination = base + "?p=" + encodeURIComponent(route + window.location.search + window.location.hash);
+        var destination = base + "?p=" + encodeURIComponent(route);
         window.location.replace(destination);
       })();
     </script>
