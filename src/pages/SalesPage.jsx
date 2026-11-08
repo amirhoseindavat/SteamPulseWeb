@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles, Monitor, Store, PawPrint, Gamepad2, Music, Bot, Flag, WandSparkles, Swords, Mountain, Brain } from "lucide-react";
+import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles } from "lucide-react";
 import { useSalesData } from "../hooks/useSalesData";
 
 function formatSaleDate(startAt, endAt) {
@@ -40,31 +40,11 @@ function Countdown({ target, now, label }) {
   );
 }
 
-const eventIcons = {
-  monitor: Monitor,
-  store: Store,
-  "paw-print": PawPrint,
-  "gamepad-2": Gamepad2,
-  music: Music,
-  bot: Bot,
-  flag: Flag,
-  "wand-sparkles": WandSparkles,
-  swords: Swords,
-  mountain: Mountain,
-  chess: Brain
-};
-
 function ThemedEventCard({ event, now }) {
-  const Icon = eventIcons[event.icon] || Sparkles;
   const isLive = event.isLive;
 
   return (
     <a className={`sales-themed-card detail-card ${isLive ? "is-live" : ""}`} href={event.url} target="_blank" rel="noreferrer">
-      <div className="sales-themed-art" aria-hidden="true">
-        <div className="sales-themed-orb" />
-        <Icon size={48} strokeWidth={1.25} />
-        <span>STEAM FEST</span>
-      </div>
       <div className="sales-themed-copy">
         <div className="sales-themed-meta">
           <span className={isLive ? "live" : ""}>{isLive ? "LIVE NOW" : "UPCOMING FEST"}</span>
@@ -87,7 +67,7 @@ export default function SalesPage() {
       <section className="intro sales-intro">
         <div className="eyebrow"><CalendarDays size={14} /> STEAM SALES & FESTS</div>
         <h1>Steam <span>Sales</span></h1>
-        <p>Follow the next major seasonal sale and the closest upcoming themed Steam Fests.</p>
+        <p>Follow the next major seasonal sale and the upcoming themed Steam Fests.</p>
       </section>
 
       {event ? (
@@ -130,7 +110,7 @@ export default function SalesPage() {
           <div>
             <span className="section-kicker"><Sparkles size={13} /> THEMED SALE EVENTS</span>
             <h2>Upcoming Fests</h2>
-            <p>Only the two closest announced Fests are shown.</p>
+            <p>All announced upcoming Fests, ordered by start date.</p>
           </div>
           <a href="https://partner.steamgames.com/doc/marketing/upcoming_events" target="_blank" rel="noreferrer">
             Full Steam schedule <ExternalLink size={13} />
