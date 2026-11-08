@@ -2,7 +2,7 @@ import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles } fro
 import { useSalesData } from "../hooks/useSalesData";
 
 function formatSaleDate(startAt, endAt) {
-  const options = { month: "short", day: "numeric", year: "numeric", timeZoneName: "short" };
+  const options = { month: "short", day: "numeric", year: "numeric" };
   const start = new Intl.DateTimeFormat("en-US", options).format(new Date(startAt));
   const end = new Intl.DateTimeFormat("en-US", options).format(new Date(endAt));
   return `${start} — ${end}`;
