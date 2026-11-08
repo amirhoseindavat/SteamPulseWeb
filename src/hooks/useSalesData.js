@@ -5,7 +5,7 @@ const CACHE_KEY = "steampulse-sales-cache";
 const CACHE_MAX_AGE = 30 * 60 * 1000;
 
 function cleanText(value) {
-  return String(value || "").replace(/\\s+/g, " ").trim();
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 function extractEvents(html) {
@@ -33,15 +33,15 @@ function extractEvents(html) {
     let card = heading.parentElement;
     let cardText = cleanText(card?.textContent);
     for (let depth = 0; depth < 5 && card?.parentElement; depth += 1) {
-      if (cardText.length >= 28 && cardText.length <= 700 && /\\b(january|february|march|april|may|june|july|august|september|october|november|december)\\b/i.test(cardText)) break;
+      if (cardText.length >= 28 && cardText.length <= 700 && /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i.test(cardText)) break;
       card = card.parentElement;
       cardText = cleanText(card.textContent);
     }
 
-    const dateMatch = cardText.match(/(?:\\d{1,2}\\s+)?(?:January|February|March|April|May|June|July|August|September|October|November|December)[^,;]{0,55}(?:\\d{4})?/i);
+    const dateMatch = cardText.match(/(?:\d{1,2}\s+)?(?:January|February|March|April|May|June|July|August|September|October|November|December)[^,;]{0,55}(?:\d{4})?/i);
     const image = card?.querySelector("img");
-    const live = /\\bLIVE\\b/i.test(cardText);
-    const title = headingText.replace(/\\s+LIVE\\s*$/i, "").trim();
+    const live = /\bLIVE\b/i.test(cardText);
+    const title = headingText.replace(/\s+LIVE\s*$/i, "").trim();
 
     events.push({
       id: href,
