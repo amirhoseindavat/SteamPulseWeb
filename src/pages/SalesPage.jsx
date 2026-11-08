@@ -1,5 +1,6 @@
 import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles } from "lucide-react";
 import { useSalesData } from "../hooks/useSalesData";
+import "./SalesPage.css";
 
 function formatSaleDate(startAt, endAt) {
   const options = { month: "short", day: "numeric", year: "numeric" };
@@ -40,6 +41,23 @@ function Countdown({ target, now, label }) {
   );
 }
 
+function CompactSaleCountdown({ event, now }) {
+  const target = event.isLive ? event.endAt : event.startAt;
+  const time = getCountdown(target, now);
+  const units = [["D", time.days], ["H", time.hours], ["M", time.minutes], ["S", time.seconds]];
+
+  return (
+    <div className="sales-mini-countdown" aria-label={event.isLive ? "Time remaining" : "Time until sale starts"}>
+      <span className={event.isLive ? "is-live" : ""}>{event.isLive ? "ENDS IN" : "STARTS IN"}</span>
+      <div className="sales-mini-countdown-units">
+        {units.map(([unit, value]) => (
+          <div key={unit}><strong>{String(value).padStart(2, "0")}</strong><small>{unit}</small></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ThemedEventCard({ event, now }) {
   const isLive = event.isLive;
 
@@ -59,7 +77,7 @@ function ThemedEventCard({ event, now }) {
 }
 
 export default function SalesPage() {
-  const { event, themedEvents, now } = useSalesData();
+  const { event, majorEvents, themedEvents, now } = useSalesData();
 
   return (
     <div className="sales-page">
@@ -90,6 +108,26 @@ export default function SalesPage() {
           </div>
 
           <Countdown target={event.isLive ? event.endAt : event.startAt} now={now} label={event.isLive ? "ENDS IN" : "STARTS IN"} />
+
+          {majorEvents.length > 0 && (
+            <div className="sales-upcoming-major">
+              <div className="sales-upcoming-major-heading">
+                <span>UPCOMING SEASONAL SALES</span>
+                <span>{majorEvents.length} CONFIRMED</span>
+              </div>
+              <div className="sales-upcoming-major-list">
+                {majorEvents.map((sale) => (
+                  <article className={`sales-mini-sale ${sale.id === event.id ? "is-featured" : ""} ${sale.isLive ? "is-live" : ""}`} key={sale.id}>
+                    <div className="sales-mini-sale-info">
+                      <strong>{sale.name}</strong>
+                      <span><CalendarCheck2 size={12} /> {formatSaleDate(sale.startAt, sale.endAt)}</span>
+                    </div>
+                    <CompactSaleCountdown event={sale} now={now} />
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="sales-next-footer">
             <span><Clock3 size={13} /> Starts at 10:00 AM Pacific Time</span>
