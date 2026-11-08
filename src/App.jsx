@@ -20,17 +20,41 @@ import { useSteamProfile } from "./hooks/useSteamProfile";
 import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
 
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\\/$/, "");
+
+function getRoutePath() {
+  const fallbackRoute = new URLSearchParams(window.location.search).get("p");
+  if (fallbackRoute) {
+    const route = fallbackRoute.startsWith("/") ? fallbackRoute : `/${fallbackRoute}`;
+    window.history.replaceState(null, "", `${BASE_PATH}${route}`);
+    return route;
+  }
+  if (window.location.hash.startsWith("#/")) {
+    const route = window.location.hash.slice(1);
+    window.history.replaceState(null, "", `${BASE_PATH}${route}`);
+    return route;
+  }
+  const pathname = window.location.pathname;
+  const route = BASE_PATH && pathname.startsWith(BASE_PATH) ? pathname.slice(BASE_PATH.length) : pathname;
+  return route || "/";
+}
+
 export default function App() {
+  const initialRoute = getRoutePath();
   const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
   const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
   const [profileRouteId, setProfileRouteId] = useState(() => {
-    const match = window.location.hash.match(/^#\/profile\/([^/?#]+)\/?$/);
+    const match = initialRoute.match(/^\/profile\/([^/?#]+)\/?$/);
     return match ? match[1] : "";
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => {
+    const gameMatch = initialRoute.match(/^\/game\/(\d+)/);
+    const pageMatch = initialRoute.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/[^/?#]+)?\/?$/);
+    return gameMatch ? "game" : (pageMatch?.[1] || "home");
+  });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [appid, setAppid] = useState("");
@@ -75,8 +99,8 @@ export default function App() {
   }, [currentPage, game?.name]);
 
   function navigateTo(page) {
-    const nextHash = page === "game" && appid ? `#/game/${appid}` : page === "profile" && personalSteamProfileData?.profile?.steamId ? `#/profile/${personalSteamProfileData.profile.steamId}` : `#/${page}`;
-    if (window.location.hash !== nextHash) window.history.pushState(null, "", nextHash);
+    const nextPath = page === "game" && appid ? `/game/${appid}` : page === "profile" && personalSteamProfileData?.profile?.steamId ? `/profile/${personalSteamProfileData.profile.steamId}` : `/${page}`;
+    if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
     setCurrentPage(page);
     setProfileRouteId("");
     if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
@@ -89,7 +113,7 @@ export default function App() {
       return;
     }
     setCurrentPage("game");
-    if (window.location.hash !== `#/game/${id}`) window.history.pushState(null, "", `#/game/${id}`);
+    if (getRoutePath() !== `/game/${id}`) window.history.pushState(null, "", `${BASE_PATH}/game/${id}`);
     const requestId = ++gameRequestRef.current;
     setLoading(true);
     setError("");
@@ -182,24 +206,28 @@ export default function App() {
   }
 
   useEffect(() => {
-    const syncPageFromHash = () => {
-      const hash = window.location.hash;
-      const gameMatch = hash.match(/^#\/game\/(\d+)/);
+    const syncPageFromLocation = () => {
+      const route = getRoutePath();
+      const gameMatch = route.match(/^\/game\/(\d+)/);
       if (gameMatch) {
         setCurrentPage("game");
         const targetId = gameMatch[1];
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
+      const pageMatch = route.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
     };
-    window.addEventListener("popstate", syncPageFromHash);
-    if (window.location.hash) syncPageFromHash();
-    return () => window.removeEventListener("popstate", syncPageFromHash);
+    window.addEventListener("popstate", syncPageFromLocation);
+    window.addEventListener("hashchange", syncPageFromLocation);
+    if (getRoutePath() !== "/") syncPageFromLocation();
+    return () => {
+      window.removeEventListener("popstate", syncPageFromLocation);
+      window.removeEventListener("hashchange", syncPageFromLocation);
+    };
   }, []);
 
   useEffect(() => {
