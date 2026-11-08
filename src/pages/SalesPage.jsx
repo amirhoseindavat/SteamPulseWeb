@@ -131,7 +131,7 @@ export default function SalesPage() {
 
           <div className="sales-next-footer">
             <span><Clock3 size={13} /> Starts at 10:00 AM Pacific Time</span>
-            <span>Only the next major sale is displayed</span>
+            <span>All confirmed upcoming seasonal sales are listed below</span>
           </div>
         </section>
       ) : (
