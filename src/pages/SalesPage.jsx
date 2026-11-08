@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag } from "lucide-react";
+import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles, Monitor, Store, PawPrint, Gamepad2, Music, Bot, Flag, WandSparkles, Swords, Mountain, Chess } from "lucide-react";
 import { useSalesData } from "../hooks/useSalesData";
 
 function formatSaleDate(startAt, endAt) {
@@ -20,12 +20,7 @@ function getCountdown(target, now) {
 
 function Countdown({ target, now, label }) {
   const time = getCountdown(target, now);
-  const units = [
-    ["DAYS", time.days],
-    ["HOURS", time.hours],
-    ["MINUTES", time.minutes],
-    ["SECONDS", time.seconds]
-  ];
+  const units = [["DAYS", time.days], ["HOURS", time.hours], ["MINUTES", time.minutes], ["SECONDS", time.seconds]];
 
   return (
     <div className="sales-countdown">
@@ -45,15 +40,54 @@ function Countdown({ target, now, label }) {
   );
 }
 
+const eventIcons = {
+  monitor: Monitor,
+  store: Store,
+  "paw-print": PawPrint,
+  "gamepad-2": Gamepad2,
+  music: Music,
+  bot: Bot,
+  flag: Flag,
+  "wand-sparkles": WandSparkles,
+  swords: Swords,
+  mountain: Mountain,
+  chess: Chess
+};
+
+function ThemedEventCard({ event, now }) {
+  const Icon = eventIcons[event.icon] || Sparkles;
+  const isLive = event.isLive;
+
+  return (
+    <a className={`sales-themed-card detail-card ${isLive ? "is-live" : ""}`} href={event.url} target="_blank" rel="noreferrer">
+      <div className="sales-themed-art" aria-hidden="true">
+        <div className="sales-themed-orb" />
+        <Icon size={48} strokeWidth={1.25} />
+        <span>STEAM FEST</span>
+      </div>
+      <div className="sales-themed-copy">
+        <div className="sales-themed-meta">
+          <span className={isLive ? "live" : ""}>{isLive ? "LIVE NOW" : "UPCOMING FEST"}</span>
+          <ExternalLink size={13} />
+        </div>
+        <h3>{event.name}</h3>
+        <p>{event.description}</p>
+        <div className="sales-themed-date"><CalendarCheck2 size={14} /> {formatSaleDate(event.startAt, event.endAt)}</div>
+        {isLive ? <span className="sales-themed-live-note">Event is live now</span> : <span className="sales-themed-countdown">Starts in {Math.max(0, Math.ceil((event.startAt - now) / 86400000))} days</span>}
+      </div>
+    </a>
+  );
+}
+
 export default function SalesPage() {
-  const { event, now } = useSalesData();
+  const { event, themedEvents, now } = useSalesData();
 
   return (
     <div className="sales-page">
       <section className="intro sales-intro">
-        <div className="eyebrow"><CalendarDays size={14} /> STEAM SEASONAL SALES</div>
+        <div className="eyebrow"><CalendarDays size={14} /> STEAM SALES & FESTS</div>
         <h1>Steam <span>Sales</span></h1>
-        <p>Track the next major Steam-wide seasonal sale. Only the nearest confirmed event is shown.</p>
+        <p>Follow the next major seasonal sale and the closest upcoming themed Steam Fests.</p>
       </section>
 
       {event ? (
@@ -76,11 +110,7 @@ export default function SalesPage() {
             </a>
           </div>
 
-          <Countdown
-            target={event.isLive ? event.endAt : event.startAt}
-            now={now}
-            label={event.isLive ? "ENDS IN" : "STARTS IN"}
-          />
+          <Countdown target={event.isLive ? event.endAt : event.startAt} now={now} label={event.isLive ? "ENDS IN" : "STARTS IN"} />
 
           <div className="sales-next-footer">
             <span><Clock3 size={13} /> Starts at 10:00 AM Pacific Time</span>
@@ -94,6 +124,26 @@ export default function SalesPage() {
           <p>Valve has not announced the next major seasonal sale yet. Check back when the official schedule is updated.</p>
         </section>
       )}
+
+      <section className="sales-themed-section">
+        <div className="sales-themed-heading">
+          <div>
+            <span className="section-kicker"><Sparkles size={13} /> THEMED SALE EVENTS</span>
+            <h2>Upcoming Fests</h2>
+            <p>Only the two closest announced Fests are shown.</p>
+          </div>
+          <a href="https://partner.steamgames.com/doc/marketing/upcoming_events" target="_blank" rel="noreferrer">
+            Full Steam schedule <ExternalLink size={13} />
+          </a>
+        </div>
+        {themedEvents.length ? (
+          <div className="sales-themed-grid">
+            {themedEvents.map((fest) => <ThemedEventCard key={fest.id} event={fest} now={now} />)}
+          </div>
+        ) : (
+          <div className="sales-themed-empty detail-card">No upcoming themed Fests have been announced yet.</div>
+        )}
+      </section>
 
       <div className="sales-source-note">
         <span>Official source: <a href="https://partner.steamgames.com/doc/marketing/upcoming_events" target="_blank" rel="noreferrer">Steamworks – Upcoming Steam Events</a></span>
