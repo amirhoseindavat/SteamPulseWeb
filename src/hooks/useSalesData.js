@@ -20,7 +20,7 @@ export function useSalesData() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const { event, themedEvents } = useMemo(() => {
+  const { event, majorEvents, themedEvents } = useMemo(() => {
     const majorEvents = prepareEvents(majorSteamSales, now);
     const fests = prepareEvents(themedSteamEvents, now);
     const liveMajor = majorEvents.find((sale) => sale.startAt <= now && now < sale.endAt);
