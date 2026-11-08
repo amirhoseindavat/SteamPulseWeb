@@ -27,14 +27,14 @@ export function useSalesData() {
     const nextMajor = majorEvents.find((sale) => sale.startAt > now);
     const selectedMajor = liveMajor || nextMajor;
 
-    const upcomingFests = fests
-      .filter((fest) => fest.startAt > now || (fest.startAt <= now && now < fest.endAt))
-      .slice(0, 2)
-      .map((fest) => ({ ...fest, isLive: fest.startAt <= now && now < fest.endAt }));
+    const orderedFests = fests.map((fest) => ({
+      ...fest,
+      isLive: fest.startAt <= now && now < fest.endAt
+    }));
 
     return {
       event: selectedMajor ? { ...selectedMajor, isLive: Boolean(liveMajor) } : null,
-      themedEvents: upcomingFests
+      themedEvents: orderedFests
     };
   }, [now]);
 
