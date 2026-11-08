@@ -9,6 +9,7 @@ import TrendingPage from "./pages/TrendingPage";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
+import SalesPage from "./pages/SalesPage";
 import { REGIONS } from "./config/regions";
 import { money, formatNumber } from "./utils/formatters";
 import { readApiResponse } from "./utils/api";
@@ -29,7 +30,7 @@ export default function App() {
   });
   const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
+  const [currentPage, setCurrentPage] = useState(() => { const match = window.location.hash.match(/^#\/game\/(\d+)/); return match ? "game" : (window.location.hash.match(/^#\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/\d{17})?\/?$/)?.[1] || "home"); });
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [appid, setAppid] = useState("");
@@ -68,7 +69,7 @@ export default function App() {
 
 
   useEffect(() => {
-    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
+    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", sales: "Sales", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
     const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
     document.title = `${title} | SteamPulse`;
   }, [currentPage, game?.name]);
@@ -190,7 +191,7 @@ export default function App() {
         if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
         return;
       }
-      const pageMatch = hash.match(/^#\/(home|games|trending|market|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
+      const pageMatch = hash.match(/^#\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
       const nextPage = pageMatch?.[1] || "home";
       setCurrentPage(nextPage);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
@@ -317,6 +318,8 @@ export default function App() {
         {currentPage === "calculator" && <CalculatorPage region={region} setRegion={setRegion} conversionMode={conversionMode} setConversionMode={setConversionMode} conversionAmount={conversionAmount} setConversionAmount={setConversionAmount} selectedRegion={selectedRegion} conversionResult={conversionResult} conversionResultFormatted={conversionResultFormatted} conversionResultLabel={conversionResultLabel} regionalKeyPrice={regionalKeyPrice} regionalKeyPriceForCalculation={regionalKeyPriceForCalculation} liveKeyPriceToman={liveKeyPriceToman} shopDataError={shopDataError} />}
 
         {currentPage === "cart" && <CartPage steamCartApps={steamCartApps} steamAccountConnected={steamAccountConnected} steamCartDetailsError={steamCartDetailsError} steamCartDetailsLoading={steamCartDetailsLoading} uniqueCartDetails={uniqueCartDetails} cartTotalFormatted={cartTotalFormatted} cartOriginalTotalFormatted={cartOriginalTotalFormatted} cartSavingsMinor={cartSavingsMinor} cartSavingsFormatted={cartSavingsFormatted} cartKeyCount={cartKeyCount} region={region} regionalKeyPriceForCalculation={regionalKeyPriceForCalculation} cartCurrency={cartCurrency} />}
+
+        {currentPage === "sales" && <SalesPage />}
 
         {currentPage === "market" && <MarketPage shopDataError={shopDataError} shopDataLoading={shopDataLoading} regionalMarketError={regionalMarketError} regionalMarketLoading={regionalMarketLoading} regionalMarketData={regionalMarketData} regionalMarketUpdatedAt={regionalMarketUpdatedAt} shopData={shopData} shopDataUpdatedAt={shopDataUpdatedAt} region={region} onRefresh={refreshShopData} />}
 
