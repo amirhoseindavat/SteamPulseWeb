@@ -1,0 +1,29 @@
+/* Compact upcoming seasonal sales inside the major-sale feature card. */
+.sales-upcoming-major{position:relative;margin-top:18px;padding-top:17px;border-top:1px solid rgba(180,164,255,.16)}
+.sales-upcoming-major-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;color:#a995ff;font:700 9px "DM Mono",monospace;letter-spacing:1.1px}
+.sales-upcoming-major-heading>span:last-child{color:#74819e;font-size:8px}
+.sales-upcoming-major-list{display:grid;gap:7px}
+.sales-mini-sale{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;border:1px solid rgba(180,164,255,.12);border-radius:10px;background:rgba(5,11,24,.18)}
+.sales-mini-sale.is-featured{border-color:rgba(169,149,255,.28);background:rgba(139,108,255,.075)}
+.sales-mini-sale.is-live{border-color:rgba(112,223,173,.24)}
+.sales-mini-sale-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.sales-mini-sale-info strong{color:#e9e5ff;font-size:12px;font-weight:750}
+.sales-mini-sale-info>span{display:flex;align-items:center;gap:5px;color:#9aa6c1;font-size:10px}
+.sales-mini-sale-info>span svg{flex-shrink:0;color:#a995ff}
+.sales-mini-countdown{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.sales-mini-countdown>span{color:#a995ff;font:700 8px "DM Mono",monospace;letter-spacing:.8px}
+.sales-mini-countdown>span.is-live{color:#70dfad}
+.sales-mini-countdown-units{display:flex;align-items:center;gap:5px}
+.sales-mini-countdown-units>div{display:flex;align-items:baseline;gap:2px;min-width:27px;justify-content:center}
+.sales-mini-countdown-units strong{color:#f0ebff;font:700 13px "DM Mono",monospace;font-variant-numeric:tabular-nums}
+.sales-mini-countdown-units small{color:#7885a4;font:8px "DM Mono",monospace}
+.app-shell[data-theme="light"] .sales-mini-sale{background:rgba(255,255,255,.32);border-color:rgba(126,101,215,.14)}
+.app-shell[data-theme="light"] .sales-mini-sale.is-featured{background:rgba(139,108,255,.08);border-color:rgba(126,101,215,.24)}
+.app-shell[data-theme="light"] .sales-mini-sale-info strong{color:#35275f}
+.app-shell[data-theme="light"] .sales-mini-sale-info>span{color:#596580}
+.app-shell[data-theme="light"] .sales-mini-countdown-units strong{color:#35275f}
+@media(max-width:620px){
+  .sales-mini-sale{align-items:flex-start;flex-direction:column;gap:9px}
+  .sales-mini-countdown{width:100%;align-items:flex-start;flex-direction:row;justify-content:space-between}
+  .sales-mini-countdown-units{gap:9px}
+}
