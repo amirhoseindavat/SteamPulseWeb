@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { majorSteamSales } from "../data/steamSales";
+import { majorSteamSales, themedSteamEvents } from "../data/steamSales";
+
+function prepareEvents(events, now) {
+  return events
+    .map((event) => ({
+      ...event,
+      startAt: new Date(event.start).getTime(),
+      endAt: new Date(event.end).getTime()
+    }))
+    .filter((event) => Number.isFinite(event.startAt) && Number.isFinite(event.endAt) && event.endAt > now)
+    .sort((a, b) => a.startAt - b.startAt);
+}
 
 export function useSalesData() {
   const [now, setNow] = useState(() => Date.now());
@@ -9,22 +20,23 @@ export function useSalesData() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const event = useMemo(() => {
-    const current = majorSteamSales
-      .map((sale) => ({
-        ...sale,
-        startAt: new Date(sale.start).getTime(),
-        endAt: new Date(sale.end).getTime()
-      }))
-      .filter((sale) => Number.isFinite(sale.startAt) && Number.isFinite(sale.endAt) && sale.endAt > now)
-      .sort((a, b) => a.startAt - b.startAt);
+  const { event, themedEvents } = useMemo(() => {
+    const majorEvents = prepareEvents(majorSteamSales, now);
+    const fests = prepareEvents(themedSteamEvents, now);
+    const liveMajor = majorEvents.find((sale) => sale.startAt <= now && now < sale.endAt);
+    const nextMajor = majorEvents.find((sale) => sale.startAt > now);
+    const selectedMajor = liveMajor || nextMajor;
 
-    const liveSale = current.find((sale) => sale.startAt <= now && now < sale.endAt);
-    const nextSale = current.find((sale) => sale.startAt > now);
-    const selected = liveSale || nextSale;
+    const upcomingFests = fests
+      .filter((fest) => fest.startAt > now || (fest.startAt <= now && now < fest.endAt))
+      .slice(0, 2)
+      .map((fest) => ({ ...fest, isLive: fest.startAt <= now && now < fest.endAt }));
 
-    return selected ? { ...selected, isLive: Boolean(liveSale) } : null;
+    return {
+      event: selectedMajor ? { ...selectedMajor, isLive: Boolean(liveMajor) } : null,
+      themedEvents: upcomingFests
+    };
   }, [now]);
 
-  return { event, now };
+  return { event, themedEvents, now };
 }
