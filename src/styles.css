@@ -2279,3 +2279,60 @@
 .sales-source-note a{color:#a995ff;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:760px){.sales-events-grid{grid-template-columns:1fr}.sales-feature{align-items:flex-start;flex-direction:column}.sales-feature .secondary-button{align-self:flex-start}}
 @media(max-width:480px){.sales-event-card>img,.sales-event-placeholder{width:104px;min-height:108px}.sales-event-content{padding:11px 12px;gap:7px}.sales-event-content h3{font-size:11px}.sales-event-content p{font-size:9px}.sales-tabs{width:100%}.sales-tabs button{flex:1;justify-content:center;padding:9px 7px;font-size:9px}}
+
+
+/* Single-card major Steam sale tracker */
+.sales-next-card{
+  position:relative;overflow:hidden;margin-top:20px;padding:clamp(22px,4vw,38px);
+  border:1px solid rgba(151,126,255,.28);
+  background:linear-gradient(125deg,rgba(85,64,168,.23),rgba(17,25,47,.82) 58%,rgba(35,49,82,.55));
+}
+.sales-next-card:before{
+  content:"";position:absolute;top:-170px;right:8%;width:360px;height:360px;border-radius:50%;
+  background:rgba(139,108,255,.16);filter:blur(55px);pointer-events:none;
+}
+.sales-next-topline,.sales-next-main,.sales-countdown-heading,.sales-next-footer{
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.sales-next-topline .section-kicker{display:inline-flex;align-items:center;gap:7px}
+.sales-status-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(165,143,255,.25);border-radius:30px;background:rgba(139,108,255,.10);color:#c7b8ff;font:9px 'DM Mono',monospace;letter-spacing:1px}
+.sales-status-pill i{width:6px;height:6px;border-radius:50%;background:#a58fff;box-shadow:0 0 9px currentColor}
+.sales-status-pill.live{color:#7ce4b5;border-color:rgba(124,228,181,.25);background:rgba(124,228,181,.08)}
+.sales-status-pill.live i{background:#7ce4b5}
+.sales-next-main{align-items:flex-end;margin:28px 0 25px}
+.sales-next-label{color:#9e8aff;font:10px 'DM Mono',monospace;letter-spacing:1.7px}
+.sales-next-copy h2{margin:9px 0 12px;color:#f1efff;font-size:clamp(25px,4vw,38px);letter-spacing:-1.2px}
+.sales-next-copy p{display:flex;align-items:center;gap:8px;margin:0;color:#aab5cf;font-size:12px}
+.sales-next-copy p svg{color:#a18aff}
+.sales-store-link{flex-shrink:0}
+.sales-countdown{position:relative;padding:18px;border:1px solid rgba(180,164,255,.16);border-radius:13px;background:rgba(5,11,24,.28)}
+.sales-countdown-heading{margin-bottom:13px;color:#bbaaff;font:9px 'DM Mono',monospace;letter-spacing:1.2px}
+.sales-countdown-heading>span:last-child{display:inline-flex;align-items:center;gap:6px;color:#7785a4;letter-spacing:.3px}
+.sales-countdown-units{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sales-countdown-unit{display:grid;justify-items:center;gap:7px;padding:14px 5px 11px;border:1px solid rgba(180,164,255,.12);border-radius:9px;background:rgba(255,255,255,.035)}
+.sales-countdown-unit strong{color:#f0ebff;font:800 clamp(25px,5vw,42px)/1 'DM Mono',monospace;font-variant-numeric:tabular-nums}
+.sales-countdown-unit span{color:#8490ad;font:8px 'DM Mono',monospace;letter-spacing:1.2px}
+.sales-next-footer{margin-top:15px;color:#74819e;font:9px 'DM Mono',monospace}
+.sales-next-footer span:first-child{display:inline-flex;align-items:center;gap:6px}
+.sales-no-event{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.sales-no-event>svg{color:#a18aff}
+.sales-no-event h2{margin:15px 0 7px;color:#e8edfc;font-size:20px}
+.sales-no-event p{max-width:460px;margin:0;color:#8995b0;font-size:12px;line-height:1.8}
+.sales-page>.sales-source-note{margin-top:18px}
+.app-shell[data-theme="light"] .sales-next-card{background:linear-gradient(125deg,rgba(232,225,255,.92),rgba(255,255,255,.88) 58%,rgba(232,239,255,.86));border-color:rgba(126,101,215,.25)}
+.app-shell[data-theme="light"] .sales-next-copy h2,.app-shell[data-theme="light"] .sales-no-event h2{color:#30334f}
+.app-shell[data-theme="light"] .sales-next-copy p{color:#596580}
+.app-shell[data-theme="light"] .sales-countdown{background:rgba(255,255,255,.48);border-color:rgba(126,101,215,.16)}
+.app-shell[data-theme="light"] .sales-countdown-unit{background:rgba(255,255,255,.55);border-color:rgba(126,101,215,.14)}
+.app-shell[data-theme="light"] .sales-countdown-unit strong{color:#35275f}
+.app-shell[data-theme="light"] .sales-countdown-unit span{color:#727d98}
+.app-shell[data-theme="light"] .sales-countdown-heading{color:#7156c9}
+@media(max-width:620px){
+  .sales-next-main{align-items:flex-start;flex-direction:column}
+  .sales-next-footer{align-items:flex-start;flex-direction:column;gap:7px}
+  .sales-countdown{padding:12px}
+  .sales-countdown-units{gap:6px}
+  .sales-countdown-unit{padding:12px 2px 9px}
+  .sales-countdown-unit strong{font-size:clamp(19px,7vw,29px)}
+  .sales-countdown-unit span{font-size:7px;letter-spacing:.6px}
+}
