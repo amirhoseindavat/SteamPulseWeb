@@ -1,4 +1,4 @@
-import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles, Monitor, Store, PawPrint, Gamepad2, Music, Bot, Flag, WandSparkles, Swords, Mountain, Chess } from "lucide-react";
+import { CalendarDays, CalendarCheck2, ExternalLink, Clock3, Tag, Sparkles, Monitor, Store, PawPrint, Gamepad2, Music, Bot, Flag, WandSparkles, Swords, Mountain, Brain } from "lucide-react";
 import { useSalesData } from "../hooks/useSalesData";
 
 function formatSaleDate(startAt, endAt) {
@@ -51,7 +51,7 @@ const eventIcons = {
   "wand-sparkles": WandSparkles,
   swords: Swords,
   mountain: Mountain,
-  chess: Chess
+  chess: Brain
 };
 
 function ThemedEventCard({ event, now }) {
