@@ -27,6 +27,8 @@ export function useSalesData() {
     const nextMajor = majorEvents.find((sale) => sale.startAt > now);
     const selectedMajor = liveMajor || nextMajor;
 
+    const orderedMajorSales = majorEvents.map((sale) => ({ ...sale, isLive: sale.startAt <= now && now < sale.endAt }));
+
     const orderedFests = fests.map((fest) => ({
       ...fest,
       isLive: fest.startAt <= now && now < fest.endAt
@@ -34,9 +36,10 @@ export function useSalesData() {
 
     return {
       event: selectedMajor ? { ...selectedMajor, isLive: Boolean(liveMajor) } : null,
+      majorEvents: orderedMajorSales,
       themedEvents: orderedFests
     };
   }, [now]);
 
-  return { event, themedEvents, now };
+  return { event, majorEvents, themedEvents, now };
 }
