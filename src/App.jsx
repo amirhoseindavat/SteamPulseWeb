@@ -20,7 +20,7 @@ import { useSteamProfile } from "./hooks/useSteamProfile";
 import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
 
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\\/$/, "");
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 function getRoutePath() {
   const fallbackRoute = new URLSearchParams(window.location.search).get("p");
