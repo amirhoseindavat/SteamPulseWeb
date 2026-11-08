@@ -2378,3 +2378,80 @@
 .sales-themed-copy p{font-size:10px;line-height:1.7}
 @media(max-width:760px){.sales-themed-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.sales-themed-copy{padding:14px}.sales-themed-copy h3{font-size:12px}.sales-themed-copy p{font-size:9px}}
+
+
+/* Accessibility pass: raise the baseline of dense interface copy. */
+.main-content :where(p, small, label, button, li, td, th) {
+  font-size: max(13px, .875em);
+}
+
+/* Sales page readability */
+.sales-page .section-kicker,
+.sales-page .sales-next-label,
+.sales-page .sales-status-pill,
+.sales-page .sales-countdown-heading,
+.sales-page .sales-next-footer,
+.sales-page .sales-themed-meta > span {
+  font-size: 11px;
+}
+.sales-page .sales-next-copy p,
+.sales-page .sales-themed-heading p,
+.sales-page .sales-themed-date {
+  font-size: 14px;
+}
+.sales-page .sales-themed-copy h3 {
+  font-size: 17px;
+}
+.sales-page .sales-themed-copy p {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.sales-page .sales-themed-countdown,
+.sales-page .sales-themed-live-note {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  margin-top: 3px;
+  padding: 7px 11px;
+  border: 1px solid rgba(169,149,255,.32);
+  border-radius: 8px;
+  background: rgba(139,108,255,.13);
+  color: #c8b8ff;
+  font: 800 15px/1.35 Manrope, sans-serif;
+  letter-spacing: .1px;
+}
+.sales-page .sales-themed-live-note {
+  color: #83e8bb;
+  border-color: rgba(112,223,173,.28);
+  background: rgba(112,223,173,.09);
+}
+.sales-page .sales-themed-date {
+  color: #c0c9df;
+}
+.sales-page .sales-countdown-heading {
+  font-size: 11px;
+}
+.sales-page .sales-countdown-unit span {
+  font-size: 10px;
+}
+.sales-page .sales-next-footer {
+  font-size: 11px;
+}
+.sales-page .sales-themed-empty {
+  font-size: 14px;
+}
+.app-shell[data-theme="light"] .sales-page .sales-themed-countdown {
+  color: #5d45ae;
+  border-color: rgba(113,86,201,.25);
+  background: rgba(139,108,255,.10);
+}
+.app-shell[data-theme="light"] .sales-page .sales-themed-date {
+  color: #46516b;
+}
+@media (max-width: 480px) {
+  .sales-page .sales-themed-copy h3 { font-size: 16px; }
+  .sales-page .sales-themed-copy p { font-size: 13px; }
+  .sales-page .sales-themed-countdown,
+  .sales-page .sales-themed-live-note { font-size: 14px; }
+  .sales-page .sales-themed-date { font-size: 13px; }
+}
