@@ -44,18 +44,17 @@ function ThemedEventCard({ event, now }) {
   const isLive = event.isLive;
 
   return (
-    <a className={`sales-themed-card detail-card ${isLive ? "is-live" : ""}`} href={event.url} target="_blank" rel="noreferrer">
+    <article className={`sales-themed-card detail-card ${isLive ? "is-live" : ""}`}>
       <div className="sales-themed-copy">
         <div className="sales-themed-meta">
           <span className={isLive ? "live" : ""}>{isLive ? "LIVE NOW" : "UPCOMING FEST"}</span>
-          <ExternalLink size={13} />
         </div>
         <h3>{event.name}</h3>
         <p>{event.description}</p>
         <div className="sales-themed-date"><CalendarCheck2 size={14} /> {formatSaleDate(event.startAt, event.endAt)}</div>
         {isLive ? <span className="sales-themed-live-note">Event is live now</span> : <span className="sales-themed-countdown">Starts in {Math.max(0, Math.ceil((event.startAt - now) / 86400000))} days</span>}
       </div>
-    </a>
+    </article>
   );
 }
 
@@ -112,9 +111,6 @@ export default function SalesPage() {
             <h2>Upcoming Fests</h2>
             <p>All announced upcoming Fests, ordered by start date.</p>
           </div>
-          <a href="https://partner.steamgames.com/doc/marketing/upcoming_events" target="_blank" rel="noreferrer">
-            Full Steam schedule <ExternalLink size={13} />
-          </a>
         </div>
         {themedEvents.length ? (
           <div className="sales-themed-grid">
@@ -126,7 +122,7 @@ export default function SalesPage() {
       </section>
 
       <div className="sales-source-note">
-        <span>Official source: <a href="https://partner.steamgames.com/doc/marketing/upcoming_events" target="_blank" rel="noreferrer">Steamworks – Upcoming Steam Events</a></span>
+        <span>Steam seasonal sales & themed events</span>
         <span>Dates and times are displayed in your local timezone.</span>
       </div>
     </div>
