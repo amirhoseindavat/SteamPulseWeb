@@ -3,7 +3,6 @@ import RegionSelect from "../components/RegionSelect";
 import SteamDeckMark from "../components/SteamDeckMark";
 import DeckCompatibilityIcon from "../components/DeckCompatibilityIcon";
 import ReleaseCountdown from "../components/ReleaseCountdown";
-import Strip from "../components/Strip";
 import GamePurchasePanel from "../components/GamePurchasePanel";
 import GameDlcSection from "../components/GameDlcSection";
 import GameNewsSection from "../components/GameNewsSection";
@@ -115,6 +114,10 @@ export default function GamePage({
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>}
               </div>
+              {(game.player_count !== null && game.player_count !== undefined && game.player_count !== "") || (game.metacritic?.score !== null && game.metacritic?.score !== undefined && game.metacritic?.score !== "" && Number.isFinite(Number(game.metacritic.score))) ? <div className="hero-live-stats">
+                {game.player_count !== null && game.player_count !== undefined && game.player_count !== "" && <span className="hero-player-count"><Users size={15} /><strong>{formatNumber(game.player_count)}</strong><small>PLAYERS ONLINE</small></span>}
+                {game.metacritic?.score !== null && game.metacritic?.score !== undefined && game.metacritic?.score !== "" && Number.isFinite(Number(game.metacritic.score)) && <span className={`hero-metacritic metacritic-${Number(game.metacritic.score) > 75 ? "green" : Number(game.metacritic.score) > 50 ? "yellow" : "red"}`}><strong>{game.metacritic.score}</strong><small>METASCORE</small></span>}
+              </div> : null}
               <div className="hero-actions game-external-actions">
                   <a className="primary-button" href={game.steam_url || ("https://store.steampowered.com/app/" + game.appid + "/")} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=store.steampowered.com&sz=64" alt="" /> Steam <ExternalLink size={14} /></a>
                   <a className="secondary-button external-site-button" href={"https://steamdb.info/app/" + game.appid + "/"} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=steamdb.info&sz=64" alt="" /> SteamDB <ExternalLink size={13} /></a>
@@ -136,11 +139,6 @@ export default function GamePage({
             <span className="steam-franchise-copy"><small>EXPLORE THE FRANCHISE</small><strong>{game.franchise.name}</strong><span>View the entire collection on Steam <ExternalLink size={13} /></span></span>
             <span className="steam-franchise-arrow"><ChevronRight size={20} /></span>
           </a>}
-          {!isDlcOrHardware && <section className="stats-strip">
-            <Strip label="CURRENT PRICE" value={price} icon={Tag} />
-            <Strip label="PLAYERS ONLINE" value={formatNumber(game.player_count)} icon={Users} />
-            <Strip label="METACRITIC" value={game.metacritic?.score ?? "—"} icon={Star} />
-          </section>}
 
           {game.type === "dlc" && <section className="dlc-parent-notice detail-card"><div className="dlc-parent-icon"><Library size={22} /></div><div className="dlc-parent-copy"><span className="section-kicker">DLC · BASE GAME REQUIRED</span><h3>This content requires the base game</h3><p>This is downloadable content, not a standalone game. You need to own the base game on Steam to access it.</p>{game.parent_game?.appid ? <><div className="dlc-parent-game"><img src={game.parent_game.header_image || ("https://cdn.akamai.steamstatic.com/steam/apps/" + game.parent_game.appid + "/header.jpg")} alt="" loading="lazy" /><div className="dlc-parent-game-info"><strong>{game.parent_game.name}</strong><small>Required base game</small></div></div><div className="dlc-parent-actions"><a className="dlc-parent-action dlc-parent-steam" href={"https://store.steampowered.com/app/" + game.parent_game.appid + "/"} target="_blank" rel="noreferrer">View base game on Steam <ExternalLink size={14} /></a><a className="dlc-parent-action dlc-parent-steampulse" href={"#/game/" + game.parent_game.appid}>View base game on SteamPulse <ChevronRight size={15} /></a></div></> : <p className="dlc-parent-unknown">Check the DLC store page for its required base game.</p>}</div></section>}
 
