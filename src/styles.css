@@ -2546,3 +2546,17 @@
 .game-external-actions>a{flex:0 0 auto;white-space:nowrap}
 @media(max-width:760px){.hero-content{padding:28px 22px}.hero-content h2{font-size:clamp(21px,5.4vw,34px)}.game-external-actions{padding-bottom:3px}}
 @media(max-width:480px){.hero-content h2{font-size:clamp(19px,5vw,27px);letter-spacing:-.7px}.hero-player-count,.hero-metacritic{min-height:31px;padding:5px 8px}}
+
+
+/* One consistent vertical rhythm across all game-page sections. */
+.app-shell{--game-section-gap:30px}
+.app-shell .purchase-layout{margin-top:var(--game-section-gap)}
+.app-shell .purchase-options-column{gap:var(--game-section-gap)}
+.app-shell .dlc-section-card,.app-shell .extra-content-section{margin-top:var(--game-section-gap)}
+.app-shell .game-info-pair{margin-top:var(--game-section-gap);gap:var(--game-section-gap)}
+.app-shell .detail-section{margin-top:var(--game-section-gap)}
+.app-shell .detail-section>.game-intel-card{margin-top:0}
+.app-shell .overview-grid{gap:var(--game-section-gap)}
+.app-shell .release-countdown{margin:var(--game-section-gap) 0}
+.app-shell .steam-franchise-notice{margin:var(--game-section-gap) 0}
+.app-shell .dlc-parent-notice{margin:var(--game-section-gap) 0}
