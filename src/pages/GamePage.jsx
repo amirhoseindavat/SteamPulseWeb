@@ -9,6 +9,7 @@ import GameDlcSection from "../components/GameDlcSection";
 import GameNewsSection from "../components/GameNewsSection";
 import RequirementsSection from "../components/RequirementsSection";
 import { money, formatNumber } from "../utils/formatters";
+import { hasCompleteReleaseDate } from "../utils/releaseDate";
 
 const CATEGORY_ICONS = {
   2: Users,
@@ -32,7 +33,6 @@ const CATEGORY_ICONS = {
   79: Save,
   23: Cloud
 };
-import { hasCompleteReleaseDate } from "../utils/releaseDate";
 
 export default function GamePage({
   currentPage,
