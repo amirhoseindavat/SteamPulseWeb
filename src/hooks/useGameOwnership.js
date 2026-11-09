@@ -40,7 +40,7 @@ export function useGameOwnership({ game, currentPage, steamProfile, steamApiKey 
   }
 
   useEffect(() => {
-    if (currentPage === "game" && game?.appid && game.type !== "dlc" && steamProfile && steamApiKey) {
+    if (currentPage === "game" && game?.appid && !["dlc", "hardware"].includes(String(game.type || "").toLowerCase()) && steamProfile && steamApiKey) {
       checkOwnership();
     }
   }, [currentPage, game?.appid, steamProfile, steamApiKey]);
