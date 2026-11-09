@@ -130,7 +130,6 @@ export default function GamePage({
                 </div>
             <div className="hero-corner">{typeLabel}/{game.appid}</div>
           </section>
-}
           {(game.type === "dlc" || game.coming_soon) && hasCompleteReleaseDate(game.release_date) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
           {game.franchise?.url && <a className="steam-franchise-notice" href={game.franchise.url} target="_blank" rel="noreferrer" style={game.franchise.image ? { "--franchise-image": 'url("' + game.franchise.image + '")' } : undefined}>
             <span className="steam-franchise-background" />
