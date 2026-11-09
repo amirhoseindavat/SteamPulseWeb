@@ -1,4 +1,4 @@
-import { Search, Gamepad2, CalendarDays, ExternalLink, Monitor, Save, Library, Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Sparkles, Image as ImageIcon, Info, CheckCircle2, CircleHelp, CircleX, Trophy, CreditCard, Accessibility, Captions, Eye, Volume2, Headphones, Speaker, Clock, Gauge, Cloud } from "lucide-react";
+import { Search, Gamepad2, CalendarDays, ExternalLink, Monitor, Save, Library, Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Sparkles, Image as ImageIcon, Info, CheckCircle2, CircleHelp, CircleX, Sun, Trophy, CreditCard, Accessibility, Captions, Eye, Volume2, Headphones, Speaker, Clock, Gauge, Cloud } from "lucide-react";
 import RegionSelect from "../components/RegionSelect";
 import SteamDeckMark from "../components/SteamDeckMark";
 import DeckCompatibilityIcon from "../components/DeckCompatibilityIcon";
