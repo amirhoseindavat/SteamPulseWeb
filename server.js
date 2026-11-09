@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import express from "express";
 import cors from "cors";
 import { fetchJson, fetchJsonWithOptions, fetchSteamHeaderImage, mapWithConcurrency } from "./server/services/steamClient.js";
@@ -7,6 +8,9 @@ import { registerMarketRoutes } from "./server/routes/market.js";
 import { registerGameRoutes } from "./server/routes/games.js";
 import { registerDiscoveryRoutes } from "./server/routes/discovery.js";
 import { registerProfileRoutes } from "./server/routes/profile.js";
+
+// Steam Store IPv6 connectivity is unreliable on some networks; prefer IPv4 for Node fetch.
+dns.setDefaultResultOrder("ipv4first");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
