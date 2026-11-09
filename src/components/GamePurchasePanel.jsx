@@ -30,7 +30,7 @@ export default function GamePurchasePanel({
   shopDataError,
   regionalKeyPrice
 }) {
-  const showOwnership = game && !["dlc", "hardware"].includes(String(game.type || "").toLowerCase());
+  const showOwnership = game && String(game.type || "").toLowerCase() !== "hardware";
   if (!hasStorePrice) return null;
 
   return (
