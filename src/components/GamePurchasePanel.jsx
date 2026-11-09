@@ -30,6 +30,7 @@ export default function GamePurchasePanel({
   shopDataError,
   regionalKeyPrice
 }) {
+  const showOwnership = game && !["dlc", "hardware"].includes(String(game.type || "").toLowerCase());
   if (!hasStorePrice) return null;
 
   return (
@@ -42,19 +43,19 @@ export default function GamePurchasePanel({
                 <button type="button" role="tab" aria-selected={purchaseTab === "bundles"} className={purchaseTab === "bundles" ? "purchase-tab-active" : ""} onClick={() => setPurchaseTab("bundles")}>Bundles <span>{gameBundles.length}</span></button>
               </div>}
               {hasEditions && (!hasBundles || purchaseTab === "editions") && <div className="editions-grid purchase-editions-grid">
-                {gameEditions.map((edition, i) => <article className={`edition-card ${steamAccountConnected && edition.packageId != null && steamOwnedPackages.has(Number(edition.packageId)) ? "edition-card-owned" : ""} ${selectedEditionName === (edition.name || "").replace(/\s*-\s*\$\s*$/, "") ? "edition-card-selected" : ""}`} key={`${edition.packageId || edition.name}-${i}`}>
+                {gameEditions.map((edition, i) => <article className={`edition-card ${showOwnership && steamAccountConnected && edition.packageId != null && steamOwnedPackages.has(Number(edition.packageId)) ? "edition-card-owned" : ""} ${selectedEditionName === (edition.name || "").replace(/\s*-\s*\$\s*$/, "") ? "edition-card-selected" : ""}`} key={`${edition.packageId || edition.name}-${i}`}>
                   <button className="edition-select" onClick={() => { if (edition.priceValue != null) { setRegionalPriceInput(String(edition.priceValue)); setSelectedEditionName((edition.name || "").replace(/\s*-\s*\$\s*$/, "")); calculatorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); } }} disabled={edition.priceValue == null} title={edition.priceValue == null ? "Price unavailable for calculation" : "Calculate required keys for this option"}>
-                    <div className="edition-top"><span className="edition-tag">{edition.kind || "STEAM EDITION"}</span><span className="edition-top-status">{steamAccountConnected ? (edition.packageId == null ? "Ownership unavailable" : steamOwnedPackages.has(Number(edition.packageId)) ? "✓ Owned" : "") : "Ownership unavailable"}</span>{edition.savings && Number(edition.savings) > 0 && <span className="edition-discount">-{edition.savings}%</span>}</div>
+                    <div className="edition-top"><span className="edition-tag">{edition.kind || "STEAM EDITION"}</span><span className="edition-top-status">{showOwnership ? (steamAccountConnected ? (edition.packageId == null ? "Ownership unavailable" : steamOwnedPackages.has(Number(edition.packageId)) ? "✓ Owned" : "") : "Ownership unavailable") : ""}</span>{edition.savings && Number(edition.savings) > 0 && <span className="edition-discount">-{edition.savings}%</span>}</div>
                     <span className="edition-package-id">PACKAGE · {edition.packageId ?? "ID unavailable"}</span>
                     <h3>{(edition.name || "").replace(/\s*-\s*\$\s*$/, "")}</h3><p>{edition.description || "Steam purchase option"}</p>
                     <div className="edition-bottom"><div className="edition-prices">{edition.originalPrice && edition.savings && Number(edition.savings) > 0 && <del>{edition.originalPrice}</del>}<strong>{edition.price || "Price unavailable"}</strong></div>{edition.savings && Number(edition.savings) > 0 && <span className="edition-save-label">Save {edition.savings}%</span>}</div>
                     <span className="edition-calculate">{edition.priceValue != null ? "Calculate keys" : "Price unavailable"} <ChevronRight size={13} /></span>
                   </button>{edition.url && <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>}
                 </article>)}
-                {missingPackages.map((edition) => <article className={`edition-card ${steamOwnedPackages.has(edition.packageId) ? "edition-card-owned" : ""}`} key={edition.packageId}>
-                  <div className="edition-top"><span className="edition-tag">STEAM PACKAGE</span><span className="edition-top-status">{steamAccountConnected ? (steamOwnedPackages.has(edition.packageId) ? "✓ Owned" : "") : "Ownership unavailable"}</span></div>
+                {missingPackages.map((edition) => <article className={`edition-card ${showOwnership && steamOwnedPackages.has(edition.packageId) ? "edition-card-owned" : ""}`} key={edition.packageId}>
+                  <div className="edition-top"><span className="edition-tag">STEAM PACKAGE</span><span className="edition-top-status">{showOwnership ? (steamAccountConnected ? (steamOwnedPackages.has(edition.packageId) ? "✓ Owned" : "") : "Ownership unavailable") : ""}</span></div>
                   <span className="edition-package-id">PACKAGE · {edition.packageId}</span><h3>{edition.name}</h3><p>{edition.description}</p>
-                  <div className="edition-bottom"><div className="edition-prices"><strong>{steamOwnedPackages.has(edition.packageId) ? "Owned" : "Package details unavailable"}</strong></div></div>
+                  <div className="edition-bottom"><div className="edition-prices"><strong>{showOwnership && steamOwnedPackages.has(edition.packageId) ? "Owned" : "Package details unavailable"}</strong></div></div>
                   <a className="edition-external-link" href={edition.url} target="_blank" rel="noreferrer">View on Steam <ExternalLink size={13} /></a>
                 </article>)}
               </div>}
