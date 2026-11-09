@@ -200,7 +200,7 @@ export default function GamePage({
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>}
           {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
-            <div className="steam-categories-heading"><span className="section-kicker">STEAM FEATURES</span><span>{game.categories.length} features</span></div>
+            <div className="steam-categories-heading"><div><span className="section-kicker">STEAM FEATURES</span><h2>Available features</h2></div><span>{game.categories.length} features</span></div>
             <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
               const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
               return <span className="steam-category" key={category.id}><CategoryIcon size={16} strokeWidth={1.8} /><span>{category.description}</span></span>;
