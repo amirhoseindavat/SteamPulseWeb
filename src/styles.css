@@ -2520,3 +2520,29 @@
   .game-info-pair .steam-categories{padding:15px}
   .game-info-pair .deck-criteria{grid-template-columns:1fr}
 }
+
+
+/* Game hero stats, consistent card rhythm, and single-line hero controls. */
+:root{--game-card-gap:16px}
+.overview-grid{gap:var(--game-card-gap)}
+.game-info-pair{gap:var(--game-card-gap)}
+.detail-section{margin-top:var(--game-card-gap)}
+.steam-franchise-notice{margin-bottom:var(--game-card-gap)}
+.dlc-parent-notice{margin:var(--game-card-gap) 0}
+.hero-content{max-width:min(100%,1100px);width:100%;padding-right:170px}
+.hero-content h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:clamp(22px,3.4vw,47px);letter-spacing:-1.2px}
+.hero-live-stats{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:15px}
+.hero-player-count,.hero-metacritic{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(7,13,28,.42);color:#f1f4ff;backdrop-filter:blur(10px)}
+.hero-player-count>svg{color:#b6a2ff}
+.hero-player-count strong{font-size:13px;font-variant-numeric:tabular-nums}
+.hero-player-count small,.hero-metacritic small{font:9px "DM Mono",monospace;letter-spacing:.55px;color:#c0c9dc}
+.hero-metacritic{gap:8px}
+.hero-metacritic strong{display:grid;place-items:center;min-width:25px;height:25px;padding:0 5px;border-radius:5px;background:#fff;color:#111;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.hero-metacritic.metacritic-green strong{background:#6c3;color:#10220b}
+.hero-metacritic.metacritic-yellow strong{background:#fc3;color:#332600}
+.hero-metacritic.metacritic-red strong{background:#f33;color:#fff}
+.game-external-actions{flex-wrap:nowrap;max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.game-external-actions::-webkit-scrollbar{display:none}
+.game-external-actions>a{flex:0 0 auto;white-space:nowrap}
+@media(max-width:760px){.hero-content{padding:28px 22px}.hero-content h2{font-size:clamp(21px,5.4vw,34px)}.game-external-actions{padding-bottom:3px}}
+@media(max-width:480px){.hero-content h2{font-size:clamp(19px,5vw,27px);letter-spacing:-.7px}.hero-player-count,.hero-metacritic{min-height:31px;padding:5px 8px}}
