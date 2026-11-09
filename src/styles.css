@@ -2467,3 +2467,62 @@
 .app-shell[data-theme="light"] .steam-category{background:rgba(255,255,255,.48);color:#46516b}
 .app-shell[data-theme="light"] .steam-category>svg{color:#755bc8}
 @media(max-width:480px){.steam-categories{padding:14px}.steam-categories-list{gap:7px}.steam-category{min-height:35px;padding:7px 9px;font-size:10px}}
+
+
+/* Game details: prioritize the price panel, then DLC, then paired compatibility/features cards. */
+.game-info-pair{
+  display:grid;
+  gap:16px;
+  margin-top:18px;
+  align-items:stretch;
+}
+.game-info-pair.has-two-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+.game-info-pair.has-one-card{grid-template-columns:minmax(0,1fr)}
+.game-info-pair .deck-compatibility,
+.game-info-pair .steam-categories{
+  min-width:0;
+  height:100%;
+  margin:0;
+  padding:20px;
+  border:1px solid rgba(173,190,231,.17);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(34,45,75,.58),rgba(13,22,42,.72));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 12px 30px rgba(0,0,0,.12);
+  backdrop-filter:blur(22px) saturate(145%);
+  -webkit-backdrop-filter:blur(22px) saturate(145%);
+}
+.game-info-pair .steam-categories-heading{margin-bottom:15px}
+.game-info-pair .steam-categories-list{gap:8px}
+.game-info-pair .steam-category{
+  min-height:34px;
+  padding:7px 9px;
+  border-color:rgba(173,190,231,.14);
+  border-radius:9px;
+  background:rgba(255,255,255,.045);
+  font-size:10px;
+}
+.game-info-pair .deck-main{align-items:flex-start;flex-wrap:wrap}
+.game-info-pair .deck-title{flex:1 1 calc(100% - 65px)}
+.game-info-pair .deck-title h2{font-size:17px}
+.game-info-pair .deck-title p{font-size:12px}
+.game-info-pair .deck-badge{margin-left:63px}
+.game-info-pair .deck-criteria{grid-template-columns:1fr;margin-top:14px}
+.app-shell[data-theme="light"] .game-info-pair .deck-compatibility,
+.app-shell[data-theme="light"] .game-info-pair .steam-categories{
+  border-color:rgba(126,145,190,.22);
+  background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(235,240,252,.72));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 12px 28px rgba(55,70,110,.08);
+}
+.app-shell[data-theme="light"] .game-info-pair .steam-category{
+  background:rgba(255,255,255,.62);
+  border-color:rgba(126,145,190,.2);
+}
+@media(max-width:760px){
+  .game-info-pair.has-two-cards{grid-template-columns:minmax(0,1fr)}
+  .game-info-pair .deck-criteria{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+  .game-info-pair .deck-compatibility,
+  .game-info-pair .steam-categories{padding:15px}
+  .game-info-pair .deck-criteria{grid-template-columns:1fr}
+}
