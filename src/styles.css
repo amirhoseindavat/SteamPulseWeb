@@ -2455,3 +2455,15 @@
   .sales-page .sales-themed-live-note { font-size: 14px; }
   .sales-page .sales-themed-date { font-size: 13px; }
 }
+
+
+/* Steam store feature/category badges */
+.steam-categories{margin:14px 0 16px;padding:17px 19px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(16px)}
+.steam-categories-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.steam-categories-heading>span:last-child{color:var(--muted);font:10px "DM Mono",monospace}
+.steam-categories-list{display:flex;flex-wrap:wrap;gap:9px}
+.steam-category{display:inline-flex;align-items:center;gap:8px;min-height:37px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:#ffffff08;color:var(--text,#dce4f7);font-size:11px;line-height:1.35}
+.steam-category>svg{flex-shrink:0;color:#9d87ff}
+.app-shell[data-theme="light"] .steam-category{background:rgba(255,255,255,.48);color:#46516b}
+.app-shell[data-theme="light"] .steam-category>svg{color:#755bc8}
+@media(max-width:480px){.steam-categories{padding:14px}.steam-categories-list{gap:7px}.steam-category{min-height:35px;padding:7px 9px;font-size:10px}}
