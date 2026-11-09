@@ -130,13 +130,7 @@ export default function GamePage({
                 </div>
             <div className="hero-corner">{typeLabel}/{game.appid}</div>
           </section>
-          {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
-            <div className="steam-categories-heading"><span className="section-kicker">STEAM FEATURES</span><span>{game.categories.length} features</span></div>
-            <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
-              const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
-              return <span className="steam-category" key={category.id}><CategoryIcon size={16} strokeWidth={1.8} /><span>{category.description}</span></span>;
-            })}</div>
-          </section>}
+}
           {(game.type === "dlc" || game.coming_soon) && hasCompleteReleaseDate(game.release_date) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
           {game.franchise?.url && <a className="steam-franchise-notice" href={game.franchise.url} target="_blank" rel="noreferrer" style={game.franchise.image ? { "--franchise-image": 'url("' + game.franchise.image + '")' } : undefined}>
             <span className="steam-franchise-background" />
@@ -181,15 +175,7 @@ export default function GamePage({
             regionalKeyPrice={regionalKeyPrice}
           />
 
-          {!isDlcOrHardware && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
-            <div className="deck-main">
-              <div className="deck-icon"><SteamDeckMark size={27} /></div>
-              <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
-              <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={21} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
-            </div>
-            {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
-            <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
-          </section>}
+}
 
           <GameDlcSection
             visibleDlc={visibleDlc}
@@ -205,6 +191,25 @@ export default function GamePage({
             region={region}
           />
 
+
+          {( !isDlcOrHardware || (game.categories || []).length > 0) && <div className={`game-info-pair ${!isDlcOrHardware && (game.categories || []).length > 0 ? "has-two-cards" : "has-one-card"}`}>
+          {!isDlcOrHardware && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
+            <div className="deck-main">
+              <div className="deck-icon"><SteamDeckMark size={27} /></div>
+              <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
+              <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={21} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
+            </div>
+            {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
+            <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
+          </section>
+          {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
+            <div className="steam-categories-heading"><span className="section-kicker">STEAM FEATURES</span><span>{game.categories.length} features</span></div>
+            <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
+              const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
+              return <span className="steam-category" key={category.id}><CategoryIcon size={16} strokeWidth={1.8} /><span>{category.description}</span></span>;
+            })}</div>
+          </section>}
+          </div>}
           <section className="detail-section">
             <div className="detail-card game-intel-card"><div className="detail-header"><div><span className="section-kicker">GAME INTEL</span><h2>Inside the game</h2></div><div className="tabs">{tabNames.map((tab) => <button key={tab} className={activeTab === tab ? "active" : ""} onClick={() => setActiveTab(tab)}>{tab}</button>)}</div></div>
             {activeTab === "overview" && <div className="overview-grid">
