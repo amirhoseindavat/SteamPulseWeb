@@ -1,4 +1,4 @@
-import { Search, Gamepad2, CalendarDays, ExternalLink, Monitor, Save, Library, Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Sparkles, Image as ImageIcon, Info, CheckCircle2, CircleHelp, CircleX } from "lucide-react";
+import { Search, Gamepad2, CalendarDays, ExternalLink, Monitor, Save, Library, Star, Users, Tag, ChevronRight, LoaderCircle, X, RefreshCw, Globe2, Sparkles, Image as ImageIcon, Info, CheckCircle2, CircleHelp, CircleX, Trophy, CreditCard, Accessibility, Captions, Eye, Volume2, Headphones, Speaker, Clock, Gauge, Cloud } from "lucide-react";
 import RegionSelect from "../components/RegionSelect";
 import SteamDeckMark from "../components/SteamDeckMark";
 import DeckCompatibilityIcon from "../components/DeckCompatibilityIcon";
@@ -9,6 +9,29 @@ import GameDlcSection from "../components/GameDlcSection";
 import GameNewsSection from "../components/GameNewsSection";
 import RequirementsSection from "../components/RequirementsSection";
 import { money, formatNumber } from "../utils/formatters";
+
+const CATEGORY_ICONS = {
+  2: Users,
+  22: Trophy,
+  28: Gamepad2,
+  29: CreditCard,
+  55: Gamepad2,
+  57: Gamepad2,
+  58: Gamepad2,
+  61: Sun,
+  62: Users,
+  64: Accessibility,
+  65: Captions,
+  66: Eye,
+  67: Eye,
+  68: Volume2,
+  69: Headphones,
+  70: Speaker,
+  74: Clock,
+  78: Gauge,
+  79: Save,
+  23: Cloud
+};
 import { hasCompleteReleaseDate } from "../utils/releaseDate";
 
 export default function GamePage({
@@ -107,6 +130,13 @@ export default function GamePage({
                 </div>
             <div className="hero-corner">{typeLabel}/{game.appid}</div>
           </section>
+          {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
+            <div className="steam-categories-heading"><span className="section-kicker">STEAM FEATURES</span><span>{game.categories.length} features</span></div>
+            <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
+              const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
+              return <span className="steam-category" key={category.id}><CategoryIcon size={16} strokeWidth={1.8} /><span>{category.description}</span></span>;
+            })}</div>
+          </section>}
           {(game.type === "dlc" || game.coming_soon) && hasCompleteReleaseDate(game.release_date) && new Date(game.release_date).getTime() > Date.now() && <ReleaseCountdown releaseDate={game.release_date} />}
           {game.franchise?.url && <a className="steam-franchise-notice" href={game.franchise.url} target="_blank" rel="noreferrer" style={game.franchise.image ? { "--franchise-image": 'url("' + game.franchise.image + '")' } : undefined}>
             <span className="steam-franchise-background" />
