@@ -175,8 +175,6 @@ export default function GamePage({
             regionalKeyPrice={regionalKeyPrice}
           />
 
-}
-
           <GameDlcSection
             visibleDlc={visibleDlc}
             game={game}
@@ -201,7 +199,7 @@ export default function GamePage({
             </div>
             {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
-          </section>
+          </section>}
           {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
             <div className="steam-categories-heading"><span className="section-kicker">STEAM FEATURES</span><span>{game.categories.length} features</span></div>
             <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
