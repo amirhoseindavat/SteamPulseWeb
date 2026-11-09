@@ -403,7 +403,7 @@ app.get("/api/game/:appid", async (req, res) => {
       coming_soon: Boolean(d.release_date?.coming_soon),
       pre_purchase: isPrePurchase,
       genres: (d.genres || []).map((g) => g.description),
-      categories: (d.categories || []).map((c) => c.description),
+      categories: (d.categories || []).map((c) => ({ id: Number(c.id), description: c.description })),
       platforms: d.platforms || {},
       price_overview: d.price_overview || null,
       us_price_overview: usPriceOverview,
