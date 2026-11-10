@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { checkSteamOwnership } from "../services/steamPulseApi";
 
 export function useGameOwnership({ game, currentPage, steamProfile, steamApiKey }) {
   const [ownership, setOwnership] = useState(null);
@@ -21,16 +21,7 @@ export function useGameOwnership({ game, currentPage, steamProfile, steamApiKey 
         ...(game.dlc || []).map((item) => Number(item.appid))
       ].filter(Number.isFinite))];
 
-      const response = await fetch("/api/ownership-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(steamApiKey ? { "X-Steam-API-Key": steamApiKey } : {})
-        },
-        body: JSON.stringify({ profile: steamProfile, appids })
-      });
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || "Could not check this Steam library.");
+      const data = await checkSteamOwnership(steamProfile, appids, steamApiKey);
       setOwnership(data);
     } catch (error) {
       setOwnershipError(error.message || "Ownership check failed.");
