@@ -693,7 +693,7 @@ app.get("/api/free-games", async (req, res) => {
       detailUrl.searchParams.set("l", "english");
       const details = await fetchJson(detailUrl);
       const envelope = details?.[String(candidate.id)];
-      if (!envelope?.success || String(envelope.data?.type || "").toLowerCase() !== "game") return null;
+      if (!envelope?.success || !["game", "dlc"].includes(String(envelope.data?.type || "").toLowerCase())) return null;
 
       const game = envelope.data;
       const price = game.price_overview;
@@ -707,12 +707,13 @@ app.get("/api/free-games", async (req, res) => {
         offerType = "FREE WEEKEND";
       }
 
-      // Exclude permanently free-to-play games and free DLC/other products.
+      // Exclude permanently free-to-play products, but include qualifying free game and DLC promotions.
       if (!offerType) return null;
       return {
         id: candidate.id,
         name: game.name || candidate.name,
         offerType,
+        productType: String(game.type || "game").toLowerCase(),
         expires: "",
         image: game.header_image || candidate.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${candidate.id}/header.jpg`,
         url: `https://store.steampowered.com/app/${candidate.id}/?cc=${cc}`,
