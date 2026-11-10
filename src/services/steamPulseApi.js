@@ -1,42 +1,46 @@
 import { requestJson } from "./apiClient";
 
-export const getGame = (id, region) =>
-  requestJson(`/api/game/${encodeURIComponent(id)}?cc=${encodeURIComponent(region)}`, {}, "Unable to load this game.");
+const withSignal = (signal) => signal ? { signal } : {};
 
-export const getGameBundles = (id, region) =>
-  requestJson(`/api/game/${encodeURIComponent(id)}/bundles?cc=${encodeURIComponent(region)}`, {}, "Could not load game bundles.");
+export const getGame = (id, region, signal) =>
+  requestJson(`/api/game/${encodeURIComponent(id)}?cc=${encodeURIComponent(region)}`, withSignal(signal), "Unable to load this game.", { cacheTtl: 60000 });
 
-export const getGameDlc = (id, region, offset, limit = 24) =>
-  requestJson(`/api/game/${encodeURIComponent(id)}/dlc?cc=${encodeURIComponent(region)}&offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}`, {}, "Unable to load more DLC.");
+export const getGameBundles = (id, region, signal) =>
+  requestJson(`/api/game/${encodeURIComponent(id)}/bundles?cc=${encodeURIComponent(region)}`, withSignal(signal), "Could not load game bundles.", { cacheTtl: 60000 });
 
-export const searchGames = (term, region) =>
-  requestJson(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${encodeURIComponent(region)}`, {}, "Search failed.");
+export const getGameDlc = (id, region, offset, limit = 24, signal) =>
+  requestJson(`/api/game/${encodeURIComponent(id)}/dlc?cc=${encodeURIComponent(region)}&offset=${encodeURIComponent(offset)}&limit=${encodeURIComponent(limit)}`, withSignal(signal), "Unable to load more DLC.", { cacheTtl: 60000 });
 
-export const getDiscovery = (region, refresh = false) =>
-  requestJson(`/api/discover?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, {}, "Could not load game discovery.");
+export const searchGames = (term, region, signal) =>
+  requestJson(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${encodeURIComponent(region)}`, withSignal(signal), "Search failed.", { cacheTtl: 20000 });
 
-export const getFreeGames = (region, refresh = false) =>
-  requestJson(`/api/free-games?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, {}, "Could not load free Steam games.");
+export const getDiscovery = (region, refresh = false, signal) =>
+  requestJson(`/api/discover?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, withSignal(signal), "Could not load game discovery.", { cacheTtl: 60000 });
 
-export const getShopData = () =>
-  requestJson("/api/shop-data", {}, "Could not load live key prices.");
+export const getFreeGames = (region, refresh = false, signal) =>
+  requestJson(`/api/free-games?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, withSignal(signal), "Could not load free Steam games.", { cacheTtl: 60000 });
 
-export const getRegionalKeyPrice = (region) =>
-  requestJson(`/api/key-price?region=${encodeURIComponent(region)}`, {}, "Could not load this region's Steam key price.");
+export const getShopData = (signal) =>
+  requestJson("/api/shop-data", withSignal(signal), "Could not load live key prices.", { cacheTtl: 15000 });
 
-export const getMarketRegions = () =>
-  requestJson("/api/market-regions", {}, "Could not load Steam Market regional prices.");
+export const getRegionalKeyPrice = (region, signal) =>
+  requestJson(`/api/key-price?region=${encodeURIComponent(region)}`, withSignal(signal), "Could not load this region's Steam key price.", { cacheTtl: 30000 });
 
-export const getCartDetails = (region, appIds) =>
-  requestJson(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}`, {}, "Could not load cart details.");
+export const getMarketRegions = (signal) =>
+  requestJson("/api/market-regions", withSignal(signal), "Could not load Steam Market regional prices.", { cacheTtl: 30000 });
 
-export const getSteamProfile = (profile, apiKey = "") =>
+export const getCartDetails = (region, appIds, signal) =>
+  requestJson(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}`, withSignal(signal), "Could not load cart details.", { cacheTtl: 15000 });
+
+export const getSteamProfile = (profile, apiKey = "", signal) =>
   requestJson(`/api/steam-profile?profile=${encodeURIComponent(profile)}`, {
+    ...withSignal(signal),
     headers: apiKey ? { "X-Steam-API-Key": apiKey } : {}
   }, "Could not load the Steam profile.");
 
-export const checkSteamOwnership = (profile, appids, apiKey = "") =>
+export const checkSteamOwnership = (profile, appids, apiKey = "", signal) =>
   requestJson("/api/ownership-check", {
+    ...withSignal(signal),
     method: "POST",
     headers: { "Content-Type": "application/json", ...(apiKey ? { "X-Steam-API-Key": apiKey } : {}) },
     body: JSON.stringify({ profile, appids })
