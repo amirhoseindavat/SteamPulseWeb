@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { getDiscovery, getFreeGames, getTopSellers } from "../services/steamPulseApi";
+import { getDiscovery, getFreeGames, getTopSellers, getStoreTakeover } from "../services/steamPulseApi";
 
 export function useDiscoveryData(region) {
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
   const [topSellersLoading, setTopSellersLoading] = useState(true);
+  const [storeTakeover, setStoreTakeover] = useState(null);
   const [discoveryTab, setDiscoveryTab] = useState("trending");
   const [freeGames, setFreeGames] = useState([]);
   const [freeGamesLoading, setFreeGamesLoading] = useState(true);
@@ -50,6 +51,23 @@ export function useDiscoveryData(region) {
     return () => controller.abort();
   }, [region]);
 
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setStoreTakeover(null);
+    getStoreTakeover(region, false, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) setStoreTakeover(data.takeover || null);
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          console.warn("Steam Store Takeover unavailable:", error.message);
+          setStoreTakeover(null);
+        }
+      });
+    return () => controller.abort();
+  }, [region]);
+
   useEffect(() => {
     const controller = new AbortController();
     setFreeGamesLoading(true);
@@ -68,6 +86,7 @@ export function useDiscoveryData(region) {
     discoveryLoading,
     discoveryError,
     topSellersLoading,
+    storeTakeover,
     discoveryTab,
     setDiscoveryTab,
     setDiscoveryLoading,
