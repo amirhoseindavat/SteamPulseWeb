@@ -584,7 +584,7 @@ async function fetchSteamTopSellers(cc) {
 
 app.get("/api/store-takeover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
-  const key = \`store-takeover:v1:\${cc}\`;
+  const key = "store-takeover:v1:" + cc;
   if (req.query.refresh !== "1") {
     const hit = cached(key);
     if (hit) return res.json(hit);
