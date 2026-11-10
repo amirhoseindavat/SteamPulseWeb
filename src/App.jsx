@@ -21,44 +21,7 @@ import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
 import { useGameData } from "./hooks/useGameData";
 
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-const GAME_SECTION_SLUGS = {
-  freeGames: "freegames",
-  topSellers: "topsellers",
-  upcoming: "comingsoon",
-  newReleases: "newreleases",
-  preorders: "preorders"
-};
-
-function getGamesSectionFromRoute(route) {
-  const match = route.match(/^\/games\/([^/?#]+)\/?$/i);
-  const section = match?.[1]?.toLowerCase();
-  return ({
-    freegames: "freeGames",
-    topsellers: "topSellers",
-    comingsoon: "upcoming",
-    newreleases: "newReleases",
-    preorders: "preorders"
-  })[section] || "freeGames";
-}
-
-function getRoutePath() {
-  const fallbackRoute = new URLSearchParams(window.location.search).get("p");
-  if (fallbackRoute) {
-    const route = fallbackRoute.startsWith("/") ? fallbackRoute : `/${fallbackRoute}`;
-    window.history.replaceState(null, "", `${BASE_PATH}${route}`);
-    return route;
-  }
-  if (window.location.hash.startsWith("#/")) {
-    const route = window.location.hash.slice(1);
-    window.history.replaceState(null, "", `${BASE_PATH}${route}`);
-    return route;
-  }
-  const pathname = window.location.pathname;
-  const route = BASE_PATH && pathname.startsWith(BASE_PATH) ? pathname.slice(BASE_PATH.length) : pathname;
-  return route || "/";
-}
+import { GAME_SECTION_SLUGS, getGamesSectionFromRoute, getRoutePath, useNavigation } from "./hooks/useNavigation";
 
 export default function App() {
   const initialRoute = getRoutePath();
@@ -120,6 +83,25 @@ export default function App() {
     searchGames, onSearchChange, chooseGame
   } = useGameSearch({ region, loadGame, setQuery, setInputId, setError });
 
+  const { navigateTo, navigateToGamesSection } = useNavigation({
+    appid,
+    currentPage,
+    setCurrentPage,
+    setGamesSection,
+    setProfileRouteId,
+    personalSteamProfileData,
+    invalidateGameRequest,
+    setGame,
+    setGameBackground,
+    setLoading,
+    setError,
+    setSearchOpen,
+    loadGame,
+    region,
+    game,
+    loading
+  });
+
 
 
   useEffect(() => {
@@ -127,65 +109,6 @@ export default function App() {
     const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
     document.title = `${title} | SteamPulse`;
   }, [currentPage, gamesSection, game?.name]);
-
-  function navigateTo(page) {
-    const nextPath = page === "game" && appid
-      ? `/game/${appid}`
-      : page === "profile" && personalSteamProfileData?.profile?.steamId
-        ? `/profile/${personalSteamProfileData.profile.steamId}`
-        : page === "games" || page === "trending"
-          ? `/games/${GAME_SECTION_SLUGS.freeGames}`
-          : `/${page}`;
-    if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
-    setCurrentPage(page === "trending" ? "games" : page);
-    if (page === "games" || page === "trending") setGamesSection("freeGames");
-    setProfileRouteId("");
-    if (page !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); setError(""); }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function navigateToGamesSection(section) {
-    const safeSection = GAME_SECTION_SLUGS[section] ? section : "topSellers";
-    const nextPath = `/games/${GAME_SECTION_SLUGS[safeSection]}`;
-    if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
-    setCurrentPage("games");
-    setGamesSection(safeSection);
-    setProfileRouteId("");
-    invalidateGameRequest();
-    setGame(null);
-    setGameBackground(null);
-    setLoading(false);
-    setError("");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  useEffect(() => {
-    const syncPageFromLocation = () => {
-      const route = getRoutePath();
-      const gameMatch = route.match(/^\/game\/(\d+)/);
-      if (gameMatch) {
-        setCurrentPage("game");
-        const targetId = gameMatch[1];
-        if (String(game?.appid || "") !== targetId && !loading) loadGame(targetId, region);
-        return;
-      }
-      const pageMatch = route.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
-      const routePage = pageMatch?.[1] || "home";
-      const nextPage = routePage === "trending" ? "games" : routePage;
-      setCurrentPage(nextPage);
-      setGamesSection(routePage === "trending" ? "freeGames" : getGamesSectionFromRoute(route));
-      if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.freeGames}`);
-      setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
-      if (nextPage !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); }
-    };
-    window.addEventListener("popstate", syncPageFromLocation);
-    window.addEventListener("hashchange", syncPageFromLocation);
-    if (getRoutePath() !== "/") syncPageFromLocation();
-    return () => {
-      window.removeEventListener("popstate", syncPageFromLocation);
-      window.removeEventListener("hashchange", syncPageFromLocation);
-    };
-  }, []);
 
   useEffect(() => {
     const close = (event) => {
