@@ -23,6 +23,7 @@ import { useMarketData } from "./hooks/useMarketData";
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const GAME_SECTION_SLUGS = {
+  freeGames: "freegames",
   topSellers: "topsellers",
   upcoming: "comingsoon",
   newReleases: "newreleases",
@@ -33,6 +34,7 @@ function getGamesSectionFromRoute(route) {
   const match = route.match(/^\/games\/([^/?#]+)\/?$/i);
   const section = match?.[1]?.toLowerCase();
   return ({
+    freegames: "freeGames",
     topsellers: "topSellers",
     comingsoon: "upcoming",
     newreleases: "newReleases",
@@ -112,7 +114,7 @@ export default function App() {
 
 
   useEffect(() => {
-    const pageTitles = { home: "Home", games: ({ topSellers: "Top Sellers", upcoming: "Coming Soon", newReleases: "New Releases", preorders: "Preorders" })[gamesSection] || "Games", market: "Market", sales: "Sales", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
+    const pageTitles = { home: "Home", games: ({ freeGames: "Free Games", topSellers: "Top Sellers", upcoming: "Coming Soon", newReleases: "New Releases", preorders: "Preorders" })[gamesSection] || "Games", market: "Market", sales: "Sales", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
     const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
     document.title = `${title} | SteamPulse`;
   }, [currentPage, gamesSection, game?.name]);
