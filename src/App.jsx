@@ -20,20 +20,27 @@ import { useSteamProfile } from "./hooks/useSteamProfile";
 import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
 import { useGameData } from "./hooks/useGameData";
+import { useAppSettings } from "./hooks/useAppSettings";
+import { useAppInteractions } from "./hooks/useAppInteractions";
+import { useCalculator } from "./hooks/useCalculator";
 
 import { GAME_SECTION_SLUGS, getGamesSectionFromRoute, getRoutePath, useNavigation } from "./hooks/useNavigation";
 
 export default function App() {
   const initialRoute = getRoutePath();
-  const [region, setRegion] = useState(() => localStorage.getItem("steampulse-region") || "US");
-  const [steamProfile, setSteamProfile] = useState(() => localStorage.getItem("steampulse-profile") || "");
-  const [steamProfileDraft, setSteamProfileDraft] = useState(() => localStorage.getItem("steampulse-profile") || "");
+  const appSettings = useAppSettings();
+  const {
+    region, setRegion,
+    steamProfile, setSteamProfile,
+    steamProfileDraft, setSteamProfileDraft,
+    steamApiKey, setSteamApiKey,
+    steamApiKeyDraft, setSteamApiKeyDraft,
+    theme, setTheme
+  } = appSettings;
   const [profileRouteId, setProfileRouteId] = useState(() => {
     const match = initialRoute.match(/^\/profile\/([^/?#]+)\/?$/);
     return match ? match[1] : "";
   });
-  const [steamApiKey, setSteamApiKey] = useState(() => localStorage.getItem("steampulse-api-key") || "");
-  const [steamApiKeyDraft, setSteamApiKeyDraft] = useState(() => localStorage.getItem("steampulse-api-key") || "");
   const [currentPage, setCurrentPage] = useState(() => {
     const gameMatch = initialRoute.match(/^\/game\/(\d+)/);
     const pageMatch = initialRoute.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/[^/?#]+)?\/?$/);
@@ -41,16 +48,9 @@ export default function App() {
   });
   const [gamesSection, setGamesSection] = useState(() => getGamesSectionFromRoute(initialRoute));
   const [query, setQuery] = useState("");
-  const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [appid, setAppid] = useState("");
   const [inputId, setInputId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [conversionMode, setConversionMode] = useState("currency-to-keys");
-  const [conversionAmount, setConversionAmount] = useState("18");
-  const calculatorRef = useRef(null);
-  const searchRef = useRef(null);
-  const headerSearchRef = useRef(null);
-
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
   const { discovery, discoveryLoading, discoveryError, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
   const {
@@ -74,14 +74,13 @@ export default function App() {
     region, appid, setAppid, setCurrentPage,
     setInputId, setQuery, setActiveTab
   });
-  function loadGame(...args) {
-    setSearchOpen(false);
-    return loadGameData(...args);
-  }
+  const loadGame = loadGameData;
   const {
     results, setResults, searchOpen, setSearchOpen, searching,
     searchGames, onSearchChange, chooseGame
   } = useGameSearch({ region, loadGame, setQuery, setInputId, setError });
+
+  const { calculatorRef, searchRef, headerSearchRef } = useAppInteractions({ setSearchOpen });
 
   const { navigateTo, navigateToGamesSection } = useNavigation({
     appid,
@@ -111,30 +110,11 @@ export default function App() {
   }, [currentPage, gamesSection, game?.name]);
 
   useEffect(() => {
-    const close = (event) => {
-      if (!searchRef.current?.contains(event.target) && !headerSearchRef.current?.contains(event.target)) setSearchOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => {
-      document.removeEventListener("mousedown", close);
-    };
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("steampulse-region", region);
     if (game) loadGame(appid, region);
   }, [region]);
 
   function saveSettings() {
-    const cleanProfile = steamProfileDraft.trim();
-    setSteamProfile(cleanProfile);
-    setPersonalSteamProfileData(null);
-    localStorage.setItem("steampulse-profile", cleanProfile);
-    const cleanApiKey = steamApiKeyDraft.trim();
-    setSteamApiKey(cleanApiKey);
-    localStorage.setItem("steampulse-api-key", cleanApiKey);
-    localStorage.setItem("steampulse-region", region);
-    resetOwnership();
+    appSettings.saveSettings({ setPersonalSteamProfileData, resetOwnership });
   }
 
   const { ownership, ownershipLoading, ownershipError, resetOwnership } = useGameOwnership({
@@ -175,6 +155,18 @@ export default function App() {
   const numericRegionalPrice = Number(regionalPriceInput);
   const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
   const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
+  const liveKeyPriceToman = Number(shopData?.Key);
+  const {
+    conversionMode, setConversionMode,
+    conversionAmount, setConversionAmount,
+    keyCount, conversionResult, conversionResultFormatted,
+    conversionResultLabel, totalToman
+  } = useCalculator({
+    regionalPriceInput,
+    regionalKeyPriceForCalculation,
+    liveKeyPriceToman,
+    selectedRegion
+  });
   const uniqueCartDetails = steamCartDetails;
   const cartCurrency = uniqueCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
   const cartTotalMinor = uniqueCartDetails.reduce((sum, item) => sum + (item.price != null && Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
@@ -192,14 +184,6 @@ export default function App() {
     ? Math.ceil((cartTotalMinor / 100) / regionalKeyPriceForCalculation)
     : null;
 
-  const keyCount = regionalPriceInput.trim() !== "" && regionalKeyPriceForCalculation > 0 && Number.isFinite(numericRegionalPrice) && numericRegionalPrice > 0 ? Math.ceil(numericRegionalPrice / regionalKeyPriceForCalculation) : 0;
-  const liveKeyPriceToman = Number(shopData?.Key);
-  const conversionValue = Number(conversionAmount);
-  const conversionValid = conversionAmount.trim() !== "" && Number.isFinite(conversionValue) && conversionValue > 0;
-  const conversionResult = !conversionValid ? null : conversionMode === "currency-to-keys" ? (regionalKeyPriceForCalculation > 0 ? conversionValue / regionalKeyPriceForCalculation : null) : conversionMode === "toman-to-keys" ? (liveKeyPriceToman > 0 ? conversionValue / liveKeyPriceToman : null) : conversionMode === "keys-to-toman" ? (liveKeyPriceToman > 0 ? conversionValue * liveKeyPriceToman : null) : (regionalKeyPriceForCalculation > 0 ? conversionValue * regionalKeyPriceForCalculation : null);
-  const conversionResultLabel = conversionMode === "currency-to-keys" || conversionMode === "toman-to-keys" ? "Keys" : conversionMode === "keys-to-toman" ? "toman" : selectedRegion.currency;
-  const conversionResultFormatted = conversionResult == null ? null : new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(conversionResult);
-  const totalToman = keyCount * (Number.isFinite(liveKeyPriceToman) && liveKeyPriceToman > 0 ? liveKeyPriceToman : 0);
   const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
   const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
 
