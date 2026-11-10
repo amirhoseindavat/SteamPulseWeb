@@ -2748,3 +2748,34 @@
 .discovery-tabs{align-items:center}
 .home-top-sellers{margin-top:18px;padding-top:0;border-top:0}
 .home-top-sellers>.section-kicker{display:block}
+
+
+/* Top Sellers artwork badges are numeric chart positions. */
+.discovery-rank-badge{
+  display:grid;
+  place-items:center;
+  min-width:29px;
+  height:29px;
+  padding:0 6px;
+  border:1px solid #c5b3ff65;
+  border-radius:8px;
+  background:linear-gradient(145deg,#9a7affef,#5d43c9ed);
+  color:#fff;
+  font:800 12px "DM Mono",monospace;
+  letter-spacing:0;
+  box-shadow:0 4px 14px #09071980,inset 0 1px #ffffff35;
+  backdrop-filter:blur(10px);
+}
+.preorder-release-meta{align-items:center;flex-wrap:wrap;gap:7px}
+.preorder-countdown{
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:3px 7px;
+  border:1px solid #8b6cff4d;
+  border-radius:6px;
+  background:#8b6cff18;
+  color:#c9baff;
+  font:700 9px "DM Mono",monospace;
+  white-space:nowrap;
+}
