@@ -45,9 +45,9 @@ export default function TrendingPage({
     if (!value) return null;
 
     // Support ISO dates and Steam's common "Nov 10, 2026" / "10 Nov, 2026" labels.
-    const iso = value.match(/(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})/);
-    const monthFirst = value.match(/([a-z]{3,9})\\s+(\\d{1,2}),?\\s+(\\d{4})/i);
-    const dayFirst = value.match(/(\\d{1,2})\\s+([a-z]{3,9}),?\\s+(\\d{4})/i);
+    const iso = value.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    const monthFirst = value.match(/([a-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})/i);
+    const dayFirst = value.match(/(\d{1,2})\s+([a-z]{3,9}),?\s+(\d{4})/i);
     let year, month, day;
 
     if (iso) {
