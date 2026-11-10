@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { getDiscovery, getFreeGames } from "../services/steamPulseApi";
 
 export function useDiscoveryData(region) {
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
@@ -14,12 +14,7 @@ export function useDiscoveryData(region) {
     let cancelled = false;
     setDiscoveryLoading(true);
     setDiscoveryError("");
-    fetch(`/api/discover?cc=${region}`)
-      .then(async (response) => {
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || data.detail || "Could not load game discovery.");
-        return data;
-      })
+    getDiscovery(region)
       .then((data) => {
         if (!cancelled) setDiscovery({
           newReleases: data.newReleases || [],
@@ -40,12 +35,7 @@ export function useDiscoveryData(region) {
     let cancelled = false;
     setFreeGamesLoading(true);
     setFreeGamesError("");
-    fetch(`/api/free-games?cc=${region}`)
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not load free Steam games.");
-        return data;
-      })
+    getFreeGames(region)
       .then((data) => { if (!cancelled) setFreeGames(data.items || []); })
       .catch((e) => { if (!cancelled) setFreeGamesError(e.message || "Free promotions are temporarily unavailable."); })
       .finally(() => { if (!cancelled) setFreeGamesLoading(false); });
