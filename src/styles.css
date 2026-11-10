@@ -2803,3 +2803,25 @@
 
 /* Keep preorder countdown visible above the artwork, including after card styles load. */
 .discovery-image-wrap .preorder-countdown-badge{z-index:2;top:8px;right:8px;left:auto;display:inline-flex;visibility:visible;opacity:1;pointer-events:none;}
+
+
+/* Footer hierarchy: version leads the brand; copyright stays discreet at the edge. */
+.site-footer .site-footer-brand-group{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+.site-footer .site-footer-brand-group .site-footer-version{order:0}
+.site-footer .site-footer-brand-group .site-footer-brand{order:1}
+.site-footer .site-footer-copyright{
+  margin-left:auto;
+  color:#8491ad;
+  font-size:11px;
+  white-space:nowrap;
+}
+.app-shell[data-theme="light"] .site-footer .site-footer-copyright{color:#7b849b}
+@media(max-width:620px){
+  .site-footer .site-footer-copyright{margin-left:0}
+  .site-footer .site-footer-brand-group{justify-content:center}
+}
