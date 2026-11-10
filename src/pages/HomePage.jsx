@@ -20,6 +20,7 @@ export default function HomePage({
   discovery,
   discoveryLoading,
   discoveryError,
+  topSellersLoading,
   region,
   setRegion,
   loading
@@ -80,7 +81,7 @@ export default function HomePage({
               <div><span className="section-kicker"><TrendingUp size={13} /> TOP SELLERS</span><strong>Trending by revenue on Steam</strong></div>
               <a href="#/games/topsellers" aria-label="View all Top Sellers">VIEW ALL <ArrowUpRight size={13} /></a>
             </div>
-            {discoveryLoading && !topSellers.length
+            {(topSellersLoading || discoveryLoading) && !topSellers.length
               ? <div className="home-top-sellers-empty"><LoaderCircle size={15} className="spin" /> Loading Steam Top Sellers…</div>
               : topSellers.length
                 ? <div className="home-top-sellers-grid">
