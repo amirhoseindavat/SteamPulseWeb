@@ -73,6 +73,7 @@ export default function HomePage({
             <button className="primary-button" onClick={() => /^\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
             <div className="game-region-box"><label>REGION</label><RegionSelect value={region} onChange={(nextRegion) => { setRegion(nextRegion); localStorage.setItem("steampulse-region", nextRegion); }} ariaLabel="Game price region" /></div>
           </div>
+          {currentPage === "home" && <>
           <div className="home-top-sellers">
             <div className="home-top-sellers-heading"><div><span className="section-kicker">STEAM CHARTS</span><strong>Top Sellers</strong></div><span>POPULAR RIGHT NOW</span></div>
             {discoveryLoading && !discovery.topSellers.length
@@ -84,6 +85,7 @@ export default function HomePage({
                   </a>)}</div>
                 : <small className="home-top-sellers-empty">{discoveryError || "Steam top sellers are temporarily unavailable."}</small>}
           </div>
+          </>}
         </section>
         {currentPage === "games" && <section className="browse-games-section">
           <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Top Sellers</h2><p>The most popular games players are buying on Steam right now.</p></div><span className="section-count">{discovery.topSellers.length ? `${discovery.topSellers.length} GAMES` : ""}</span></div>
