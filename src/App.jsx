@@ -259,7 +259,7 @@ export default function App() {
       const nextPage = routePage === "trending" ? "games" : routePage;
       setCurrentPage(nextPage);
       setGamesSection(routePage === "trending" ? "topSellers" : getGamesSectionFromRoute(route));
-      if (routePage === "trending") window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`);
+      if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
     };
