@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { getCartDetails } from "../services/steamPulseApi";
 
 export function useSteamAccount(region) {
   const [steamAccountSnapshot, setSteamAccountSnapshot] = useState(null);
@@ -44,12 +44,7 @@ export function useSteamAccount(region) {
 
     setSteamCartDetailsLoading(true);
     setSteamCartDetailsError("");
-    fetch(`/api/cart-details?cc=${encodeURIComponent(region)}&apps=${encodeURIComponent(appIds)}`)
-      .then(async (response) => {
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load cart details.");
-        return data;
-      })
+    getCartDetails(region, appIds)
       .then((data) => {
         if (!cancelled) setSteamCartDetails(data.items || []);
       })
