@@ -173,7 +173,7 @@ export default function App() {
       const routePage = pageMatch?.[1] || "home";
       const nextPage = routePage === "trending" ? "games" : routePage;
       setCurrentPage(nextPage);
-      setGamesSection(routePage === "trending" ? "topSellers" : getGamesSectionFromRoute(route));
+      setGamesSection(routePage === "trending" ? "freeGames" : getGamesSectionFromRoute(route));
       if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.freeGames}`);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); }
