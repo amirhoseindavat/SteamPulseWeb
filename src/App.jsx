@@ -10,8 +10,6 @@ import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
 import SalesPage from "./pages/SalesPage";
-import { REGIONS } from "./config/regions";
-import { money, formatNumber } from "./utils/formatters";
 import { readApiResponse } from "./utils/api";
 import { useSteamAccount } from "./hooks/useSteamAccount";
 import { useDiscoveryData } from "./hooks/useDiscoveryData";
@@ -23,6 +21,8 @@ import { useGameData } from "./hooks/useGameData";
 import { useAppSettings } from "./hooks/useAppSettings";
 import { useAppInteractions } from "./hooks/useAppInteractions";
 import { useCalculator } from "./hooks/useCalculator";
+import { useGameViewModel } from "./hooks/useGameViewModel";
+import { useCartSummary } from "./hooks/useCartSummary";
 
 import { getGamesSectionFromRoute, getRoutePath, useNavigation } from "./hooks/useNavigation";
 
@@ -124,38 +124,23 @@ export default function App() {
     steamApiKey
   });
 
-  const gamePackageIds = [...new Set((game?.package_ids || game?.editions?.map((edition) => edition.packageId) || []).map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-  const allGameEditions = game?.editions || [];
-  const gameEditions = allGameEditions;
-  const gameBundles = game?.bundles || [];
-  const hasEditions = gameEditions.length > 0;
-  const hasBundles = gameBundles.length > 0;
-  const missingPackages = gamePackageIds
-    .filter((packageId) => !allGameEditions.some((edition) => Number(edition.packageId) === packageId))
-    .map((packageId) => ({ packageId, name: `Steam package ${packageId}`, description: "Owned package detected in your Steam account.", url: `https://store.steampowered.com/sub/${packageId}/` }));
-  const visibleDlc = game?.dlc || [];
-  // Count ownership against every DLC AppID, not only the 24 cards currently loaded.
-  const allDlcIds = [...new Set((game?.dlc_ids || visibleDlc.map((item) => item.appid))
-    .map(Number).filter((id) => Number.isSafeInteger(id) && id > 0))];
-  const ownedDlcCount = steamAccountConnected
-    ? allDlcIds.filter((id) => steamOwnedApps.has(id) || steamOwnedPackages.has(id)).length
-    : 0;
-  const totalDlcCount = Math.max(Number(game?.dlc_total) || 0, visibleDlc.length);
-  const dlcSectionCount = ownedDlcCount > 0
-    ? `${totalDlcCount} DLCs · ${ownedDlcCount} owned`
-    : `${totalDlcCount} DLCs`;
-  const gameIsWishlisted = Boolean(game && steamAccountConnected && steamWishlist.has(Number(game.appid)));
-  const gameIsOwned = Boolean(game && steamAccountConnected && (
-    steamOwnedApps.has(Number(game.appid)) || gamePackageIds.some((packageId) => steamOwnedPackages.has(packageId))
-  ));
-  const hero = game?.library_hero || game?.header_image_2x || game?.header_image;
-  const price = money(game?.price_overview);
-  const hasStorePrice = Boolean(game?.price_overview && (game.price_overview.final != null || game.price_overview.final_formatted));
-  const selectedRegion = REGIONS.find((r) => r.code === region) || REGIONS[0];
-  const numericRegionalPrice = Number(regionalPriceInput);
-  const regionalKeyPriceValue = Number(regionalKeyPrice?.netPrice);
-  const regionalKeyPriceForCalculation = regionalKeyPrice?.region === selectedRegion.code && Number.isFinite(regionalKeyPriceValue) && regionalKeyPriceValue > 0 ? regionalKeyPriceValue : 0;
-  const liveKeyPriceToman = Number(shopData?.Key);
+  const gameViewModel = useGameViewModel({
+    game,
+    region,
+    steamAccountConnected,
+    steamWishlist,
+    steamOwnedApps,
+    steamOwnedPackages,
+    regionalPriceInput,
+    regionalKeyPrice,
+    shopData
+  });
+  const {
+    gamePackageIds, gameEditions, gameBundles, hasEditions, hasBundles,
+    missingPackages, visibleDlc, dlcSectionCount, gameIsWishlisted, gameIsOwned,
+    hero, price, hasStorePrice, selectedRegion, numericRegionalPrice,
+    regionalKeyPriceForCalculation, liveKeyPriceToman, systemNames, tabNames
+  } = gameViewModel;
   const {
     conversionMode, setConversionMode,
     conversionAmount, setConversionAmount,
@@ -167,25 +152,15 @@ export default function App() {
     liveKeyPriceToman,
     selectedRegion
   });
-  const uniqueCartDetails = steamCartDetails;
-  const cartCurrency = uniqueCartDetails.find((item) => item.currency)?.currency || selectedRegion.currency;
-  const cartTotalMinor = uniqueCartDetails.reduce((sum, item) => sum + (item.price != null && Number.isFinite(Number(item.price)) ? Number(item.price) : 0), 0);
-  const cartOriginalTotalMinor = uniqueCartDetails.reduce((sum, item) => sum + (item.initialPrice != null && Number.isFinite(Number(item.initialPrice)) ? Number(item.initialPrice) : (item.price != null && Number.isFinite(Number(item.price)) ? Number(item.price) : 0)), 0);
-  const cartPricedItems = uniqueCartDetails.filter((item) => item.price != null && Number.isFinite(Number(item.price)));
-  const cartTotalFormatted = cartPricedItems.length
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartTotalMinor / 100)
-    : "—";
-  const cartOriginalTotalFormatted = cartPricedItems.length
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartOriginalTotalMinor / 100)
-    : "—";
-  const cartSavingsMinor = Math.max(0, cartOriginalTotalMinor - cartTotalMinor);
-  const cartSavingsFormatted = new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(cartSavingsMinor / 100);
-  const cartKeyCount = regionalKeyPriceForCalculation > 0 && cartPricedItems.length
-    ? Math.ceil((cartTotalMinor / 100) / regionalKeyPriceForCalculation)
-    : null;
-
-  const systemNames = Object.entries(game?.platforms || {}).filter(([, supported]) => supported).map(([name]) => name);
-  const tabNames = ["overview", "screenshots", "videos", "requirements", "steam news", "external news"];
+  const cartSummary = useCartSummary({
+    steamCartDetails,
+    selectedRegion,
+    regionalKeyPriceForCalculation
+  });
+  const {
+    uniqueCartDetails, cartCurrency, cartTotalFormatted, cartOriginalTotalFormatted,
+    cartSavingsMinor, cartSavingsFormatted, cartKeyCount
+  } = cartSummary;
 
   return (
     <div className={`app-shell${gameBackground ? " has-game-background" : ""}`} data-theme={theme}>
