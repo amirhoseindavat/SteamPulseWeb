@@ -32,10 +32,9 @@ export async function requestJson(
   { cacheTtl = 0 } = {}
 ) {
   const method = String(options.method || "GET").toUpperCase();
-  const cacheKey = method === "GET" && cacheTtl > 0 && !/[?&]refresh=1(?:&|$)/.test(url)
-    ? String(url)
-    : "";
-  const cachedEntry = cacheKey ? responseCache.get(cacheKey) : null;
+  const cacheKey = method === "GET" && cacheTtl > 0 ? String(url).replace(/([?&])refresh=1(&|$)/, (match, prefix, suffix) => suffix ? prefix : "").replace(/[?&]$/, "") : "";
+  const forceRefresh = /[?&]refresh=1(?:&|$)/.test(url);
+  const cachedEntry = cacheKey && !forceRefresh ? responseCache.get(cacheKey) : null;
 
   if (cachedEntry) {
     if (Date.now() - cachedEntry.at < cachedEntry.ttl) return cloneData(cachedEntry.data);
