@@ -51,7 +51,7 @@ export default function App() {
   const [inputId, setInputId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
-  const { discovery, discoveryLoading, discoveryError, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
+  const { discovery, discoveryLoading, discoveryError, topSellersLoading, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
   const {
     steamProfileData, personalSteamProfileData, setPersonalSteamProfileData,
     steamProfileLoading, steamProfileError, loadSteamProfile, isOwnSteamProfile
@@ -208,6 +208,7 @@ export default function App() {
           discovery={discovery}
           discoveryLoading={discoveryLoading}
           discoveryError={discoveryError}
+          topSellersLoading={topSellersLoading}
           region={region}
           setRegion={setRegion}
           loading={loading}
