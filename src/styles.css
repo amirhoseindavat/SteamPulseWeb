@@ -2779,3 +2779,23 @@
   font:700 9px "DM Mono",monospace;
   white-space:nowrap;
 }
+
+
+/* Preorder countdown sits inside the artwork badge, matching the Top Sellers badge position. */
+.preorder-countdown-badge{
+  right:8px;
+  left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:25px;
+  padding:5px 8px;
+  border:1px solid #8b6cff75;
+  border-radius:6px;
+  background:#17102be8;
+  color:#d6caff;
+  font:700 9px "DM Mono",monospace;
+  letter-spacing:.1px;
+  box-shadow:0 3px 12px #05051080,inset 0 1px #ffffff20;
+  white-space:nowrap;
+}
