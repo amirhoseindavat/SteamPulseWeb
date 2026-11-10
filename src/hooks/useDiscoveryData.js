@@ -11,35 +11,35 @@ export function useDiscoveryData(region) {
   const [freeGamesError, setFreeGamesError] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setDiscoveryLoading(true);
     setDiscoveryError("");
-    getDiscovery(region)
-      .then((data) => {
-        if (!cancelled) setDiscovery({
-          newReleases: data.newReleases || [],
-          upcoming: data.upcoming || [],
-          preorders: data.preorders || [],
-          preordersError: data.preordersError || "",
-          topSellers: data.topSellers || []
-        });
-      })
+    getDiscovery(region, false, controller.signal)
+      .then((data) => setDiscovery({
+        newReleases: data.newReleases || [],
+        upcoming: data.upcoming || [],
+        preorders: data.preorders || [],
+        preordersError: data.preordersError || "",
+        topSellers: data.topSellers || []
+      }))
       .catch((e) => {
-        if (!cancelled) setDiscoveryError(e.message || "Game discovery is temporarily unavailable.");
+        if (!controller.signal.aborted) setDiscoveryError(e.message || "Game discovery is temporarily unavailable.");
       })
-      .finally(() => { if (!cancelled) setDiscoveryLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => { if (!controller.signal.aborted) setDiscoveryLoading(false); });
+    return () => controller.abort();
   }, [region]);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setFreeGamesLoading(true);
     setFreeGamesError("");
-    getFreeGames(region)
-      .then((data) => { if (!cancelled) setFreeGames(data.items || []); })
-      .catch((e) => { if (!cancelled) setFreeGamesError(e.message || "Free promotions are temporarily unavailable."); })
-      .finally(() => { if (!cancelled) setFreeGamesLoading(false); });
-    return () => { cancelled = true; };
+    getFreeGames(region, false, controller.signal)
+      .then((data) => setFreeGames(data.items || []))
+      .catch((e) => {
+        if (!controller.signal.aborted) setFreeGamesError(e.message || "Free promotions are temporarily unavailable.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setFreeGamesLoading(false); });
+    return () => controller.abort();
   }, [region]);
 
   return {
