@@ -62,11 +62,11 @@ export default function HomePage({
               {query && <button className="icon-button clear-search" onClick={() => { setQuery(""); setResults([]); setSearchOpen(false); }} aria-label="Clear search"><X size={16} /></button>}
               {searchOpen && results.length > 0 && <div className="search-results">
                 <div className="results-label">STEAM STORE RESULTS <span>{results.length} MATCHES</span></div>
-                {results.slice(0, 8).map((item) => <button className="result-row" key={item.id} onClick={() => chooseGame(item)}>
+                {results.slice(0, 8).map((item) => <a className="result-row" key={item.id} href={`#/game/${item.id}`} onClick={(event) => { if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return; event.preventDefault(); chooseGame(item); }}>
                   <img src={item.tiny_image} alt="" loading="lazy" />
                   <span className="result-name">{item.name}<small>APP ID · {item.id}</small></span>
                   <span className="result-type">{item.type || "game"}</span><ChevronRight size={16} />
-                </button>)}
+                </a>)}
               </div>}
               {searchOpen && !searching && query.trim().length >= 2 && results.length === 0 && <div className="search-results empty-results">No matches yet. Try another title or enter an AppID.</div>}
             </div>
@@ -78,8 +78,8 @@ export default function HomePage({
             <div className="home-top-sellers-heading"><div><span className="section-kicker">STEAM CHARTS</span><strong>Top Sellers</strong></div><span>POPULAR RIGHT NOW</span></div>
             {discoveryLoading && !discovery.topSellers.length
               ? <div className="discovery-loading"><LoaderCircle size={17} className="spin" />Loading Steam top sellers…</div>
-              : discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 7).length
-                ? <div className="home-top-sellers-grid">{discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 7).map((item, index) => <a className="home-top-seller-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+              : discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 6).length
+                ? <div className="home-top-sellers-grid">{discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 6).map((item, index) => <a className="home-top-seller-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
                     <span className="home-top-seller-art"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><b>{index + 1}</b></span>
                     <span className="home-top-seller-copy"><strong>{item.name}</strong><span>{item.discountPercent > 0 && <em>-{item.discountPercent}%</em>}<b>{item.price || "Price unavailable"}</b></span></span>
                   </a>)}</div>
