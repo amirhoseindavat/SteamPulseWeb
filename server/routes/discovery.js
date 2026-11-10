@@ -504,6 +504,61 @@ async function fetchSteamTopSellers(cc) {
   }).filter(Boolean);
 }
 
+app.get("/api/top-sellers", async (req, res) => {
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const key = `top-sellers:v1:${cc}`;
+  if (req.query.refresh !== "1") {
+    const hit = cached(key);
+    if (hit) return res.json(hit);
+  }
+
+  try {
+    const [fullList, featuredData] = await Promise.all([
+      fetchSteamTopSellers(cc).catch((error) => {
+        console.warn("Could not load Steam Top Sellers search:", error.message);
+        return [];
+      }),
+      fetchJson(new URL(`https://store.steampowered.com/api/featuredcategories/?cc=${cc}&l=english`)).catch((error) => {
+        console.warn("Could not load featured Top Sellers fallback:", error.message);
+        return null;
+      })
+    ]);
+
+    const featuredItems = (featuredData?.top_sellers?.items || [])
+      .filter((item) => Number(item.id) > 0 && item.name)
+      .map((item) => ({
+        id: Number(item.id),
+        name: item.name,
+        type: "game",
+        image: item.large_capsule_image || item.header_image || item.small_capsule_image || "",
+        priceValue: item.final_price != null ? Number(item.final_price) / 100 : null,
+        price: item.final_formatted || "",
+        originalPrice: item.original_price != null && item.currency
+          ? new Intl.NumberFormat("en-US", { style: "currency", currency: item.currency }).format(Number(item.original_price) / 100)
+          : "",
+        discountPercent: Number(item.discount_percent) || 0,
+        badge: "TOP SELLER"
+      }));
+
+    const unique = new Map();
+    for (const item of [...fullList, ...featuredItems]) {
+      if (!item?.id || !item.name || unique.has(Number(item.id))) continue;
+      const hasPaidPrice = item.priceValue != null
+        ? Number(item.priceValue) > 0
+        : Boolean(String(item.price || "").trim()) &&
+          !/\\bfree(?:\\s+to\\s+play)?\\b|price unavailable|not available/i.test(String(item.price));
+      if (hasPaidPrice) unique.set(Number(item.id), { ...item, badge: "TOP SELLER" });
+    }
+
+    const items = [...unique.values()].slice(0, 50);
+    if (!items.length) throw new Error("Steam did not return any priced Top Sellers.");
+    res.json(saveCache(key, { items }));
+  } catch (error) {
+    console.error("Steam Top Sellers request failed:", error);
+    res.status(502).json({ error: "Steam Top Sellers are temporarily unavailable.", detail: error.message });
+  }
+});
+
 app.get("/api/discover", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
   const key = `discover:v26:${cc}`;
