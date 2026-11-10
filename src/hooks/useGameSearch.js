@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { searchGames as fetchGameSearch } from "../services/steamPulseApi";
 
 export function useGameSearch({ region, loadGame, setQuery, setInputId, setError }) {
   const [results, setResults] = useState([]);
@@ -16,9 +16,7 @@ export function useGameSearch({ region, loadGame, setQuery, setInputId, setError
     setSearching(true);
     setError("");
     try {
-      const response = await fetch(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${region}`);
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || data.detail || "Search failed.");
+      const data = await fetchGameSearch(term, region);
       setResults(data.items || []);
       setSearchOpen(true);
     } catch (error) {
