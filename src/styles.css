@@ -3034,8 +3034,8 @@
   display:block;
   width:100%;
   height:auto;
-  max-height:360px;
-  object-fit:cover;
+  max-height:none;
+  object-fit:contain;
   object-position:center;
   transition:transform .35s ease;
 }
