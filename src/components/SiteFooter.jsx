@@ -2,6 +2,7 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer-brand-group">
+        <img className="site-footer-logo" src="https://steampulse.ir/favicon.png" alt="" loading="lazy" />
         <span className="site-footer-brand">SteamPulse</span>
         <span className="site-footer-version">v1.0</span>
       </div>
