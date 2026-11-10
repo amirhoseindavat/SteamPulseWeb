@@ -2636,27 +2636,17 @@
   .app-shell .game-info-pair .deck-badge{min-height:44px;padding:8px 11px;font-size:11px}
 }
 
-/* Home page: seven compact, image-led Steam Top Sellers cards. */
+/* Home page: compact, name-only Steam Top Sellers list. */
 .home-top-sellers{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .home-top-sellers-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
 .home-top-sellers-heading>div{display:flex;flex-direction:column;gap:5px}
 .home-top-sellers-heading>div>strong{color:var(--text);font-size:17px}
 .home-top-sellers-heading>span{color:var(--muted);font:9px "DM Mono",monospace;letter-spacing:1px}
-.home-top-sellers-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.home-top-seller-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--glass-border);border-radius:11px;background:var(--glass-control-bg);color:inherit;text-decoration:none;transition:transform .18s,border-color .18s}
-.home-top-seller-card:hover{transform:translateY(-2px);border-color:rgba(161,138,255,.55)}
-.home-top-seller-art{position:relative;display:block;aspect-ratio:460/215;overflow:hidden;background:rgba(0,0,0,.18)}
-.home-top-seller-art img{width:100%;height:100%;display:block;object-fit:cover}
-.home-top-seller-art>b{position:absolute;top:7px;left:7px;display:grid;place-items:center;width:23px;height:23px;border:1px solid rgba(255,255,255,.24);border-radius:7px;background:rgba(8,13,27,.78);color:#fff;font:700 11px "DM Mono",monospace;backdrop-filter:blur(8px)}
-.home-top-seller-copy{display:flex;min-width:0;flex:1;flex-direction:column;justify-content:space-between;gap:9px;padding:10px}
-.home-top-seller-copy>strong{display:-webkit-box;overflow:hidden;color:var(--text);font-size:12px;line-height:1.45;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:35px}
-.home-top-seller-copy>span{display:flex;align-items:center;justify-content:space-between;gap:5px}
-.home-top-seller-copy>span>b{overflow:hidden;color:var(--text);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
-.home-top-seller-copy em{flex:0 0 auto;padding:3px 5px;border-radius:5px;background:rgba(112,223,173,.13);color:#70dfad;font:700 9px "DM Mono",monospace;font-style:normal}
+.home-top-sellers-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.home-top-seller-name{display:block;min-width:0;padding:10px 2px;border-bottom:1px solid var(--line);color:var(--text);font-size:13px;line-height:1.45;text-decoration:none;transition:color .18s}
+.home-top-seller-name:hover{color:var(--accent,#a18aff)}
 .home-top-sellers-empty{display:block;padding:8px 0;color:var(--muted);font-size:11px}
-@media(max-width:900px){.home-top-sellers-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:620px){.home-top-sellers-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-top-seller-copy{padding:9px}.home-top-seller-copy>strong{font-size:11px}}
-
+@media(max-width:620px){.home-top-sellers-list{grid-template-columns:1fr}.home-top-seller-name{padding:9px 2px}}
 
 /* Native anchors keep navigation and search results compatible with open-in-new-tab. */
 .main-nav>a{
