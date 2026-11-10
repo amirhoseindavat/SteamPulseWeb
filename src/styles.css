@@ -2560,3 +2560,93 @@
 .app-shell .release-countdown{margin:var(--game-section-gap) 0}
 .app-shell .steam-franchise-notice{margin:var(--game-section-gap) 0}
 .app-shell .dlc-parent-notice{margin:var(--game-section-gap) 0}
+
+
+/* Refined Steam Deck compatibility card: right-aligned status and larger visual hierarchy. */
+.app-shell .game-info-pair .deck-main{
+  display:flex;
+  align-items:flex-start;
+  flex-wrap:nowrap;
+  gap:18px;
+}
+.app-shell .game-info-pair .deck-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 66px;
+  width:66px;
+  height:66px;
+  border-radius:16px;
+}
+.app-shell .game-info-pair .deck-icon .steam-deck-mark{
+  width:37px;
+  height:37px;
+}
+.app-shell .game-info-pair .deck-title{
+  flex:1 1 auto;
+  min-width:0;
+}
+.app-shell .game-info-pair .deck-title h2{font-size:19px}
+.app-shell .game-info-pair .deck-title p{font-size:13px;line-height:1.7}
+.app-shell .game-info-pair .deck-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex:0 0 auto;
+  margin:0 0 0 auto;
+  min-height:52px;
+  padding:10px 15px;
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  font-size:13px;
+  font-weight:750;
+  white-space:nowrap;
+}
+.app-shell .game-info-pair .deck-badge .steam-deck-rating-icon{
+  width:29px;
+  height:29px;
+}
+.app-shell .game-info-pair .deck-criteria{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+.app-shell .game-info-pair .deck-criterion{
+  min-width:0;
+  min-height:44px;
+  gap:9px;
+  padding:10px 12px;
+  font-size:12px;
+}
+.app-shell .game-info-pair .deck-criterion small{font-size:10px}
+@media(max-width:620px){
+  .app-shell .game-info-pair .deck-main{flex-wrap:wrap}
+  .app-shell .game-info-pair .deck-badge{margin-left:auto}
+}
+@media(max-width:480px){
+  .app-shell .game-info-pair .deck-criteria{grid-template-columns:1fr}
+  .app-shell .game-info-pair .deck-icon{flex-basis:56px;width:56px;height:56px}
+  .app-shell .game-info-pair .deck-icon .steam-deck-mark{width:32px;height:32px}
+  .app-shell .game-info-pair .deck-badge{min-height:44px;padding:8px 11px;font-size:11px}
+}
+
+/* Home page: seven compact, image-led Steam Top Sellers cards. */
+.home-top-sellers{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.home-top-sellers-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+.home-top-sellers-heading>div{display:flex;flex-direction:column;gap:5px}
+.home-top-sellers-heading>div>strong{color:var(--text);font-size:17px}
+.home-top-sellers-heading>span{color:var(--muted);font:9px "DM Mono",monospace;letter-spacing:1px}
+.home-top-sellers-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.home-top-seller-card{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--glass-border);border-radius:11px;background:var(--glass-control-bg);color:inherit;text-decoration:none;transition:transform .18s,border-color .18s}
+.home-top-seller-card:hover{transform:translateY(-2px);border-color:rgba(161,138,255,.55)}
+.home-top-seller-art{position:relative;display:block;aspect-ratio:460/215;overflow:hidden;background:rgba(0,0,0,.18)}
+.home-top-seller-art img{width:100%;height:100%;display:block;object-fit:cover}
+.home-top-seller-art>b{position:absolute;top:7px;left:7px;display:grid;place-items:center;width:23px;height:23px;border:1px solid rgba(255,255,255,.24);border-radius:7px;background:rgba(8,13,27,.78);color:#fff;font:700 11px "DM Mono",monospace;backdrop-filter:blur(8px)}
+.home-top-seller-copy{display:flex;min-width:0;flex:1;flex-direction:column;justify-content:space-between;gap:9px;padding:10px}
+.home-top-seller-copy>strong{display:-webkit-box;overflow:hidden;color:var(--text);font-size:12px;line-height:1.45;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:35px}
+.home-top-seller-copy>span{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.home-top-seller-copy>span>b{overflow:hidden;color:var(--text);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.home-top-seller-copy em{flex:0 0 auto;padding:3px 5px;border-radius:5px;background:rgba(112,223,173,.13);color:#70dfad;font:700 9px "DM Mono",monospace;font-style:normal}
+.home-top-sellers-empty{display:block;padding:8px 0;color:var(--muted);font-size:11px}
+@media(max-width:900px){.home-top-sellers-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.home-top-sellers-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.home-top-seller-copy{padding:9px}.home-top-seller-copy>strong{font-size:11px}}
