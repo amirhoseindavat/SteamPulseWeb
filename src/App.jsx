@@ -40,7 +40,7 @@ function getGamesSectionFromRoute(route) {
     comingsoon: "upcoming",
     newreleases: "newReleases",
     preorders: "preorders"
-  })[section] || "topSellers";
+  })[section] || "freeGames";
 }
 
 function getRoutePath() {
@@ -134,11 +134,11 @@ export default function App() {
       : page === "profile" && personalSteamProfileData?.profile?.steamId
         ? `/profile/${personalSteamProfileData.profile.steamId}`
         : page === "games" || page === "trending"
-          ? `/games/${GAME_SECTION_SLUGS.topSellers}`
+          ? `/games/${GAME_SECTION_SLUGS.freeGames}`
           : `/${page}`;
     if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
     setCurrentPage(page === "trending" ? "games" : page);
-    if (page === "games" || page === "trending") setGamesSection("topSellers");
+    if (page === "games" || page === "trending") setGamesSection("freeGames");
     setProfileRouteId("");
     if (page !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -174,7 +174,7 @@ export default function App() {
       const nextPage = routePage === "trending" ? "games" : routePage;
       setCurrentPage(nextPage);
       setGamesSection(routePage === "trending" ? "topSellers" : getGamesSectionFromRoute(route));
-      if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`);
+      if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.freeGames}`);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); }
     };
