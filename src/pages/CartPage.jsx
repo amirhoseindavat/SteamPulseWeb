@@ -4,9 +4,9 @@ import { REGIONS } from "../config/regions";
 
 export default function CartPage({ steamCartApps, steamAccountConnected, steamCartDetailsError, steamCartDetailsLoading, uniqueCartDetails, cartTotalFormatted, cartOriginalTotalFormatted, cartSavingsMinor, cartSavingsFormatted, cartKeyCount, region, regionalKeyPriceForCalculation, cartCurrency }) {
   const selectedRegion = REGIONS.find((item) => item.code === region) || REGIONS[0];
-  const countryFlag = selectedRegion.code
-    .toUpperCase()
-    .replace(/[A-Z]/g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+  const countryFlagCode = [...selectedRegion.code.toUpperCase()]
+    .map((char) => (127397 + char.charCodeAt(0)).toString(16))
+    .join("-");
   return (
     <section className="steam-cart-page">
           <div className="steam-cart-heading"><div><span className="section-kicker"><ShoppingCart size={13} /> STEAM ACCOUNT</span><h1>Shopping Cart</h1><p>Your current Steam Store cart, synced from the account connected in your browser.</p></div><a className="primary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Cart <ExternalLink size={14} /></a></div>
@@ -25,7 +25,12 @@ export default function CartPage({ steamCartApps, steamAccountConnected, steamCa
                 <div><small>ESTIMATED KEYS REQUIRED</small><strong>{steamCartDetailsLoading ? "…" : cartKeyCount == null ? "—" : `${formatNumber(cartKeyCount)} Keys`}</strong><span>{regionalKeyPriceForCalculation > 0 ? `Based on ${new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(regionalKeyPriceForCalculation)} net per key` : "Regional key price is not available yet."}</span></div>
               </div>
             </>}
-            <p className="steam-cart-footnote">Game details and prices are fetched from Steam Store for your selected region ({countryFlag} {selectedRegion.label}).</p>
+            <p className="steam-cart-footnote">Game details and prices are fetched from Steam Store for your selected region (<img
+              src={`https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/${countryFlagCode}.svg`}
+              alt=""
+              aria-label={`${selectedRegion.label} flag`}
+              style={{ width: 18, height: 14, objectFit: "contain", verticalAlign: "-2px", display: "inline-block" }}
+            /> {selectedRegion.label}).</p>
           </>}
         </section>
   );
