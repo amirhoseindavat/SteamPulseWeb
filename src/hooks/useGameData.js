@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { getGame, getGameBundles, getGameDlc } from "../services/steamPulseApi";
 
 export function useGameData({
   region, appid, setAppid, setCurrentPage, setInputId, setQuery, setActiveTab
@@ -47,10 +47,8 @@ export function useGameData({
     setPurchaseTab("editions");
 
     try {
-      const response = await fetch("/api/game/" + id + "?cc=" + cc);
-      const data = await readApiResponse(response);
+      const data = await getGame(id, cc);
       if (requestId !== gameRequestRef.current) return;
-      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
 
       setGame(data);
       const isDlcPage = String(data.type || "").toLowerCase() === "dlc";
@@ -72,8 +70,7 @@ export function useGameData({
       setSelectedEditionName(defaultEdition?.name?.replace(/\s*-\s*\$\s*$/, "") || "");
 
       if (String(data.type || "").toLowerCase() !== "dlc") {
-        fetch("/api/game/" + id + "/bundles?cc=" + cc)
-          .then((response) => response.ok ? response.json() : null)
+        getGameBundles(id, cc)
           .then((bundleData) => {
             if (!bundleData || !Array.isArray(bundleData.bundles)) return;
             if (requestId !== gameRequestRef.current) return;
@@ -109,9 +106,7 @@ export function useGameData({
       const offset = Number.isSafeInteger(Number(game.dlc_next_offset))
         ? Number(game.dlc_next_offset)
         : (game.dlc || []).length;
-      const response = await fetch("/api/game/" + targetAppId + "/dlc?cc=" + region + "&offset=" + offset + "&limit=24");
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load more DLC.");
+      const data = await getGameDlc(targetAppId, region, offset, 24);
       if (requestId !== gameRequestRef.current) return;
 
       setGame((current) => {
