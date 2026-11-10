@@ -52,7 +52,9 @@ export function useNavigation({
   setError,
   setSearchOpen,
   loadGame,
-  region
+  region,
+  game,
+  loading
 }) {
   const latestRef = useRef(null);
   latestRef.current = {
@@ -68,7 +70,9 @@ export function useNavigation({
     setError,
     setSearchOpen,
     loadGame,
-    region
+    region,
+    game,
+    loading
   };
 
   function navigateTo(page) {
