@@ -3018,30 +3018,31 @@
 .home-top-sellers-empty{display:flex;align-items:center;gap:8px}
 
 
-/* Steam Store homepage takeover banner */
+/* Steam Store homepage takeover banner: crop the colored outer frame for a cleaner fit. */
 .steam-store-takeover{
   display:block;
   width:100%;
+  height:clamp(220px,34vw,420px);
   margin:0 0 22px;
   overflow:hidden;
-  border:1px solid var(--glass-border);
-  border-radius:16px;
-  background:var(--glass-bg);
-  box-shadow:0 12px 34px rgba(0,0,0,.16);
+  border:0;
+  border-radius:12px;
+  background:transparent;
+  box-shadow:none;
   line-height:0;
 }
 .steam-store-takeover img,.steam-store-takeover video{
   display:block;
   width:100%;
-  height:auto;
+  height:100%;
   max-height:none;
-  object-fit:contain;
+  object-fit:cover;
   object-position:center;
+  transform:scale(1.08);
   transition:transform .35s ease;
 }
-.steam-store-takeover:hover img,.steam-store-takeover:hover video{transform:scale(1.012)}
+.steam-store-takeover:hover img,.steam-store-takeover:hover video{transform:scale(1.11)}
 @media(max-width:620px){
-  .steam-store-takeover{margin-bottom:17px;border-radius:11px}
-  .steam-store-takeover img,.steam-store-takeover video{max-height:220px}
+  .steam-store-takeover{height:220px;margin-bottom:17px;border-radius:9px}
 }
 @media(prefers-reduced-motion:reduce){.steam-store-takeover img,.steam-store-takeover video{transition:none}}
