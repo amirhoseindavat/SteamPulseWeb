@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink, Info, LoaderCircle, RefreshCw, Gamepad2 } from "lucide-react";
+import { ChevronRight, ExternalLink, Gift, Info, LoaderCircle, RefreshCw, Gamepad2 } from "lucide-react";
 
 export default function TrendingPage({
   discovery,
@@ -13,7 +13,13 @@ export default function TrendingPage({
   region,
   setQuery,
   setInputId,
-  loadGame
+  loadGame,
+  freeGames,
+  freeGamesLoading,
+  setFreeGamesLoading,
+  freeGamesError,
+  setFreeGamesError,
+  setFreeGames
 }) {
   const sections = [
     ["topSellers", "Top Sellers", "TopSellers"],
@@ -94,6 +100,35 @@ export default function TrendingPage({
             .finally(() => setDiscoveryLoading(false));
         }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>
       </div>
+        <section className="free-games-section">
+          <div className="discovery-heading">
+            <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
+            <button className="discovery-refresh" onClick={() => {
+              setFreeGamesLoading(true); setFreeGamesError("");
+              fetch(`/api/free-games?cc=${region}&refresh=1`)
+                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+                .then((data) => setFreeGames(data.items || []))
+                .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
+                .finally(() => setFreeGamesLoading(false));
+            }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
+          </div>
+          {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
+          {freeGamesLoading && !freeGames.length
+            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
+            : freeGames.length
+              ? <div className="discovery-grid">
+                  {freeGames.map((item) => <article className="free-game-card" key={item.id}>
+                    <a className="free-game-main" href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
+                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
+                    </a>
+                    <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
+                  </article>)}
+                </div>
+              : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
+          <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
+          <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
+        </section>
       <nav className="discovery-tabs" aria-label="Game categories">
         {sections.map(([key, label, slug]) => <a
           key={key}
