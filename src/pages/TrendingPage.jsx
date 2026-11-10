@@ -42,16 +42,41 @@ export default function TrendingPage({
 
   function getReleaseCountdown(releaseDate) {
     const value = String(releaseDate || "").trim();
-    // Steam can prepend explanatory text to an otherwise complete release date.
-    // Extract the actual date first instead of asking Date() to parse the whole label.
-    const dateMatch = value.match(/\b(?:\d{4}-\d{2}-\d{2}|[a-z]{3,9}\s+\d{1,2},?\s+\d{4}|\d{1,2},?\s+[a-z]{3,9}\s+\d{4})\b/i);
-    if (!dateMatch) return null;
-    const release = new Date(dateMatch[0]);
-    if (Number.isNaN(release.getTime())) return null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    release.setHours(0, 0, 0, 0);
-    const days = Math.round((release.getTime() - today.getTime()) / 86400000);
+    if (!value) return null;
+
+    // Support ISO dates and Steam's common "Nov 10, 2026" / "10 Nov, 2026" labels.
+    const iso = value.match(/(\\d{4})[-/](\\d{1,2})[-/](\\d{1,2})/);
+    const monthFirst = value.match(/([a-z]{3,9})\\s+(\\d{1,2}),?\\s+(\\d{4})/i);
+    const dayFirst = value.match(/(\\d{1,2})\\s+([a-z]{3,9}),?\\s+(\\d{4})/i);
+    let year, month, day;
+
+    if (iso) {
+      [, year, month, day] = iso;
+    } else {
+      const match = monthFirst || dayFirst;
+      if (match) {
+        const monthNames = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+        const monthText = (monthFirst ? match[1] : match[2]).slice(0, 3).toLowerCase();
+        month = monthNames.indexOf(monthText) + 1;
+        day = monthFirst ? match[2] : match[1];
+        year = match[3];
+      } else {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return null;
+        year = parsed.getFullYear();
+        month = parsed.getMonth() + 1;
+        day = parsed.getDate();
+      }
+    }
+
+    const releaseTime = Date.UTC(Number(year), Number(month) - 1, Number(day));
+    const releaseDateValue = new Date(releaseTime);
+    if (!Number.isFinite(releaseTime) || releaseDateValue.getUTCFullYear() !== Number(year) ||
+        releaseDateValue.getUTCMonth() + 1 !== Number(month) || releaseDateValue.getUTCDate() !== Number(day)) return null;
+
+    const now = new Date();
+    const todayTime = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.round((releaseTime - todayTime) / 86400000);
     if (days < 0) return null;
     return days === 0 ? "Today" : `${days} days`;
   }
@@ -73,7 +98,7 @@ export default function TrendingPage({
         {sections.map(([key, label, slug]) => <a
           key={key}
           className={activeSection === key ? "active" : ""}
-          href={`/games/${slug}`}
+          href={`/games/${slug.toLowerCase()}`}
           onClick={(event) => {
             if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
@@ -87,7 +112,7 @@ export default function TrendingPage({
         : <div className="discovery-grid">
           {visibleItems.slice(0, activeSection === "topSellers" ? 20 : undefined).map((item, index) => activeSection === "preorders"
             ? <article className="discovery-card preorder-discovery-card" key={item.id}>
-                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" />{getReleaseCountdown(item.releaseDate) && <span className="discovery-badge preorder-countdown-badge">{getReleaseCountdown(item.releaseDate)}</span>}</span>
+                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" />{item.releaseDate && <span className="discovery-badge preorder-countdown-badge">{getReleaseCountdown(item.releaseDate) || "Coming soon"}</span>}</span>
                 <span className="discovery-card-copy">
                   <strong>{item.name}</strong>
                   {item.releaseDate && <span className="discovery-card-meta preorder-release-meta">{item.releaseDate}</span>}
