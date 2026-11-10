@@ -5,6 +5,7 @@ export function useDiscoveryData(region) {
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
   const [discoveryError, setDiscoveryError] = useState("");
+  const [topSellersLoading, setTopSellersLoading] = useState(true);
   const [discoveryTab, setDiscoveryTab] = useState("trending");
   const [freeGames, setFreeGames] = useState([]);
   const [freeGamesLoading, setFreeGamesLoading] = useState(true);
@@ -31,16 +32,19 @@ export function useDiscoveryData(region) {
 
   useEffect(() => {
     const controller = new AbortController();
+    setTopSellersLoading(true);
     setDiscovery((current) => ({ ...current, topSellers: [] }));
     getTopSellers(region, false, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) {
           setDiscovery((current) => ({ ...current, topSellers: data.items || [] }));
+          setTopSellersLoading(false);
         }
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
           setDiscoveryError(error.message || "Steam Top Sellers are temporarily unavailable.");
+          setTopSellersLoading(false);
         }
       });
     return () => controller.abort();
@@ -63,6 +67,7 @@ export function useDiscoveryData(region) {
     discovery,
     discoveryLoading,
     discoveryError,
+    topSellersLoading,
     discoveryTab,
     setDiscoveryTab,
     setDiscoveryLoading,
