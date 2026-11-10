@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink, Gamepad2, Gift, Info, LoaderCircle, RefreshCw, Search, Sparkles, X } from "lucide-react";
+import { ChevronRight, ExternalLink, Gift, Info, LoaderCircle, RefreshCw, Search, Sparkles, X } from "lucide-react";
 import RegionSelect from "../components/RegionSelect";
 
 export default function HomePage({
@@ -77,28 +77,6 @@ export default function HomePage({
             <span className="section-kicker">TOP SELLERS</span>
           </div>}
         </section>
-        {currentPage === "games" && <section className="browse-games-section">
-          <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Top Sellers</h2><p>The most popular games players are buying on Steam right now.</p></div><span className="section-count">{discovery.topSellers.length ? `${discovery.topSellers.length} GAMES` : ""}</span></div>
-          {discoveryLoading && !discovery.topSellers.length
-            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Loading Steam top sellers…</div>
-            : discovery.topSellers.length
-              ? <div className="browse-games-list">
-                  {discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 20).map((item, index) => <a className="browse-game-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
-                    <span className="browse-game-rank">{index + 1}</span>
-                    <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
-                    <span className="browse-game-info">
-                      <strong>{item.name}</strong>
-                      <span className="browse-game-release">{item.releaseDate || "Release date unavailable"}</span>
-                    </span>
-                    <span className="browse-game-price-area">
-                      {item.discountPercent > 0 && <span className="browse-game-discount">-{item.discountPercent}%</span>}
-                      <strong className="browse-game-price">{item.price || "Price unavailable"}</strong>
-                      <ChevronRight className="browse-game-arrow" size={17} />
-                    </span>
-                  </a>)}
-                </div>
-              : <div className="discovery-message">{discoveryError || "Top sellers are temporarily unavailable. Try again shortly."}</div>}
-        </section>}
         <section className="free-games-section">
           <div className="discovery-heading">
             <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
