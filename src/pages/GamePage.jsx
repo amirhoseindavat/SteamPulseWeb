@@ -90,7 +90,23 @@ export default function GamePage({
   return (
     <>
         {currentPage === "game" && error && <div className="error-banner"><Info size={18} /><span>{error}</span><button onClick={() => setError("")}><X size={16} /></button></div>}
-        {loading && <div className="loading-panel"><LoaderCircle className="spin" size={26} /><span>Syncing game data from Steam…</span></div>}
+        {loading && <section className="loading-panel game-sync-screen" role="status" aria-live="polite">
+          <div className="game-sync-visual" aria-hidden="true">
+            <div className="game-sync-orbit game-sync-orbit-one" />
+            <div className="game-sync-orbit game-sync-orbit-two" />
+            <div className="game-sync-core"><Gamepad2 size={34} strokeWidth={1.7} /><span /></div>
+            <i className="game-sync-particle game-sync-particle-one" />
+            <i className="game-sync-particle game-sync-particle-two" />
+            <i className="game-sync-particle game-sync-particle-three" />
+          </div>
+          <div className="game-sync-copy">
+            <span className="game-sync-eyebrow"><span /> STEAMPULSE SYSTEM</span>
+            <h2>SYNCING <strong>GAME DATA</strong></h2>
+            <p>Connecting to Steam and retrieving game details</p>
+            <div className="game-sync-progress"><span /></div>
+            <span className="game-sync-footnote"><LoaderCircle size={13} /> PLEASE WAIT · THIS MAY TAKE A MOMENT</span>
+          </div>
+        </section>}
 
         {currentPage === "game" && !game && !loading && <section className="welcome-panel"><Gamepad2 size={36} /><h2>Ready when you are</h2><p>Search for a game above to pull its Steam Store details.</p></section>}
 
