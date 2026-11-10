@@ -1,5 +1,6 @@
 import { ShoppingCart, ExternalLink } from "lucide-react";
 import { formatNumber } from "../utils/formatters";
+import { REGIONS } from "../config/regions";
 
 export default function CartPage({ steamCartApps, steamAccountConnected, steamCartDetailsError, steamCartDetailsLoading, uniqueCartDetails, cartTotalFormatted, cartOriginalTotalFormatted, cartSavingsMinor, cartSavingsFormatted, cartKeyCount, region, regionalKeyPriceForCalculation, cartCurrency }) {
   return (
@@ -20,7 +21,7 @@ export default function CartPage({ steamCartApps, steamAccountConnected, steamCa
                 <div><small>ESTIMATED KEYS REQUIRED</small><strong>{steamCartDetailsLoading ? "…" : cartKeyCount == null ? "—" : `${formatNumber(cartKeyCount)} Keys`}</strong><span>{regionalKeyPriceForCalculation > 0 ? `Based on ${new Intl.NumberFormat("en-US", { style: "currency", currency: cartCurrency }).format(regionalKeyPriceForCalculation)} net per key` : "Regional key price is not available yet."}</span></div>
               </div>
             </>}
-            <p className="steam-cart-footnote">Game details and prices are fetched from Steam Store for your selected region ({region}).</p>
+            <p className="steam-cart-footnote">Game details and prices are fetched from Steam Store for your selected region ({countryFlag} {selectedRegion.label}).</p>
           </>}
         </section>
   );
