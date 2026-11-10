@@ -2808,6 +2808,8 @@
 /* Footer hierarchy: version leads the brand; copyright stays discreet at the edge. */
 .site-footer .site-footer-brand-group{
   display:inline-flex;
+  flex-direction:row;
+  direction:ltr;
   align-items:center;
   gap:9px;
   min-width:0;
