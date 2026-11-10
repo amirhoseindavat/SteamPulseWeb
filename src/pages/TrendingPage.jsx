@@ -85,10 +85,10 @@ export default function TrendingPage({
         : <div className="discovery-grid">
           {visibleItems.slice(0, activeSection === "topSellers" ? 20 : undefined).map((item, index) => activeSection === "preorders"
             ? <article className="discovery-card preorder-discovery-card" key={item.id}>
-                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" /></span>
+                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" />{getReleaseCountdown(item.releaseDate) && <span className="discovery-badge preorder-countdown-badge">{getReleaseCountdown(item.releaseDate)}</span>}</span>
                 <span className="discovery-card-copy">
                   <strong>{item.name}</strong>
-                  {item.releaseDate && <span className="discovery-card-meta preorder-release-meta"><span>{item.releaseDate}</span>{getReleaseCountdown(item.releaseDate) && <b className="preorder-countdown">{getReleaseCountdown(item.releaseDate)}</b>}</span>}
+                  {item.releaseDate && <span className="discovery-card-meta preorder-release-meta">{item.releaseDate}</span>}
                   <a className="preorder-open-button" href={`#/game/${item.id}`} onClick={(event) => {
                     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
