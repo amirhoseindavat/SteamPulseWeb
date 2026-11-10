@@ -21,6 +21,7 @@ export default function HomePage({
   discoveryLoading,
   discoveryError,
   topSellersLoading,
+  storeTakeover,
   region,
   setRegion,
   loading
@@ -35,6 +36,17 @@ export default function HomePage({
 
   return (
     <>
+
+        {currentPage === "home" && storeTakeover?.image && storeTakeover?.link && <a
+          className="steam-store-takeover"
+          href={storeTakeover.link}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={storeTakeover.title || "Steam Store Takeover"}
+        >
+          <img src={storeTakeover.image} alt={storeTakeover.title || "Steam Store Takeover"} loading="eager" />
+        </a>}
+
         {currentPage === "home" && <section className="intro">
           <div className="eyebrow"><Sparkles size={14} /> YOUR STEAM COMMAND CENTER</div>
           <h1>Every game.<br /><span>One pulse.</span></h1>
