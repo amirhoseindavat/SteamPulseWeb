@@ -28,6 +28,19 @@ export default function HomePage({
 }) {
   const topSellers = (discovery?.topSellers || []).slice(0, 7);
 
+  function getTakeoverGameId(link) {
+    try {
+      const url = new URL(link);
+      if (!["store.steampowered.com", "www.store.steampowered.com"].includes(url.hostname.toLowerCase())) return "";
+      return url.pathname.match(/^\/app\/(\d+)(?:\/|$)/i)?.[1] || "";
+    } catch {
+      return "";
+    }
+  }
+
+  const takeoverGameId = storeTakeover?.link ? getTakeoverGameId(storeTakeover.link) : "";
+  const takeoverHref = takeoverGameId ? `#/game/${takeoverGameId}` : storeTakeover?.link;
+
   function openTopSeller(item) {
     setQuery(item.name);
     setInputId(String(item.id));
@@ -106,9 +119,9 @@ export default function HomePage({
 
         {currentPage === "home" && storeTakeover?.image && storeTakeover?.link && <a
           className="steam-store-takeover"
-          href={storeTakeover.link}
-          target="_blank"
-          rel="noreferrer"
+          href={takeoverHref}
+          target={takeoverGameId ? undefined : "_blank"}
+          rel={takeoverGameId ? undefined : "noreferrer"}
           aria-label={storeTakeover.title || "Steam Store Takeover"}
         >
           {storeTakeover.mediaType === "video"
