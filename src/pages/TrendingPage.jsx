@@ -43,7 +43,7 @@ export default function TrendingPage({
   function getReleaseCountdown(releaseDate) {
     const value = String(releaseDate || "").trim();
     // A year-only or month-only release window is not precise enough for a day countdown.
-    if (!/(?:\\b\\d{1,2},?\\s+[a-z]{3,9}\\s+\\d{4}\\b|\\b[a-z]{3,9}\\s+\\d{1,2},?\\s+\\d{4}\\b|\\b\\d{4}-\\d{2}-\\d{2}\\b)/i.test(value)) return null;
+    if (!/(?:\b\d{1,2},?\s+[a-z]{3,9}\s+\d{4}\b|\b[a-z]{3,9}\s+\d{1,2},?\s+\d{4}\b|\b\d{4}-\d{2}-\d{2}\b)/i.test(value)) return null;
     const release = new Date(value);
     if (Number.isNaN(release.getTime())) return null;
     const today = new Date();
