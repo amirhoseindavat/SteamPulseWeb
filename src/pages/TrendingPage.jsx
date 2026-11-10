@@ -22,12 +22,15 @@ export default function TrendingPage({
   setFreeGames
 }) {
   const sections = [
+    ["freeGames", "Free Games", "FreeGames"],
     ["topSellers", "Top Sellers", "TopSellers"],
     ["upcoming", "Coming Soon", "ComingSoon"],
     ["newReleases", "New Releases", "NewReleases"],
     ["preorders", "Preorders", "Preorders"]
   ];
-  const items = activeSection === "newReleases"
+  const items = activeSection === "freeGames"
+    ? []
+    : activeSection === "newReleases"
     ? discovery.newReleases
     : activeSection === "upcoming"
       ? discovery.upcoming
@@ -44,33 +47,6 @@ export default function TrendingPage({
     setQuery(item.name);
     setInputId(String(item.id));
     loadGame(item.id, region);
-  }
-
-  const freeGameTitles = (freeGames || []).filter((item) => item.productType !== "dlc");
-  const freeDlcTitles = (freeGames || []).filter((item) => item.productType === "dlc");
-
-  function renderFreeGameGroup(title, subtitle, items, type) {
-    return (
-      <section className={`free-games-group free-games-group-${type}`}>
-        <div className="free-games-group-heading">
-          <div><h3>{title}</h3><p>{subtitle}</p></div>
-          <span>{items.length} {items.length === 1 ? "offer" : "offers"}</span>
-        </div>
-        {items.length
-          ? <div className="discovery-grid">
-              {items.map((item) => <article className="free-game-card" key={item.id}>
-                <a className="free-game-main" href={`#/game/${item.id}`} onClick={() => {
-                  setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region);
-                }}>
-                  <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
-                  <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
-                </a>
-                <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
-              </article>)}
-            </div>
-          : <div className="discovery-message">No active {type === "dlc" ? "free DLC" : "free game"} offers right now.</div>}
-      </section>
-    );
   }
 
   function getReleaseCountdown(releaseDate) {
@@ -118,39 +94,15 @@ export default function TrendingPage({
     <section className="discovery-section">
       <div className="discovery-heading">
         <div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Explore Steam games</h2><p>Browse best sellers, upcoming launches, fresh releases and preorders.</p></div>
-        <button className="discovery-refresh" onClick={() => {
+        {activeSection !== "freeGames" && <button className="discovery-refresh" onClick={() => {
           setDiscoveryLoading(true); setDiscoveryError("");
           fetch(`/api/discover?cc=${region}&refresh=1`)
             .then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || data.detail || "Refresh failed."); return data; })
             .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], preorders: data.preorders || [], preordersError: data.preordersError || "", topSellers: data.topSellers || [] }))
             .catch((e) => setDiscoveryError(e.message || "Refresh failed."))
             .finally(() => setDiscoveryLoading(false));
-        }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>
+        }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>}
       </div>
-        <section className="free-games-section">
-          <div className="free-games-intro">
-            <span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span>
-            <h2>Free right now</h2>
-            <p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p>
-            <button className="discovery-refresh" onClick={() => {
-              setFreeGamesLoading(true); setFreeGamesError("");
-              fetch(`/api/free-games?cc=${region}&refresh=1`)
-                .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
-                .then((data) => setFreeGames(data.items || []))
-                .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
-                .finally(() => setFreeGamesLoading(false));
-            }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
-          </div>
-          {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
-          {freeGamesLoading && !freeGames.length
-            ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
-            : <>
-                {renderFreeGameGroup("Free Games", "Limited-time full game offers", freeGameTitles, "game")}
-                {renderFreeGameGroup("Free DLCs", "Free add-ons and downloadable content", freeDlcTitles, "dlc")}
-              </>}
-          <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
-          <div className="discovery-footnote">Limited-time offers for games and DLC. Hardware and permanently free-to-play listings are excluded; confirm the offer and deadline on Steam.</div>
-        </section>
      <nav className="discovery-tabs" aria-label="Game categories">
         {sections.map(([key, label, slug]) => <a
           key={key}
@@ -163,8 +115,39 @@ export default function TrendingPage({
           }}
         >{label}</a>)}
       </nav>
-      {discoveryError && <div className="discovery-message"><Info size={15} />{discoveryError}</div>}
-      {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.preorders.length && !discovery.topSellers.length
+      {activeSection === "freeGames" ? <section className="free-games-section">
+        <div className="free-games-intro">
+          <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Limited-time free offers for full games and DLC. Claim them before they expire.</p></div>
+          <button className="discovery-refresh" onClick={() => {
+            setFreeGamesLoading(true); setFreeGamesError("");
+            fetch(`/api/free-games?cc=${region}&refresh=1`)
+              .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+              .then((data) => setFreeGames(data.items || []))
+              .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
+              .finally(() => setFreeGamesLoading(false));
+          }} disabled={freeGamesLoading}><RefreshCw size={14} className={freeGamesLoading ? "spin" : ""} /> Refresh</button>
+        </div>
+        {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
+        {freeGamesLoading && !freeGames.length
+          ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
+          : freeGames.length
+            ? <div className="discovery-grid free-games-grid">
+                {freeGames.map((item) => <article className="free-game-card" key={item.id}>
+                  <a className="free-game-main" href={`#/game/${item.id}`} onClick={() => {
+                    setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region);
+                  }}>
+                    <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.productType === "dlc" ? `DLC · ${item.offerType}` : item.offerType}</span></span>
+                    <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
+                  </a>
+                  <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
+                </article>)}
+              </div>
+            : !freeGamesError && <div className="discovery-message">No active free game or DLC offers found right now. Check again later!</div>}
+        <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
+        <div className="discovery-footnote">Includes limited-time game and DLC promotions. Permanently free-to-play titles and hardware are excluded.</div>
+      </section> : <>
+      {activeSection !== "freeGames" && discoveryError && <div className="discovery-message"><Info size={15} />{discoveryError}</div>}
+      {activeSection !== "freeGames" && discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.preorders.length && !discovery.topSellers.length
         ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Finding games worth your attention…</div>
         : <div className="discovery-grid">
           {visibleItems.slice(0, activeSection === "topSellers" ? 20 : undefined).map((item, index) => activeSection === "preorders"
@@ -196,13 +179,14 @@ export default function TrendingPage({
                 </span>
               </a>)}
         </div>}
-      {!discoveryLoading && !discoveryError && !visibleItems.length && <div className="discovery-message">
+      {activeSection !== "freeGames" && !discoveryLoading && !discoveryError && !visibleItems.length && <div className="discovery-message">
         {activeSection === "preorders" && discovery.preordersError
           ? `Could not load Steam pre-orders: ${discovery.preordersError}`
           : "No titles available in this category right now."}
       </div>}
       <div className="discovery-sources"><span>Explore more on SteamDB</span><a href="https://steamdb.info/stats/mostwished/?displayOnly=Game" target="_blank" rel="noreferrer">Most wishlisted <ExternalLink size={11} /></a><a href="https://steamdb.info/stats/wishlistactivity/?upcoming_only=1" target="_blank" rel="noreferrer">Rising wishlist activity <ExternalLink size={11} /></a><a href="https://steamdb.info/upcoming/" target="_blank" rel="noreferrer">Upcoming releases <ExternalLink size={11} /></a></div>
       <div className="discovery-footnote">Discovery data from Steam Store · Select a game to open its full SteamPulse profile</div>
+      </>}
     </section>
   );
 }
