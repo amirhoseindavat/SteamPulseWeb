@@ -187,7 +187,7 @@ export default function GamePage({
           />
 
 
-          {( !isDlcOrHardware || (game.categories || []).length > 0) && <div className={`game-info-pair ${!isDlcOrHardware && (game.categories || []).length > 0 ? "has-two-cards" : "has-one-card"}`}>
+          {( !isDlcOrHardware || (gameType !== "dlc" && (game.categories || []).length > 0)) && <div className={`game-info-pair ${!isDlcOrHardware && (game.categories || []).length > 0 ? "has-two-cards" : "has-one-card"}`}>
           {!isDlcOrHardware && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
             <div className="deck-main">
               <div className="deck-icon"><SteamDeckMark size={37} /></div>
@@ -197,7 +197,7 @@ export default function GamePage({
             {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>}
-          {(game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
+          {gameType !== "dlc" && (game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
             <div className="steam-categories-heading"><div><span className="section-kicker">STEAM FEATURES</span><h2>Available features</h2></div><span>{game.categories.length} features</span></div>
             <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
               const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
