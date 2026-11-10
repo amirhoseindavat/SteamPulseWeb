@@ -190,9 +190,9 @@ export default function GamePage({
           {( !isDlcOrHardware || (game.categories || []).length > 0) && <div className={`game-info-pair ${!isDlcOrHardware && (game.categories || []).length > 0 ? "has-two-cards" : "has-one-card"}`}>
           {!isDlcOrHardware && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
             <div className="deck-main">
-              <div className="deck-icon"><SteamDeckMark size={27} /></div>
+              <div className="deck-icon"><SteamDeckMark size={37} /></div>
               <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
-              <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={21} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
+              <div className="deck-badge"><DeckCompatibilityIcon status={game.steam_deck?.status} size={29} /><span>{game.steam_deck?.label || "Unknown"}</span></div>
             </div>
             {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
