@@ -40,6 +40,20 @@ export default function TrendingPage({
     loadGame(item.id, region);
   }
 
+  function getReleaseCountdown(releaseDate) {
+    const value = String(releaseDate || "").trim();
+    // A year-only or month-only release window is not precise enough for a day countdown.
+    if (!/(?:\\b\\d{1,2},?\\s+[a-z]{3,9}\\s+\\d{4}\\b|\\b[a-z]{3,9}\\s+\\d{1,2},?\\s+\\d{4}\\b|\\b\\d{4}-\\d{2}-\\d{2}\\b)/i.test(value)) return null;
+    const release = new Date(value);
+    if (Number.isNaN(release.getTime())) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    release.setHours(0, 0, 0, 0);
+    const days = Math.ceil((release.getTime() - today.getTime()) / 86400000);
+    if (days < 0) return null;
+    return days === 0 ? "Today" : `${days} days`;
+  }
+
   return (
     <section className="discovery-section">
       <div className="discovery-heading">
@@ -69,12 +83,12 @@ export default function TrendingPage({
       {discoveryLoading && !discovery.newReleases.length && !discovery.upcoming.length && !discovery.preorders.length && !discovery.topSellers.length
         ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Finding games worth your attention…</div>
         : <div className="discovery-grid">
-          {visibleItems.slice(0, activeSection === "topSellers" ? 20 : undefined).map((item) => activeSection === "preorders"
+          {visibleItems.slice(0, activeSection === "topSellers" ? 20 : undefined).map((item, index) => activeSection === "preorders"
             ? <article className="discovery-card preorder-discovery-card" key={item.id}>
-                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
+                <span className="discovery-image-wrap"><img src={item.image || ""} alt="" loading="lazy" /></span>
                 <span className="discovery-card-copy">
                   <strong>{item.name}</strong>
-                  {item.releaseDate && <span className="discovery-card-meta">{item.releaseDate}</span>}
+                  {item.releaseDate && <span className="discovery-card-meta preorder-release-meta"><span>{item.releaseDate}</span>{getReleaseCountdown(item.releaseDate) && <b className="preorder-countdown">{getReleaseCountdown(item.releaseDate)}</b>}</span>}
                   <a className="preorder-open-button" href={`#/game/${item.id}`} onClick={(event) => {
                     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
@@ -87,7 +101,7 @@ export default function TrendingPage({
                 event.preventDefault();
                 openGame(item);
               }}>
-                <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><span className="discovery-badge">{item.badge}</span></span>
+                <span className="discovery-image-wrap"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />{activeSection === "topSellers" && <span className="discovery-badge discovery-rank-badge">{index + 1}</span>}</span>
                 <span className="discovery-card-copy">
                   <strong>{item.name}</strong>
                   <span className="discovery-card-meta">{item.releaseDate || item.subtitle || "Steam game"}
