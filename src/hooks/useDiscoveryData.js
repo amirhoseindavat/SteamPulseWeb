@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getDiscovery, getFreeGames } from "../services/steamPulseApi";
+import { getDiscovery, getFreeGames, getTopSellers } from "../services/steamPulseApi";
 
 export function useDiscoveryData(region) {
   const [discovery, setDiscovery] = useState({ newReleases: [], upcoming: [], preorders: [], preordersError: "", topSellers: [] });
@@ -15,17 +15,34 @@ export function useDiscoveryData(region) {
     setDiscoveryLoading(true);
     setDiscoveryError("");
     getDiscovery(region, false, controller.signal)
-      .then((data) => setDiscovery({
+      .then((data) => setDiscovery((current) => ({
+        ...current,
         newReleases: data.newReleases || [],
         upcoming: data.upcoming || [],
         preorders: data.preorders || [],
-        preordersError: data.preordersError || "",
-        topSellers: data.topSellers || []
-      }))
+        preordersError: data.preordersError || ""
+      })))
       .catch((e) => {
         if (!controller.signal.aborted) setDiscoveryError(e.message || "Game discovery is temporarily unavailable.");
       })
       .finally(() => { if (!controller.signal.aborted) setDiscoveryLoading(false); });
+    return () => controller.abort();
+  }, [region]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setDiscovery((current) => ({ ...current, topSellers: [] }));
+    getTopSellers(region, false, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setDiscovery((current) => ({ ...current, topSellers: data.items || [] }));
+        }
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) {
+          setDiscoveryError(error.message || "Steam Top Sellers are temporarily unavailable.");
+        }
+      });
     return () => controller.abort();
   }, [region]);
 
