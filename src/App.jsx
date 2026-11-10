@@ -414,13 +414,7 @@ export default function App() {
           discoveryError={discoveryError}
           region={region}
           setRegion={setRegion}
-          freeGames={freeGames}
           loading={loading}
-          freeGamesLoading={freeGamesLoading}
-          setFreeGamesLoading={setFreeGamesLoading}
-          freeGamesError={freeGamesError}
-          setFreeGamesError={setFreeGamesError}
-          setFreeGames={setFreeGames}
         />}
         {currentPage === "games" && <TrendingPage
           discovery={discovery}
@@ -436,6 +430,12 @@ export default function App() {
           setQuery={setQuery}
           setInputId={setInputId}
           loadGame={loadGame}
+          freeGames={freeGames}
+          freeGamesLoading={freeGamesLoading}
+          setFreeGamesLoading={setFreeGamesLoading}
+          freeGamesError={freeGamesError}
+          setFreeGamesError={setFreeGamesError}
+          setFreeGames={setFreeGames}
         />}
 
 
