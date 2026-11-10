@@ -3038,12 +3038,10 @@
   object-fit:cover;
   object-position:center;
   transition:transform .35s ease;
-  object-fit:cover;
-  object-position:center;
 }
 .steam-store-takeover:hover img,.steam-store-takeover:hover video{transform:scale(1.012)}
 @media(max-width:620px){
   .steam-store-takeover{margin-bottom:17px;border-radius:11px}
   .steam-store-takeover img,.steam-store-takeover video{max-height:220px}
 }
-@media(prefers-reduced-motion:reduce){.steam-store-takeover img{transition:none}}
+@media(prefers-reduced-motion:reduce){.steam-store-takeover img,.steam-store-takeover video{transition:none}}
