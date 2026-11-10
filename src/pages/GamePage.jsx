@@ -83,6 +83,10 @@ export default function GamePage({
   tabNames
 }) {
   const gameType = String(game?.type || "game").toLowerCase();
+  const playerCount = Number(game?.player_count);
+  const hasPlayersOnline = Number.isFinite(playerCount) && playerCount > 0;
+  const hasMetascore = game?.metacritic?.score !== null && game?.metacritic?.score !== undefined &&
+    game.metacritic.score !== "" && Number.isFinite(Number(game.metacritic.score));
   const isDlcOrHardware = gameType === "dlc" || gameType === "hardware";
   const isHardware = gameType === "hardware";
   const typeLabel = gameType === "dlc" ? "DLC" : gameType === "hardware" ? "Hardware" : gameType === "game" ? "Game" : gameType.charAt(0).toUpperCase() + gameType.slice(1);
@@ -130,10 +134,10 @@ export default function GamePage({
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>}
               </div>
-              {(game.player_count !== null && game.player_count !== undefined && game.player_count !== "") || (game.metacritic?.score !== null && game.metacritic?.score !== undefined && game.metacritic?.score !== "" && Number.isFinite(Number(game.metacritic.score))) ? <div className="hero-live-stats">
-                {game.player_count !== null && game.player_count !== undefined && game.player_count !== "" && <span className="hero-player-count"><Users size={15} /><strong>{formatNumber(game.player_count)}</strong><small>PLAYERS ONLINE</small></span>}
-                {game.metacritic?.score !== null && game.metacritic?.score !== undefined && game.metacritic?.score !== "" && Number.isFinite(Number(game.metacritic.score)) && <span className={`hero-metacritic metacritic-${Number(game.metacritic.score) > 75 ? "green" : Number(game.metacritic.score) > 50 ? "yellow" : "red"}`}><strong>{game.metacritic.score}</strong><small>METASCORE</small></span>}
-              </div> : null}
+              {(hasPlayersOnline || hasMetascore) && <div className="hero-live-stats">
+                {hasPlayersOnline && <span className="hero-player-count"><Users size={15} /><strong>{formatNumber(playerCount)}</strong><small>PLAYERS ONLINE</small></span>}
+                {hasMetascore && <span className={`hero-metacritic metacritic-${Number(game.metacritic.score) > 75 ? "green" : Number(game.metacritic.score) > 50 ? "yellow" : "red"}`}><strong>{game.metacritic.score}</strong><small>METASCORE</small></span>}
+              </div>}
               <div className="hero-actions game-external-actions">
                   <a className="primary-button" href={game.steam_url || ("https://store.steampowered.com/app/" + game.appid + "/")} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=store.steampowered.com&sz=64" alt="" /> Steam <ExternalLink size={14} /></a>
                   <a className="secondary-button external-site-button" href={"https://steamdb.info/app/" + game.appid + "/"} target="_blank" rel="noreferrer"><img className="external-site-icon" src="https://www.google.com/s2/favicons?domain=steamdb.info&sz=64" alt="" /> SteamDB <ExternalLink size={13} /></a>
