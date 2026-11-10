@@ -14,6 +14,9 @@ export const getGameDlc = (id, region, offset, limit = 24, signal) =>
 export const searchGames = (term, region, signal) =>
   requestJson(`/api/search?term=${encodeURIComponent(term.trim())}&cc=${encodeURIComponent(region)}`, withSignal(signal), "Search failed.", { cacheTtl: 20000 });
 
+export const getStoreTakeover = (region, refresh = false, signal) =>
+  requestJson(`/api/store-takeover?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, withSignal(signal), "Could not load Steam Store Takeover.", { cacheTtl: 300000 });
+
 export const getTopSellers = (region, refresh = false, signal) =>
   requestJson(`/api/top-sellers?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`, withSignal(signal), "Could not load Steam Top Sellers.", { cacheTtl: 60000 });
 
