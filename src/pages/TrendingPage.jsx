@@ -31,7 +31,7 @@ export default function TrendingPage({
   const visibleItems = (items || []).filter((item) =>
     activeSection !== "topSellers" ||
     Number(item.priceValue) > 0 ||
-    (item.priceValue == null && !/\\bfree\\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")
+    (item.priceValue == null && !/\bfree\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")
   );
 
   function openGame(item) {
