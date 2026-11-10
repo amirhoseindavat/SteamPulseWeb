@@ -44,7 +44,9 @@ export default function HomePage({
           rel="noreferrer"
           aria-label={storeTakeover.title || "Steam Store Takeover"}
         >
-          <img src={storeTakeover.image} alt={storeTakeover.title || "Steam Store Takeover"} loading="eager" />
+          {storeTakeover.mediaType === "video"
+            ? <video src={storeTakeover.image} autoPlay muted loop playsInline aria-label={storeTakeover.title || "Steam Store Takeover"} />
+            : <img src={storeTakeover.image} alt={storeTakeover.title || "Steam Store Takeover"} loading="eager" />}
         </a>}
 
         {currentPage === "home" && <section className="intro">
