@@ -232,3 +232,102 @@ export async function fetchSteamTakeover(cc) {
 }
 
 export async function fetchSteamTopSellers(cc) {
+  const url = new URL("https://store.steampowered.com/search/results/");
+  url.searchParams.set("query", "");
+  url.searchParams.set("start", "0");
+  url.searchParams.set("count", "50");
+  url.searchParams.set("dynamic_data", "");
+  url.searchParams.set("sort_by", "_ASC");
+  url.searchParams.set("snr", "1_7_7_7000_7");
+  url.searchParams.set("filter", "topsellers");
+  url.searchParams.set("category1", "998");
+  url.searchParams.set("os", "win");
+  url.searchParams.set("cc", cc.toLowerCase());
+  url.searchParams.set("l", "english");
+  url.searchParams.set("infinite", "1");
+
+  let response;
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      response = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!response.ok) throw new Error("Steam Top Sellers search failed (" + response.status + ")");
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+  }
+  if (!response?.ok) throw lastError || new Error("Steam Top Sellers search failed");
+  const payload = await response.json();
+  const html = String(payload.results_html || "");
+  const rows = html.match(/<a\b[^>]*class=["'][^"']*search_result_row[^"']*["'][\s\S]*?<\/a>/gi) || [];
+
+  const getClassContent = (source, className) => {
+    const elements = source.match(/<(?:div|span)\b[^>]*class=["'][^"']*["'][^>]*>[\s\S]*?<\/(?:div|span)>/gi) || [];
+    const element = elements.find((part) => {
+      const classAttr = part.match(/\bclass=["']([^"']*)["']/i)?.[1] || "";
+      return classAttr.split(/\s+/).includes(className);
+    });
+    if (!element) {
+      const openingTag = source.match(new RegExp('<(?:div|span)\\b(?=[^>]*\\bclass="[^"]*\\b' + className + '\\b)[^>]*>', "i"))?.[0];
+      if (!openingTag) return "";
+      const start = source.indexOf(openingTag) + openingTag.length;
+      const tag = openingTag.match(/^<([a-z]+)/i)?.[1] || "div";
+      const close = new RegExp("</" + tag + "\\s*>", "ig");
+      close.lastIndex = start;
+      const match = close.exec(source);
+      return match ? source.slice(start, match.index) : "";
+    }
+    return element.replace(/^<(?:div|span)\b[^>]*>/i, "").replace(/<\/(?:div|span)>$/i, "");
+  };
+
+  return rows.map((row) => {
+    const attr = (name) => {
+      const doubleQuoted = row.match(new RegExp(name + '="([^"]*)"', "i"));
+      const singleQuoted = row.match(new RegExp(name + "='([^']*)'", "i"));
+      return doubleQuoted?.[1] || singleQuoted?.[1] || "";
+    };
+    const id = Number(attr("data-ds-appid").split(",")[0]);
+    const title = row.match(/<span[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/span>/i)?.[1] || "";
+    const image = row.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1] || "";
+
+    const finalPriceHtml = getClassContent(row, "discount_final_price");
+    const originalPriceHtml = getClassContent(row, "discount_original_price");
+    const discountPercentHtml = getClassContent(row, "discount_pct");
+    const releaseDateHtml = getClassContent(row, "search_released");
+    const priceContainer = row.match(/<div[^>]*class=["'][^"']*search_price[^"']*["'][^"']*>([\s\S]*?)<\/div>\s*<\/a>/i)?.[1] || "";
+    const discountPercent = Number(decodeSteamHtml(discountPercentHtml).replace(/[^0-9]/g, "")) || 0;
+    const finalPriceText = decodeSteamHtml(finalPriceHtml);
+    const containerText = decodeSteamHtml(priceContainer);
+    const currencyPricePattern = /(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)\s*\d|\d[\d.,\s]*\s*(?:[$€£₴]|USD|EUR|GBP|UAH|RUB|TRY|PLN|BRL|INR)/i;
+    const isFree = /\bfree(?: to play)?\b/i.test(containerText);
+    if (!Number.isFinite(id) || id <= 0 || !title || isFree) return null;
+
+    const price = currencyPricePattern.test(finalPriceText)
+      ? finalPriceText
+      : currencyPricePattern.test(containerText) && !/pre[ -]?purchase/i.test(containerText)
+        ? containerText
+        : "Price unavailable";
+    const hasValidPrice = price !== "Price unavailable";
+    return {
+      id,
+      name: decodeSteamHtml(title),
+      type: "game",
+      image: image.replace(/&amp;/g, "&"),
+      releaseDate: decodeSteamHtml(releaseDateHtml),
+      price,
+      originalPrice: decodeSteamHtml(originalPriceHtml || ""),
+      discountPercent: hasValidPrice ? discountPercent : 0,
+      priceValue: isFree ? 0 : null,
+      badge: "TOP SELLER"
+    };
+  }).filter(Boolean);
+}
