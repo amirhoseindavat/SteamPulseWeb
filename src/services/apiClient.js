@@ -1,3 +1,19 @@
+const responseCache = new Map();
+
+function cloneData(data) {
+  return data == null ? data : JSON.parse(JSON.stringify(data));
+}
+
+export function clearApiCache(prefix = "") {
+  if (!prefix) {
+    responseCache.clear();
+    return;
+  }
+  for (const key of responseCache.keys()) {
+    if (key.startsWith(prefix)) responseCache.delete(key);
+  }
+}
+
 export async function readApiResponse(response) {
   const text = await response.text();
   if (!text.trim()) {
@@ -9,9 +25,29 @@ export async function readApiResponse(response) {
   }
 }
 
-export async function requestJson(url, options = {}, fallbackMessage = "The request could not be completed.") {
+export async function requestJson(
+  url,
+  options = {},
+  fallbackMessage = "The request could not be completed.",
+  { cacheTtl = 0 } = {}
+) {
+  const method = String(options.method || "GET").toUpperCase();
+  const cacheKey = method === "GET" && cacheTtl > 0 && !/[?&]refresh=1(?:&|$)/.test(url)
+    ? String(url)
+    : "";
+  const cachedEntry = cacheKey ? responseCache.get(cacheKey) : null;
+
+  if (cachedEntry) {
+    if (Date.now() - cachedEntry.at < cachedEntry.ttl) return cloneData(cachedEntry.data);
+    responseCache.delete(cacheKey);
+  }
+
   const response = await fetch(url, options);
   const data = await readApiResponse(response);
   if (!response.ok) throw new Error(data.error || data.detail || fallbackMessage);
+
+  if (cacheKey && !options.signal?.aborted) {
+    responseCache.set(cacheKey, { at: Date.now(), ttl: cacheTtl, data: cloneData(data) });
+  }
   return data;
 }
