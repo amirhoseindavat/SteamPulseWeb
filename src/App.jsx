@@ -22,6 +22,24 @@ import { useMarketData } from "./hooks/useMarketData";
 
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+const GAME_SECTION_SLUGS = {
+  topSellers: "TopSellers",
+  upcoming: "ComingSoon",
+  newReleases: "NewReleases",
+  preorders: "Preorders"
+};
+
+function getGamesSectionFromRoute(route) {
+  const match = route.match(/^\/games\/([^/?#]+)\/?$/i);
+  const section = match?.[1]?.toLowerCase();
+  return ({
+    topsellers: "topSellers",
+    comingsoon: "upcoming",
+    newreleases: "newReleases",
+    preorders: "preorders"
+  })[section] || "topSellers";
+}
+
 function getRoutePath() {
   const fallbackRoute = new URLSearchParams(window.location.search).get("p");
   if (fallbackRoute) {
@@ -53,8 +71,9 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     const gameMatch = initialRoute.match(/^\/game\/(\d+)/);
     const pageMatch = initialRoute.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/[^/?#]+)?\/?$/);
-    return gameMatch ? "game" : (pageMatch?.[1] || "home");
+    return gameMatch ? "game" : (pageMatch?.[1] === "trending" ? "games" : (pageMatch?.[1] || "home"));
   });
+  const [gamesSection, setGamesSection] = useState(() => getGamesSectionFromRoute(initialRoute));
   const [query, setQuery] = useState("");
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [appid, setAppid] = useState("");
@@ -76,7 +95,7 @@ export default function App() {
   const headerSearchRef = useRef(null);
 
   const { steamAccountSnapshot, steamAccountData, steamAccountConnected, steamWishlist, steamOwnedApps, steamOwnedPackages, steamCartApps, steamCartDetails, steamCartDetailsLoading, steamCartDetailsError } = useSteamAccount(region);
-  const { discovery, discoveryLoading, discoveryError, discoveryTab, setDiscoveryTab, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
+  const { discovery, discoveryLoading, discoveryError, setDiscoveryLoading, setDiscoveryError, setDiscovery, freeGames, freeGamesLoading, setFreeGamesLoading, freeGamesError, setFreeGamesError, setFreeGames } = useDiscoveryData(region);
   const {
     steamProfileData, personalSteamProfileData, setPersonalSteamProfileData,
     steamProfileLoading, steamProfileError, loadSteamProfile, isOwnSteamProfile
@@ -93,17 +112,37 @@ export default function App() {
 
 
   useEffect(() => {
-    const pageTitles = { home: "Home", games: "Games", trending: "Trending", market: "Market", sales: "Sales", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
+    const pageTitles = { home: "Home", games: ({ topSellers: "Top Sellers", upcoming: "Coming Soon", newReleases: "New Releases", preorders: "Preorders" })[gamesSection] || "Games", market: "Market", sales: "Sales", calculator: "Key Calculator", cart: "Shopping Cart", settings: "Settings", profile: "Profile" };
     const title = currentPage === "game" && game?.name ? game.name : (pageTitles[currentPage] || "Home");
     document.title = `${title} | SteamPulse`;
-  }, [currentPage, game?.name]);
+  }, [currentPage, gamesSection, game?.name]);
 
   function navigateTo(page) {
-    const nextPath = page === "game" && appid ? `/game/${appid}` : page === "profile" && personalSteamProfileData?.profile?.steamId ? `/profile/${personalSteamProfileData.profile.steamId}` : `/${page}`;
+    const nextPath = page === "game" && appid
+      ? `/game/${appid}`
+      : page === "profile" && personalSteamProfileData?.profile?.steamId
+        ? `/profile/${personalSteamProfileData.profile.steamId}`
+        : page === "games" || page === "trending"
+          ? `/games/${GAME_SECTION_SLUGS.topSellers}`
+          : `/${page}`;
     if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
-    setCurrentPage(page);
+    setCurrentPage(page === "trending" ? "games" : page);
+    if (page === "games" || page === "trending") setGamesSection("topSellers");
     setProfileRouteId("");
     if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function navigateToGamesSection(section) {
+    const safeSection = GAME_SECTION_SLUGS[section] ? section : "topSellers";
+    const nextPath = `/games/${GAME_SECTION_SLUGS[safeSection]}`;
+    if (getRoutePath() !== nextPath) window.history.pushState(null, "", `${BASE_PATH}${nextPath}`);
+    setCurrentPage("games");
+    setGamesSection(safeSection);
+    setProfileRouteId("");
+    setGame(null);
+    setGameBackground(null);
+    setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -216,8 +255,11 @@ export default function App() {
         return;
       }
       const pageMatch = route.match(/^\/(home|games|trending|market|sales|calculator|cart|settings|profile)(?:\/([^/?#]+))?\/?$/);
-      const nextPage = pageMatch?.[1] || "home";
+      const routePage = pageMatch?.[1] || "home";
+      const nextPage = routePage === "trending" ? "games" : routePage;
       setCurrentPage(nextPage);
+      setGamesSection(routePage === "trending" ? "topSellers" : getGamesSectionFromRoute(route));
+      if (routePage === "trending") window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
       if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
     };
@@ -351,7 +393,7 @@ export default function App() {
 
         {currentPage === "market" && <MarketPage shopDataError={shopDataError} shopDataLoading={shopDataLoading} regionalMarketError={regionalMarketError} regionalMarketLoading={regionalMarketLoading} regionalMarketData={regionalMarketData} regionalMarketUpdatedAt={regionalMarketUpdatedAt} shopData={shopData} shopDataUpdatedAt={shopDataUpdatedAt} region={region} onRefresh={refreshShopData} />}
 
-        {(currentPage === "home" || currentPage === "games") && <HomePage
+        {currentPage === "home" && <HomePage
           currentPage={currentPage}
           query={query}
           onSearchChange={onSearchChange}
@@ -380,12 +422,12 @@ export default function App() {
           setFreeGamesError={setFreeGamesError}
           setFreeGames={setFreeGames}
         />}
-        {currentPage === "trending" && <TrendingPage
+        {currentPage === "games" && <TrendingPage
           discovery={discovery}
           discoveryLoading={discoveryLoading}
           discoveryError={discoveryError}
-          discoveryTab={discoveryTab}
-          setDiscoveryTab={setDiscoveryTab}
+          activeSection={gamesSection}
+          onNavigateSection={navigateToGamesSection}
           setDiscoveryLoading={setDiscoveryLoading}
           setDiscoveryError={setDiscoveryError}
           setDiscovery={setDiscovery}
