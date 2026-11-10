@@ -46,6 +46,33 @@ export default function TrendingPage({
     loadGame(item.id, region);
   }
 
+  const freeGameTitles = (freeGames || []).filter((item) => item.productType !== "dlc");
+  const freeDlcTitles = (freeGames || []).filter((item) => item.productType === "dlc");
+
+  function renderFreeGameGroup(title, subtitle, items, type) {
+    return (
+      <section className={`free-games-group free-games-group-${type}`}>
+        <div className="free-games-group-heading">
+          <div><h3>{title}</h3><p>{subtitle}</p></div>
+          <span>{items.length} {items.length === 1 ? "offer" : "offers"}</span>
+        </div>
+        {items.length
+          ? <div className="discovery-grid">
+              {items.map((item) => <article className="free-game-card" key={item.id}>
+                <a className="free-game-main" href={`#/game/${item.id}`} onClick={() => {
+                  setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region);
+                }}>
+                  <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
+                  <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
+                </a>
+                <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
+              </article>)}
+            </div>
+          : <div className="discovery-message">No active {type === "dlc" ? "free DLC" : "free game"} offers right now.</div>}
+      </section>
+    );
+  }
+
   function getReleaseCountdown(releaseDate) {
     const value = String(releaseDate || "").trim();
     if (!value) return null;
@@ -101,8 +128,10 @@ export default function TrendingPage({
         }} disabled={discoveryLoading}><RefreshCw size={14} className={discoveryLoading ? "spin" : ""} /> Refresh</button>
       </div>
         <section className="free-games-section">
-          <div className="discovery-heading">
-            <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p></div>
+          <div className="free-games-intro">
+            <span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span>
+            <h2>Free right now</h2>
+            <p>Claim limited-time offers before they expire. Free weekends are temporary; Free to Keep offers stay in your library.</p>
             <button className="discovery-refresh" onClick={() => {
               setFreeGamesLoading(true); setFreeGamesError("");
               fetch(`/api/free-games?cc=${region}&refresh=1`)
@@ -115,21 +144,14 @@ export default function TrendingPage({
           {freeGamesError && <div className="discovery-message"><Info size={15} />{freeGamesError}</div>}
           {freeGamesLoading && !freeGames.length
             ? <div className="discovery-loading"><LoaderCircle size={20} className="spin" />Checking current free offers…</div>
-            : freeGames.length
-              ? <div className="discovery-grid">
-                  {freeGames.map((item) => <article className="free-game-card" key={item.id}>
-                    <a className="free-game-main" href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
-                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.productType === "dlc" ? `DLC · ${item.offerType}` : item.offerType}</span></span>
-                      <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
-                    </a>
-                    <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
-                  </article>)}
-                </div>
-              : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
+            : <>
+                {renderFreeGameGroup("Free Games", "Limited-time full game offers", freeGameTitles, "game")}
+                {renderFreeGameGroup("Free DLCs", "Free add-ons and downloadable content", freeDlcTitles, "dlc")}
+              </>}
           <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
           <div className="discovery-footnote">Limited-time offers for games and DLC. Hardware and permanently free-to-play listings are excluded; confirm the offer and deadline on Steam.</div>
         </section>
-      <nav className="discovery-tabs" aria-label="Game categories">
+     <nav className="discovery-tabs" aria-label="Game categories">
         {sections.map(([key, label, slug]) => <a
           key={key}
           className={activeSection === key ? "active" : ""}
