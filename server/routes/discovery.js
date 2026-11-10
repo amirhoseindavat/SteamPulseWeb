@@ -546,7 +546,7 @@ app.get("/api/top-sellers", async (req, res) => {
       const hasPaidPrice = item.priceValue != null
         ? Number(item.priceValue) > 0
         : Boolean(String(item.price || "").trim()) &&
-          !/\bfree(?:\s+to\s+play)?\\b|price unavailable|not available/i.test(String(item.price));
+          !/\bfree(?:\s+to\s+play)?\b|price unavailable|not available/i.test(String(item.price));
       if (hasPaidPrice) unique.set(Number(item.id), { ...item, badge: "TOP SELLER" });
     }
 
