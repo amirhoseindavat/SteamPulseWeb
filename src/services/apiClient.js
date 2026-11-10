@@ -1,4 +1,5 @@
 const responseCache = new Map();
+const MAX_CACHE_ENTRIES = 200;
 
 function cloneData(data) {
   return data == null ? data : JSON.parse(JSON.stringify(data));
@@ -46,7 +47,14 @@ export async function requestJson(
   if (!response.ok) throw new Error(data.error || data.detail || fallbackMessage);
 
   if (cacheKey && !options.signal?.aborted) {
-    responseCache.set(cacheKey, { at: Date.now(), ttl: cacheTtl, data: cloneData(data) });
+    const now = Date.now();
+    for (const [key, entry] of responseCache) {
+      if (now - entry.at >= entry.ttl) responseCache.delete(key);
+    }
+    if (!responseCache.has(cacheKey) && responseCache.size >= MAX_CACHE_ENTRIES) {
+      responseCache.delete(responseCache.keys().next().value);
+    }
+    responseCache.set(cacheKey, { at: now, ttl: cacheTtl, data: cloneData(data) });
   }
   return data;
 }
