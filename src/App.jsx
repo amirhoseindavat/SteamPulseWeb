@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import AppHeader from "./components/AppHeader";
 import SiteFooter from "./components/SiteFooter";
 import SettingsPage from "./pages/SettingsPage";
@@ -24,16 +24,16 @@ import { useAppSettings } from "./hooks/useAppSettings";
 import { useAppInteractions } from "./hooks/useAppInteractions";
 import { useCalculator } from "./hooks/useCalculator";
 
-import { GAME_SECTION_SLUGS, getGamesSectionFromRoute, getRoutePath, useNavigation } from "./hooks/useNavigation";
+import { getGamesSectionFromRoute, getRoutePath, useNavigation } from "./hooks/useNavigation";
 
 export default function App() {
   const initialRoute = getRoutePath();
   const appSettings = useAppSettings();
   const {
     region, setRegion,
-    steamProfile, setSteamProfile,
+    steamProfile,
     steamProfileDraft, setSteamProfileDraft,
-    steamApiKey, setSteamApiKey,
+    steamApiKey,
     steamApiKeyDraft, setSteamApiKeyDraft,
     theme, setTheme
   } = appSettings;
