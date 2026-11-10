@@ -42,14 +42,16 @@ export default function TrendingPage({
 
   function getReleaseCountdown(releaseDate) {
     const value = String(releaseDate || "").trim();
-    // A year-only or month-only release window is not precise enough for a day countdown.
-    if (!/(?:\b\d{1,2},?\s+[a-z]{3,9}\s+\d{4}\b|\b[a-z]{3,9}\s+\d{1,2},?\s+\d{4}\b|\b\d{4}-\d{2}-\d{2}\b)/i.test(value)) return null;
-    const release = new Date(value);
+    // Steam can prepend explanatory text to an otherwise complete release date.
+    // Extract the actual date first instead of asking Date() to parse the whole label.
+    const dateMatch = value.match(/\b(?:\d{4}-\d{2}-\d{2}|[a-z]{3,9}\s+\d{1,2},?\s+\d{4}|\d{1,2},?\s+[a-z]{3,9}\s+\d{4})\b/i);
+    if (!dateMatch) return null;
+    const release = new Date(dateMatch[0]);
     if (Number.isNaN(release.getTime())) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     release.setHours(0, 0, 0, 0);
-    const days = Math.ceil((release.getTime() - today.getTime()) / 86400000);
+    const days = Math.round((release.getTime() - today.getTime()) / 86400000);
     if (days < 0) return null;
     return days === 0 ? "Today" : `${days} days`;
   }
