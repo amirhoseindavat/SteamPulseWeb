@@ -33,29 +33,29 @@ export function useSteamAccount(region) {
   const steamCartApps = (steamAccountData?.rgAppsInCart || []).map(Number);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     const appIds = [...new Set(steamCartApps.filter((id) => Number.isSafeInteger(id) && id > 0))].join(",");
     if (!steamAccountConnected || !appIds) {
       setSteamCartDetails([]);
       setSteamCartDetailsError("");
       setSteamCartDetailsLoading(false);
-      return () => { cancelled = true; };
+      return () => controller.abort();
     }
 
     setSteamCartDetailsLoading(true);
     setSteamCartDetailsError("");
-    getCartDetails(region, appIds)
+    getCartDetails(region, appIds, controller.signal)
       .then((data) => {
-        if (!cancelled) setSteamCartDetails(data.items || []);
+        if (!controller.signal.aborted) setSteamCartDetails(data.items || []);
       })
       .catch((error) => {
-        if (!cancelled) setSteamCartDetailsError(error.message || "Cart details are temporarily unavailable.");
+        if (!controller.signal.aborted) setSteamCartDetailsError(error.message || "Cart details are temporarily unavailable.");
       })
       .finally(() => {
-        if (!cancelled) setSteamCartDetailsLoading(false);
+        if (!controller.signal.aborted) setSteamCartDetailsLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => controller.abort();
   }, [steamAccountConnected, steamCartApps.join(","), region]);
 
   return {
