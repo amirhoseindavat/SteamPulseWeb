@@ -3018,14 +3018,14 @@
 .home-top-sellers-empty{display:flex;align-items:center;gap:8px}
 
 
-/* Steam Store homepage takeover banner: crop the colored outer frame for a cleaner fit. */
+/* Steam Store homepage takeover banner: retain a subtle theme-matched frame while cropping the source artwork. */
 .steam-store-takeover{
   display:block;
   width:100%;
   height:clamp(220px,34vw,420px);
   margin:0 0 22px;
   overflow:hidden;
-  border:0;
+  border:1px solid var(--line);
   border-radius:12px;
   background:transparent;
   box-shadow:none;
