@@ -10,7 +10,6 @@ import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
 import GamePage from "./pages/GamePage";
 import SalesPage from "./pages/SalesPage";
-import { readApiResponse } from "./utils/api";
 import { useSteamAccount } from "./hooks/useSteamAccount";
 import { useDiscoveryData } from "./hooks/useDiscoveryData";
 import { useGameOwnership } from "./hooks/useGameOwnership";
@@ -222,7 +221,6 @@ export default function App() {
           setDiscoveryLoading={setDiscoveryLoading}
           setDiscoveryError={setDiscoveryError}
           setDiscovery={setDiscovery}
-          readApiResponse={readApiResponse}
           region={region}
           setQuery={setQuery}
           setInputId={setInputId}
