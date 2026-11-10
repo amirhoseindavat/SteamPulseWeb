@@ -177,8 +177,22 @@
 
 
 /* Current free Steam promotions */
-.free-games-section{margin-top:22px;padding:25px;border:1px solid #75e0b126;border-radius:17px;background:linear-gradient(135deg,rgba(18,35,43,.94),rgba(11,18,34,.96))}
-.free-games-section .section-kicker{color:#82e6bd}
+.free-games-section{display:flex;flex-direction:column;gap:16px;margin-top:22px;padding:0;border:0;background:transparent}
+.free-games-intro{position:relative;padding:0 2px 5px}
+.free-games-intro .section-kicker{color:#82e6bd}
+.free-games-intro h2{margin:7px 0;color:var(--text);font-size:20px}
+.free-games-intro p{margin:0;max-width:620px;color:var(--muted);font-size:11px;line-height:1.7}
+.free-games-intro>.discovery-refresh{position:absolute;right:0;top:5px}
+.free-games-group{min-width:0;padding:20px;border:1px solid #75e0b126;border-radius:15px;background:linear-gradient(135deg,rgba(18,35,43,.78),rgba(11,18,34,.88));box-shadow:0 12px 34px #00000012}
+.free-games-group-dlc{border-color:#8b6cff30;background:linear-gradient(135deg,rgba(29,24,49,.78),rgba(11,18,34,.9))}
+.free-games-group-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.free-games-group-heading h3{margin:0;color:var(--text);font-size:16px}
+.free-games-group-heading p{margin:5px 0 0;color:var(--muted);font-size:10px}
+.free-games-group-heading>span{flex:0 0 auto;padding:5px 8px;border:1px solid #75e0b12b;border-radius:20px;color:#91e8c2;font:10px "DM Mono",monospace}
+.free-games-group-dlc .free-games-group-heading>span{border-color:#8b6cff45;color:#c6b6ff}
+.free-games-group-dlc .free-game-main .discovery-badge{color:#c6b6ff;border-color:#8b6cff55}
+.free-games-group-dlc .free-game-claim{border-color:#8b6cff50;background:#8b6cff12;color:#c6b6ff}
+.free-games-group-dlc .free-game-claim:hover{background:#8b6cff22;border-color:#8b6cff88;color:#e0d8ff}
 .free-game-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #75e0b126;border-radius:11px;background:#080e1d99}
 .free-game-main{display:flex;text-decoration:none;flex:1;flex-direction:column;min-width:0;padding:0;border:0;text-align:left;background:transparent;color:inherit;cursor:pointer}
 .free-game-main .discovery-image-wrap{width:100%}
@@ -188,7 +202,7 @@
 .free-game-main .discovery-card-meta{color:#a4b7b5}
 .free-game-claim{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 12px 12px;padding:10px 12px;border:1px solid #75e0b14a;border-radius:7px;background:#75e0b110;color:#91e8c2;text-decoration:none;font-size:11px;font-weight:700;transition:background .2s,border-color .2s}
 .free-game-claim:hover{background:#75e0b120;border-color:#75e0b188;color:#c5ffe2}
-@media(max-width:620px){.free-games-section{padding:18px 13px}.free-games-section .discovery-heading h2{font-size:19px}.free-games-section .discovery-heading p{max-width:270px;font-size:11px}}
+@media(max-width:620px){.free-games-section{gap:12px}.free-games-intro{padding-right:0}.free-games-intro h2{font-size:19px}.free-games-intro p{max-width:270px;font-size:11px}.free-games-intro>.discovery-refresh{position:static;margin-top:12px}.free-games-group{padding:15px 12px}.free-games-group-heading h3{font-size:14px}}
 
 
 /* SteamPulse multi-page navigation */
