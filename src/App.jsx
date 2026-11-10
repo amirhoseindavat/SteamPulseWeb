@@ -82,9 +82,6 @@ export default function App() {
   const [appid, setAppid] = useState("");
   const [inputId, setInputId] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [regionalPriceInput, setRegionalPriceInput] = useState("");
-  const [selectedEditionName, setSelectedEditionName] = useState("");
-  const [purchaseTab, setPurchaseTab] = useState("editions");
   const [conversionMode, setConversionMode] = useState("currency-to-keys");
   const [conversionAmount, setConversionAmount] = useState("18");
   const calculatorRef = useRef(null);
@@ -109,11 +106,15 @@ export default function App() {
     regionalPriceInput, setRegionalPriceInput,
     selectedEditionName, setSelectedEditionName,
     purchaseTab, setPurchaseTab,
-    loadGame, loadMoreDlc, invalidateGameRequest
+    loadGame: loadGameData, loadMoreDlc, invalidateGameRequest
   } = useGameData({
-    region, appid, setAppid, setCurrentPage, setSearchOpen,
+    region, appid, setAppid, setCurrentPage,
     setInputId, setQuery, setActiveTab
   });
+  function loadGame(...args) {
+    setSearchOpen(false);
+    return loadGameData(...args);
+  }
   const {
     results, setResults, searchOpen, setSearchOpen, searching,
     searchGames, onSearchChange, chooseGame
