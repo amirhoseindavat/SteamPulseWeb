@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { readApiResponse } from "../utils/api";
 
 export function useGameData({
-  region, appid, setAppid, setCurrentPage, setSearchOpen, setInputId, setQuery, setActiveTab
+  region, appid, setAppid, setCurrentPage, setInputId, setQuery, setActiveTab
 }) {
   const [game, setGame] = useState(null);
   const [gameBackground, setGameBackground] = useState(null);
@@ -16,6 +16,7 @@ export function useGameData({
 
   function invalidateGameRequest() {
     gameRequestRef.current += 1;
+    setLoadingMoreDlc(false);
   }
 
   async function loadGame(id = appid, cc = region) {
@@ -37,8 +38,8 @@ export function useGameData({
 
     const requestId = ++gameRequestRef.current;
     setLoading(true);
+    setLoadingMoreDlc(false);
     setError("");
-    setSearchOpen(false);
     setGame(null);
     setGameBackground(null);
     setRegionalPriceInput("");
