@@ -73,7 +73,17 @@ export default function HomePage({
             <button className="primary-button" onClick={() => /^\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
             <div className="game-region-box"><label>REGION</label><RegionSelect value={region} onChange={(nextRegion) => { setRegion(nextRegion); localStorage.setItem("steampulse-region", nextRegion); }} ariaLabel="Game price region" /></div>
           </div>
-          <div className="popular-line"><span>POPULAR NEW RELEASES</span>{discoveryLoading && !discovery.newReleases.length ? <small>Loading Steam releases…</small> : discovery.newReleases.slice(0, 6).map((g) => <a key={g.id} href={"#/game/" + g.id} onClick={() => {setQuery(g.name);setInputId(String(g.id));loadGame(g.id, region);}}>{g.name}</a>)}{!discoveryLoading && !discovery.newReleases.length && <small>{discoveryError || "No new releases available right now."}</small>}</div>
+          <div className="home-top-sellers">
+            <div className="home-top-sellers-heading"><div><span className="section-kicker">STEAM CHARTS</span><strong>Top Sellers</strong></div><span>POPULAR RIGHT NOW</span></div>
+            {discoveryLoading && !discovery.topSellers.length
+              ? <div className="discovery-loading"><LoaderCircle size={17} className="spin" />Loading Steam top sellers…</div>
+              : discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\\bfree\\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 7).length
+                ? <div className="home-top-sellers-grid">{discovery.topSellers.filter((item) => Number(item.priceValue) > 0 || (item.priceValue == null && !/\\bfree\\b/i.test(String(item.price || "")) && String(item.price || "").trim() !== "")).slice(0, 7).map((item, index) => <a className="home-top-seller-card" key={item.id} href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
+                    <span className="home-top-seller-art"><img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" /><b>{index + 1}</b></span>
+                    <span className="home-top-seller-copy"><strong>{item.name}</strong><span>{item.discountPercent > 0 && <em>-{item.discountPercent}%</em>}<b>{item.price || "Price unavailable"}</b></span></span>
+                  </a>)}</div>
+                : <small className="home-top-sellers-empty">{discoveryError || "Steam top sellers are temporarily unavailable."}</small>}
+          </div>
         </section>
         {currentPage === "games" && <section className="browse-games-section">
           <div className="discovery-heading"><div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Top Sellers</h2><p>The most popular games players are buying on Steam right now.</p></div><span className="section-count">{discovery.topSellers.length ? `${discovery.topSellers.length} GAMES` : ""}</span></div>
