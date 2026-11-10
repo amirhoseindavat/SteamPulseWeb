@@ -23,10 +23,10 @@ import { useMarketData } from "./hooks/useMarketData";
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const GAME_SECTION_SLUGS = {
-  topSellers: "TopSellers",
-  upcoming: "ComingSoon",
-  newReleases: "NewReleases",
-  preorders: "Preorders"
+  topSellers: "topsellers",
+  upcoming: "comingsoon",
+  newReleases: "newreleases",
+  preorders: "preorders"
 };
 
 function getGamesSectionFromRoute(route) {
