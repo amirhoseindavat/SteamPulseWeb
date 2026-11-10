@@ -119,7 +119,7 @@ export default function TrendingPage({
               ? <div className="discovery-grid">
                   {freeGames.map((item) => <article className="free-game-card" key={item.id}>
                     <a className="free-game-main" href={"#/game/" + item.id} onClick={() => { setQuery(item.name); setInputId(String(item.id)); loadGame(item.id, region); }}>
-                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.offerType}</span></span>
+                      <span className="discovery-image-wrap"><img src={item.image} alt="" loading="lazy" /><span className="discovery-badge">{item.productType === "dlc" ? `DLC · ${item.offerType}` : item.offerType}</span></span>
                       <span className="discovery-card-copy"><strong>{item.name}</strong><span className="discovery-card-meta">{item.originalPrice ? <><s>{item.originalPrice}</s> <b>{item.currentPrice || "Free"}</b></> : "Limited-time offer · confirm on Steam"}</span></span>
                     </a>
                     <a className="free-game-claim" href={item.url} target="_blank" rel="noreferrer">Claim on Steam <ExternalLink size={12} /></a>
@@ -127,7 +127,7 @@ export default function TrendingPage({
                 </div>
               : !freeGamesError && <div className="discovery-message">No active full-game promotions found right now. Check again later!</div>}
           <div className="discovery-sources"><span>Promotion data:</span><a href="https://steamdb.info/upcoming/free/" target="_blank" rel="noreferrer">SteamDB free promotions <ExternalLink size={11} /></a></div>
-          <div className="discovery-footnote">Only full games are shown here; DLC and hardware listings are excluded. Always confirm the offer and deadline on Steam.</div>
+          <div className="discovery-footnote">Limited-time offers for games and DLC. Hardware and permanently free-to-play listings are excluded; confirm the offer and deadline on Steam.</div>
         </section>
       <nav className="discovery-tabs" aria-label="Game categories">
         {sections.map(([key, label, slug]) => <a
