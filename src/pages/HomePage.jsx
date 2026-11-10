@@ -84,7 +84,7 @@ export default function HomePage({
             {(topSellersLoading || discoveryLoading) && !topSellers.length
               ? <div className="home-top-sellers-empty"><LoaderCircle size={15} className="spin" /> Loading Steam Top Sellers…</div>
               : topSellers.length
-                ? <div className="home-top-sellers-list">
+                ? <div className="popular-line home-top-sellers-list">
                     {topSellers.map((item) => <a
                       className="home-top-seller-name"
                       key={item.id}
