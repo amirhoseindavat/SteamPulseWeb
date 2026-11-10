@@ -84,29 +84,17 @@ export default function HomePage({
             {(topSellersLoading || discoveryLoading) && !topSellers.length
               ? <div className="home-top-sellers-empty"><LoaderCircle size={15} className="spin" /> Loading Steam Top Sellers…</div>
               : topSellers.length
-                ? <div className="home-top-sellers-grid">
-                    {topSellers.map((item, index) => {
-                      const discount = Number(item.discountPercent) || 0;
-                      return <a
-                        className="home-top-seller-card"
-                        key={item.id}
-                        href={`#/game/${item.id}`}
-                        onClick={(event) => {
-                          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                          event.preventDefault();
-                          openTopSeller(item);
-                        }}
-                      >
-                        <span className="home-top-seller-art">
-                          <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
-                          <b>{index + 1}</b>
-                        </span>
-                        <span className="home-top-seller-copy">
-                          <strong>{item.name}</strong>
-                          <span><b>{item.price || "View on Steam"}</b>{discount > 0 && <em>-{discount}%</em>}</span>
-                        </span>
-                      </a>;
-                    })}
+                ? <div className="home-top-sellers-list">
+                    {topSellers.map((item) => <a
+                      className="home-top-seller-name"
+                      key={item.id}
+                      href={`#/game/${item.id}`}
+                      onClick={(event) => {
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        event.preventDefault();
+                        openTopSeller(item);
+                      }}
+                    >{item.name}</a>)}
                   </div>
                 : <div className="home-top-sellers-empty">
                     {discoveryError || "Steam Top Sellers are temporarily unavailable."}
