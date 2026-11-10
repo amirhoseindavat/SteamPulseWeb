@@ -2799,3 +2799,7 @@
   box-shadow:0 3px 12px #05051080,inset 0 1px #ffffff20;
   white-space:nowrap;
 }
+
+
+/* Keep preorder countdown visible above the artwork, including after card styles load. */
+.discovery-image-wrap .preorder-countdown-badge{z-index:2;top:8px;right:8px;left:auto;display:inline-flex;visibility:visible;opacity:1;pointer-events:none;}
