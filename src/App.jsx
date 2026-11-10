@@ -19,6 +19,7 @@ import { useGameOwnership } from "./hooks/useGameOwnership";
 import { useSteamProfile } from "./hooks/useSteamProfile";
 import { useGameSearch } from "./hooks/useGameSearch";
 import { useMarketData } from "./hooks/useMarketData";
+import { useGameData } from "./hooks/useGameData";
 
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -80,11 +81,6 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("steampulse-theme") || "dark");
   const [appid, setAppid] = useState("");
   const [inputId, setInputId] = useState("");
-  const [game, setGame] = useState(null);
-  const [gameBackground, setGameBackground] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingMoreDlc, setLoadingMoreDlc] = useState(false);
-  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
   const [regionalPriceInput, setRegionalPriceInput] = useState("");
   const [selectedEditionName, setSelectedEditionName] = useState("");
@@ -92,7 +88,6 @@ export default function App() {
   const [conversionMode, setConversionMode] = useState("currency-to-keys");
   const [conversionAmount, setConversionAmount] = useState("18");
   const calculatorRef = useRef(null);
-  const gameRequestRef = useRef(0);
   const searchRef = useRef(null);
   const headerSearchRef = useRef(null);
 
@@ -107,10 +102,23 @@ export default function App() {
     regionalKeyPrice, regionalMarketData, regionalMarketLoading,
     regionalMarketError, regionalMarketUpdatedAt, refreshShopData
   } = useMarketData(region, currentPage);
+
+  const {
+    game, setGame, gameBackground, setGameBackground,
+    loading, setLoading, loadingMoreDlc, error, setError,
+    regionalPriceInput, setRegionalPriceInput,
+    selectedEditionName, setSelectedEditionName,
+    purchaseTab, setPurchaseTab,
+    loadGame, loadMoreDlc, invalidateGameRequest
+  } = useGameData({
+    region, appid, setAppid, setCurrentPage, setSearchOpen,
+    setInputId, setQuery, setActiveTab
+  });
   const {
     results, setResults, searchOpen, setSearchOpen, searching,
     searchGames, onSearchChange, chooseGame
   } = useGameSearch({ region, loadGame, setQuery, setInputId, setError });
+
 
 
   useEffect(() => {
@@ -131,7 +139,7 @@ export default function App() {
     setCurrentPage(page === "trending" ? "games" : page);
     if (page === "games" || page === "trending") setGamesSection("topSellers");
     setProfileRouteId("");
-    if (page !== "game") { setGame(null); setGameBackground(null); setError(""); }
+    if (page !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); setError(""); }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -142,108 +150,12 @@ export default function App() {
     setCurrentPage("games");
     setGamesSection(safeSection);
     setProfileRouteId("");
+    invalidateGameRequest();
     setGame(null);
     setGameBackground(null);
+    setLoading(false);
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function loadGame(id = appid, cc = region) {
-    if (!/^\d+$/.test(String(id))) {
-      setError("Enter a valid numeric Steam AppID.");
-      return;
-    }
-    setCurrentPage("game");
-    if (getRoutePath() !== `/game/${id}`) window.history.pushState(null, "", `${BASE_PATH}/game/${id}`);
-    const requestId = ++gameRequestRef.current;
-    setLoading(true);
-    setError("");
-    setSearchOpen(false);
-    // Hide the previous game's details immediately so stale art never remains visible.
-    setGame(null);
-    setGameBackground(null);
-    setRegionalPriceInput("");
-    setSelectedEditionName("");
-    setPurchaseTab("editions");
-    try {
-      const response = await fetch(`/api/game/${id}?cc=${cc}`);
-      const data = await readApiResponse(response);
-      if (requestId !== gameRequestRef.current) return;
-      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load this game.");
-      setGame(data);
-      const isDlcPage = String(data.type || "").toLowerCase() === "dlc";
-      const randomScreenshot = Array.isArray(data.screenshots) && data.screenshots.length
-        ? data.screenshots[Math.floor(Math.random() * data.screenshots.length)]
-        : null;
-      const preferredBackground = isDlcPage
-        ? (randomScreenshot || data.background_raw || null)
-        : (typeof data.background_raw === "string" && /page_bg_raw/i.test(data.background_raw)
-          ? data.background_raw
-          : (randomScreenshot || data.background_raw || null));
-      setGameBackground(preferredBackground);
-      // Keep the base game's default Steam edition selected in the purchase options.
-      const baseGamePrice = data.price_overview?.final != null ? Number(data.price_overview.final) / 100 : null;
-      const defaultEdition = (data.editions || []).find((edition) =>
-        edition.priceValue != null && baseGamePrice != null &&
-        Math.abs(Number(edition.priceValue) - baseGamePrice) < 0.01
-      ) || (data.editions || []).find((edition) => edition.priceValue != null);
-      setSelectedEditionName(defaultEdition?.name?.replace(/\s*-\s*\$\s*$/, "") || "");
-      // Bundle discovery can be slow on some Steam pages; load it after the main game details.
-      if (String(data.type || "").toLowerCase() !== "dlc") {
-        fetch(`/api/game/${id}/bundles?cc=${cc}`)
-          .then((response) => response.ok ? response.json() : null)
-          .then((bundleData) => {
-            if (!bundleData || !Array.isArray(bundleData.bundles)) return;
-            if (requestId !== gameRequestRef.current) return;
-            setGame((current) => String(current?.appid) === String(id)
-              ? { ...current, bundles: bundleData.bundles, franchise: bundleData.franchise || null }
-              : current);
-          })
-          .catch(() => {});
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setRegionalPriceInput(data.price_overview?.final != null ? (data.price_overview.final / 100).toFixed(2) : "");
-      setAppid(String(id));
-      setInputId(String(id));
-      setQuery(data.name);
-      setActiveTab("overview");
-    } catch (e) {
-      setError(e.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadMoreDlc() {
-    if (!game || loadingMoreDlc || !(game.dlc_has_more ?? (game.dlc.length < game.dlc_total))) return;
-    setLoadingMoreDlc(true);
-    setError("");
-    try {
-      // Use the source-list cursor, not the number of successfully rendered cards.
-      // Some Steam DLC appdetails requests fail, so rendered count is not a reliable offset.
-      const offset = Number.isSafeInteger(Number(game.dlc_next_offset))
-        ? Number(game.dlc_next_offset)
-        : game.dlc.length;
-      const response = await fetch(`/api/game/${game.appid}/dlc?cc=${region}&offset=${offset}&limit=24`);
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || data.detail || "Unable to load more DLC.");
-      setGame((current) => {
-        if (!current || String(current.appid) !== String(game.appid)) return current;
-        const existing = new Set((current.dlc || []).map((item) => String(item.appid)));
-        const newItems = (data.items || []).filter((item) => !existing.has(String(item.appid)));
-        return {
-          ...current,
-          dlc: [...(current.dlc || []), ...newItems],
-          dlc_total: data.total ?? current.dlc_total,
-          dlc_next_offset: data.nextOffset ?? offset + 24,
-          dlc_has_more: data.hasMore ?? ((data.nextOffset ?? offset + 24) < (data.total ?? current.dlc_total))
-        };
-      });
-    } catch (e) {
-      setError(e.message || "Could not load more DLC.");
-    } finally {
-      setLoadingMoreDlc(false);
-    }
   }
 
   useEffect(() => {
@@ -263,7 +175,7 @@ export default function App() {
       setGamesSection(routePage === "trending" ? "topSellers" : getGamesSectionFromRoute(route));
       if (routePage === "trending" || (routePage === "games" && !pageMatch?.[2])) window.history.replaceState(null, "", `${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`);
       setProfileRouteId(nextPage === "profile" ? (pageMatch?.[2] || "") : "");
-      if (nextPage !== "game") { setGame(null); setGameBackground(null); setLoading(false); }
+      if (nextPage !== "game") { invalidateGameRequest(); setGame(null); setGameBackground(null); setLoading(false); }
     };
     window.addEventListener("popstate", syncPageFromLocation);
     window.addEventListener("hashchange", syncPageFromLocation);
