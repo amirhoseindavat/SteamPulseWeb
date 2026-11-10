@@ -3,6 +3,10 @@ import { formatNumber } from "../utils/formatters";
 import { REGIONS } from "../config/regions";
 
 export default function CartPage({ steamCartApps, steamAccountConnected, steamCartDetailsError, steamCartDetailsLoading, uniqueCartDetails, cartTotalFormatted, cartOriginalTotalFormatted, cartSavingsMinor, cartSavingsFormatted, cartKeyCount, region, regionalKeyPriceForCalculation, cartCurrency }) {
+  const selectedRegion = REGIONS.find((item) => item.code === region) || REGIONS[0];
+  const countryFlag = selectedRegion.code
+    .toUpperCase()
+    .replace(/[A-Z]/g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
   return (
     <section className="steam-cart-page">
           <div className="steam-cart-heading"><div><span className="section-kicker"><ShoppingCart size={13} /> STEAM ACCOUNT</span><h1>Shopping Cart</h1><p>Your current Steam Store cart, synced from the account connected in your browser.</p></div><a className="primary-button" href="https://store.steampowered.com/cart/" target="_blank" rel="noreferrer">Open Steam Cart <ExternalLink size={14} /></a></div>
