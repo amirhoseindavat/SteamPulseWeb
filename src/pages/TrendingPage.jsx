@@ -1,4 +1,5 @@
 import { ChevronRight, ExternalLink, Gift, Info, LoaderCircle, RefreshCw, Gamepad2 } from "lucide-react";
+import { getDiscovery, getFreeGames } from "../services/steamPulseApi";
 
 export default function TrendingPage({
   discovery,
@@ -9,8 +10,7 @@ export default function TrendingPage({
   setDiscoveryLoading,
   setDiscoveryError,
   setDiscovery,
-  readApiResponse,
-  region,
+    region,
   setQuery,
   setInputId,
   loadGame,
@@ -96,8 +96,7 @@ export default function TrendingPage({
         <div><span className="section-kicker"><Gamepad2 size={13} /> GAME LIBRARY</span><h2>Explore Steam games</h2><p>Browse best sellers, upcoming launches, fresh releases and preorders.</p></div>
         {activeSection !== "freeGames" && <button className="discovery-refresh" onClick={() => {
           setDiscoveryLoading(true); setDiscoveryError("");
-          fetch(`/api/discover?cc=${region}&refresh=1`)
-            .then(async (response) => { const data = await readApiResponse(response); if (!response.ok) throw new Error(data.error || data.detail || "Refresh failed."); return data; })
+          getDiscovery(region, true)
             .then((data) => setDiscovery({ newReleases: data.newReleases || [], upcoming: data.upcoming || [], preorders: data.preorders || [], preordersError: data.preordersError || "", topSellers: data.topSellers || [] }))
             .catch((e) => setDiscoveryError(e.message || "Refresh failed."))
             .finally(() => setDiscoveryLoading(false));
@@ -120,8 +119,7 @@ export default function TrendingPage({
           <div><span className="section-kicker"><Gift size={13} /> FREE GAME ALERT</span><h2>Free right now</h2><p>Limited-time free offers for full games and DLC. Claim them before they expire.</p></div>
           <button className="discovery-refresh" onClick={() => {
             setFreeGamesLoading(true); setFreeGamesError("");
-            fetch(`/api/free-games?cc=${region}&refresh=1`)
-              .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Refresh failed."); return data; })
+            getFreeGames(region, true)
               .then((data) => setFreeGames(data.items || []))
               .catch((e) => setFreeGamesError(e.message || "Refresh failed."))
               .finally(() => setFreeGamesLoading(false));
