@@ -3046,3 +3046,24 @@
   .steam-store-takeover{height:220px;margin-bottom:17px;border-radius:9px}
 }
 @media(prefers-reduced-motion:reduce){.steam-store-takeover img,.steam-store-takeover video{transition:none}}
+
+/* Prevent descenders in hero labels and hover-lift clipping in the external action rail. */
+.game-hero .hero-topline,
+.game-hero .game-hero-topline{
+  align-items:center;
+  min-height:30px;
+  padding:3px 0 5px;
+  overflow:visible;
+}
+.game-hero .hero-topline .game-label,
+.game-hero .hero-topline .app-tag,
+.game-hero .game-hero-topline .game-label,
+.game-hero .game-hero-topline .app-tag{
+  line-height:1.5;
+  padding-top:7px;
+  padding-bottom:7px;
+}
+.game-hero .game-external-actions{
+  padding:5px 2px;
+  margin-top:13px;
+}
