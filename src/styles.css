@@ -2823,3 +2823,18 @@
   .site-footer .site-footer-copyright{margin-left:0}
   .site-footer .site-footer-brand-group{justify-content:center}
 }
+
+
+/* Header navigation starts at the left edge now that the standalone logo moved to the footer. */
+.topbar .main-nav{justify-content:flex-start;margin-right:auto;}
+@media(max-width:820px){
+  .topbar .main-nav{order:0;flex:1 1 auto;width:auto;min-width:0;margin-right:0;}
+  .topbar .topbar-right{margin-left:auto;}
+}
+@media(max-width:520px){
+  .topbar{flex-wrap:nowrap;}
+  .topbar .main-nav{order:0;flex:1 1 auto;flex-basis:auto;justify-content:flex-start;overflow-x:auto;}
+}
+.site-footer .site-footer-brand-group{gap:9px;}
+.site-footer .site-footer-logo{display:block;width:27px;height:27px;flex:0 0 27px;object-fit:contain;border-radius:7px;}
+@media(max-width:620px){.site-footer .site-footer-logo{width:25px;height:25px;flex-basis:25px;}}
