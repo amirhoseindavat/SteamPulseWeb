@@ -460,7 +460,7 @@ function extractSteamTakeover(html = "") {
       block.match(/<(?:h1|h2|h3)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3)>/i)?.[1] || ""
     );
     if (!image || !link) continue;
-    return { title: title || "Steam Store Takeover", image, link, mediaType: /\.mp4(?:[?#]|$)/i.test(image) ? "video" : "image" };
+    return { title: title || "Steam Store Takeover", image, link, mediaType: /\.(?:mp4|webm|m4v|mov|ogv)(?:[?#]|$)/i.test(image) ? "video" : "image" };
   }
   return null;
 }
