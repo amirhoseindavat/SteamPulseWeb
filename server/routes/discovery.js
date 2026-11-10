@@ -403,6 +403,81 @@ async function fetchSteamPreorders(cc) {
   console.info("Steam Pre-orders: retained " + result.length + " priced games and sorted by release date");
   return result;
 }
+
+function extractSteamTakeover(html = "") {
+  const source = String(html || "").replace(/\\u002f/gi, "/").replace(/\\\//g, "/");
+  const candidates = [];
+  const openingTags = /<([a-z][\w:-]*)\b[^>]*(?:class|id|data-[\w-]+)\s*=\s*["'][^"']*takeover[^"']*["'][^>]*>/gi;
+  for (const match of source.matchAll(openingTags)) {
+    const tag = match[1].toLowerCase();
+    const opening = match[0];
+    const start = match.index;
+    let end = start + opening.length;
+    if (!/\/>$/.test(opening)) {
+      const token = new RegExp("<\\/?"+tag+"\\b[^>]*>", "gi");
+      token.lastIndex = end;
+      let depth = 1;
+      let next;
+      while ((next = token.exec(source))) {
+        if (/^<\//.test(next[0])) depth--;
+        else if (!/\/>$/.test(next[0])) depth++;
+        if (depth === 0) { end = token.lastIndex; break; }
+      }
+      if (depth !== 0) continue;
+    }
+    candidates.push({ tag, html: source.slice(start, end), opening });
+  }
+  const attr = (text, name) => {
+    const match = text.match(new RegExp("\\b" + name + "=[\\x22']([^\\x22']*)[\\x22']", "i"));
+    return match?.[1] || "";
+  };
+  const absolute = (value) => {
+    if (!value) return "";
+    try {
+      const url = new URL(value.replace(/&amp;/g, "&"), "https://store.steampowered.com/");
+      return /^https?:$/.test(url.protocol) ? url.toString() : "";
+    } catch { return ""; }
+  };
+  for (const candidate of candidates) {
+    const block = candidate.html;
+    const anchor = candidate.tag === "a" ? candidate.opening : block.match(/<a\b[^>]*>/i)?.[0] || "";
+    const imageTag = block.match(/<(?:img|source)\b[^>]*>/i)?.[0] || "";
+    const videoTag = block.match(/<video\b[^>]*>/i)?.[0] || "";
+    const link = absolute(attr(anchor, "href") || attr(candidate.opening, "data-url") || attr(candidate.opening, "data-href"));
+    let image = attr(imageTag, "src") || attr(imageTag, "data-src") || attr(imageTag, "data-original") ||
+      attr(videoTag, "poster") || attr(candidate.opening, "data-image") || attr(candidate.opening, "data-background");
+    if (!image) {
+      const srcset = attr(imageTag, "srcset");
+      if (srcset) image = srcset.split(",")[0].trim().split(/\s+/)[0];
+    }
+    if (!image) image = block.match(/background(?:-image)?\s*:\s*url\(["']?([^"')]+)["']?\)/i)?.[1] || "";
+    image = absolute(image);
+    const title = decodeSteamHtml(
+      attr(candidate.opening, "data-title") || attr(anchor, "aria-label") ||
+      attr(anchor, "title") || attr(imageTag, "alt") ||
+      block.match(/<(?:h1|h2|h3)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3)>/i)?.[1] || ""
+    );
+    if (!image || !link) continue;
+    return { title: title || "Steam Store Takeover", image, link, mediaType: /\.mp4(?:[?#]|$)/i.test(image) ? "video" : "image" };
+  }
+  return null;
+}
+
+async function fetchSteamTakeover(cc) {
+  const url = new URL("https://store.steampowered.com/");
+  url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
+  url.searchParams.set("l", "english");
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml"
+    },
+    signal: AbortSignal.timeout(15000)
+  });
+  if (!response.ok) throw new Error("Steam homepage request failed (" + response.status + ")");
+  return extractSteamTakeover(await response.text());
+}
+
 async function fetchSteamTopSellers(cc) {
   const url = new URL("https://store.steampowered.com/search/results/");
   url.searchParams.set("query", "");
@@ -503,6 +578,23 @@ async function fetchSteamTopSellers(cc) {
     };
   }).filter(Boolean);
 }
+
+
+app.get("/api/store-takeover", async (req, res) => {
+  const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
+  const key = \`store-takeover:v1:\${cc}\`;
+  if (req.query.refresh !== "1") {
+    const hit = cached(key);
+    if (hit) return res.json(hit);
+  }
+  try {
+    const takeover = await fetchSteamTakeover(cc);
+    res.json(saveCache(key, { takeover }));
+  } catch (error) {
+    console.warn("Could not load Steam Store Takeover:", error.message);
+    res.status(502).json({ takeover: null, error: "Steam Store Takeover is temporarily unavailable." });
+  }
+});
 
 app.get("/api/top-sellers", async (req, res) => {
   const cc = String(req.query.cc || "US").slice(0, 2).toUpperCase();
