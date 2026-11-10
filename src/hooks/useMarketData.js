@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { readApiResponse } from "../utils/api";
+import { getShopData, getRegionalKeyPrice, getMarketRegions } from "../services/steamPulseApi";
 
 export function useMarketData(region, currentPage) {
   const [shopData, setShopData] = useState(null);
@@ -18,9 +18,7 @@ export function useMarketData(region, currentPage) {
       setShopDataLoading(true);
       setShopDataError("");
       try {
-        const response = await fetch("/api/shop-data");
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
+        const data = await getShopData();
         const keyPrice = Number(String(data.Key ?? "").replace(/[\s,٬]/g, ""));
         if (!Number.isFinite(keyPrice) || keyPrice <= 0) throw new Error("The shop API returned an invalid key price.");
         if (!cancelled) { setShopData({ ...data, Key: keyPrice }); setShopDataUpdatedAt(new Date()); }
@@ -39,9 +37,7 @@ export function useMarketData(region, currentPage) {
     let cancelled = false;
     const loadRegionalKeyPrice = async () => {
       try {
-        const response = await fetch(`/api/key-price?region=${encodeURIComponent(region)}`);
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load this region's Steam key price.");
+        const data = await getRegionalKeyPrice(region);
         if (!cancelled) setRegionalKeyPrice(data);
       } catch (error) {
         if (!cancelled) setRegionalKeyPrice({ region, error: error.message || "Steam key price unavailable." });
@@ -60,9 +56,7 @@ export function useMarketData(region, currentPage) {
       setRegionalMarketLoading(true);
       setRegionalMarketError("");
       try {
-        const response = await fetch("/api/market-regions");
-        const data = await readApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Could not load Steam Market regional prices.");
+        const data = await getMarketRegions();
         if (!cancelled) {
           setRegionalMarketData(Array.isArray(data.regions) ? data.regions : []);
           setRegionalMarketUpdatedAt(new Date());
@@ -82,9 +76,7 @@ export function useMarketData(region, currentPage) {
     setShopDataLoading(true);
     setShopDataError("");
     try {
-      const response = await fetch("/api/shop-data");
-      const data = await readApiResponse(response);
-      if (!response.ok) throw new Error(data.error || "Could not load live key prices.");
+      const data = await getShopData();
       setShopData(data);
       setShopDataUpdatedAt(new Date());
     } catch (error) {
