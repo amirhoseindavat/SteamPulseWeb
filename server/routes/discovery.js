@@ -444,7 +444,7 @@ function extractSteamTakeover(html = "") {
     const imageTag = block.match(/<(?:img|source)\b[^>]*>/i)?.[0] || "";
     const videoTag = block.match(/<video\b[^>]*>/i)?.[0] || "";
     const link = absolute(attr(anchor, "href") || attr(candidate.opening, "data-url") || attr(candidate.opening, "data-href"));
-    const videoSourceTag = block.match(/<source\\b[^>]*>/i)?.[0] || "";
+    const videoSourceTag = block.match(/<source\b[^>]*>/i)?.[0] || "";
     let image = attr(videoTag, "src") || attr(videoSourceTag, "src") ||
       attr(imageTag, "src") || attr(imageTag, "data-src") || attr(imageTag, "data-original") ||
       attr(videoTag, "poster") || attr(candidate.opening, "data-image") || attr(candidate.opening, "data-background");
