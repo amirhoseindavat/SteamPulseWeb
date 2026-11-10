@@ -1,4 +1,4 @@
-import { ChevronRight, LoaderCircle, Search, Sparkles, X } from "lucide-react";
+import { ChevronRight, LoaderCircle, Search, Sparkles, X, TrendingUp, ArrowUpRight } from "lucide-react";
 import RegionSelect from "../components/RegionSelect";
 
 export default function HomePage({
@@ -21,9 +21,17 @@ export default function HomePage({
   discoveryLoading,
   discoveryError,
   region,
-  setRegion ,
+  setRegion,
   loading
 }) {
+  const topSellers = (discovery?.topSellers || []).slice(0, 7);
+
+  function openTopSeller(item) {
+    setQuery(item.name);
+    setInputId(String(item.id));
+    loadGame(item.id, region);
+  }
+
   return (
     <>
         {currentPage === "home" && <section className="intro">
@@ -43,7 +51,7 @@ export default function HomePage({
                 onFocus={() => query.trim().length >= 2 && setSearchOpen(true)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    if (/^\d+$/.test(query.trim())) loadGame(query.trim());
+                    if (/^\\d+$/.test(query.trim())) loadGame(query.trim());
                     else if (results[0]) chooseGame(results[0]);
                     else searchGames(query);
                   }
@@ -64,12 +72,45 @@ export default function HomePage({
               </div>}
               {searchOpen && !searching && query.trim().length >= 2 && results.length === 0 && <div className="search-results empty-results">No matches yet. Try another title or enter an AppID.</div>}
             </div>
-            <button className="primary-button" onClick={() => /^\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
+            <button className="primary-button" onClick={() => /^\\d+$/.test(query.trim()) ? loadGame(query.trim()) : results[0] ? chooseGame(results[0]) : searchGames(query)}><Search size={17} /> Search</button>
             <div className="game-region-box"><label>REGION</label><RegionSelect value={region} onChange={(nextRegion) => { setRegion(nextRegion); localStorage.setItem("steampulse-region", nextRegion); }} ariaLabel="Game price region" /></div>
           </div>
-          {currentPage === "home" && <div className="home-top-sellers">
-            <span className="section-kicker">TOP SELLERS</span>
-          </div>}
+          {currentPage === "home" && <section className="home-top-sellers">
+            <div className="home-top-sellers-heading">
+              <div><span className="section-kicker"><TrendingUp size={13} /> TOP SELLERS</span><strong>Trending by revenue on Steam</strong></div>
+              <a href="#/games/topsellers" aria-label="View all Top Sellers">VIEW ALL <ArrowUpRight size={13} /></a>
+            </div>
+            {discoveryLoading && !topSellers.length
+              ? <div className="home-top-sellers-empty"><LoaderCircle size={15} className="spin" /> Loading Steam Top Sellers…</div>
+              : topSellers.length
+                ? <div className="home-top-sellers-grid">
+                    {topSellers.map((item, index) => {
+                      const discount = Number(item.discountPercent) || 0;
+                      return <a
+                        className="home-top-seller-card"
+                        key={item.id}
+                        href={`#/game/${item.id}`}
+                        onClick={(event) => {
+                          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                          event.preventDefault();
+                          openTopSeller(item);
+                        }}
+                      >
+                        <span className="home-top-seller-art">
+                          <img src={item.image || `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.id}/header.jpg`} alt="" loading="lazy" />
+                          <b>{index + 1}</b>
+                        </span>
+                        <span className="home-top-seller-copy">
+                          <strong>{item.name}</strong>
+                          <span><b>{item.price || "View on Steam"}</b>{discount > 0 && <em>-{discount}%</em>}</span>
+                        </span>
+                      </a>;
+                    })}
+                  </div>
+                : <div className="home-top-sellers-empty">
+                    {discoveryError || "Steam Top Sellers are temporarily unavailable."}
+                  </div>}
+          </section>}
         </section>
 
     </>
