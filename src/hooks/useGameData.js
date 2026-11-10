@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getGame, getGameBundles, getGameDlc } from "../services/steamPulseApi";
 
 export function useGameData({
@@ -13,11 +13,23 @@ export function useGameData({
   const [selectedEditionName, setSelectedEditionName] = useState("");
   const [purchaseTab, setPurchaseTab] = useState("editions");
   const gameRequestRef = useRef(0);
+  const gameControllerRef = useRef(null);
+  const dlcControllerRef = useRef(null);
 
   function invalidateGameRequest() {
     gameRequestRef.current += 1;
+    gameControllerRef.current?.abort();
+    dlcControllerRef.current?.abort();
+    gameControllerRef.current = null;
+    dlcControllerRef.current = null;
+    setLoading(false);
     setLoadingMoreDlc(false);
   }
+
+  useEffect(() => () => {
+    gameControllerRef.current?.abort();
+    dlcControllerRef.current?.abort();
+  }, []);
 
   async function loadGame(id = appid, cc = region) {
     if (!/^\d+$/.test(String(id))) {
@@ -36,6 +48,10 @@ export function useGameData({
       window.history.pushState(null, "", basePath + "/game/" + id);
     }
 
+    gameControllerRef.current?.abort();
+    dlcControllerRef.current?.abort();
+    const controller = new AbortController();
+    gameControllerRef.current = controller;
     const requestId = ++gameRequestRef.current;
     setLoading(true);
     setLoadingMoreDlc(false);
@@ -47,8 +63,8 @@ export function useGameData({
     setPurchaseTab("editions");
 
     try {
-      const data = await getGame(id, cc);
-      if (requestId !== gameRequestRef.current) return;
+      const data = await getGame(id, cc, controller.signal);
+      if (controller.signal.aborted || requestId !== gameRequestRef.current) return;
 
       setGame(data);
       const isDlcPage = String(data.type || "").toLowerCase() === "dlc";
@@ -70,10 +86,10 @@ export function useGameData({
       setSelectedEditionName(defaultEdition?.name?.replace(/\s*-\s*\$\s*$/, "") || "");
 
       if (String(data.type || "").toLowerCase() !== "dlc") {
-        getGameBundles(id, cc)
+        getGameBundles(id, cc, controller.signal)
           .then((bundleData) => {
             if (!bundleData || !Array.isArray(bundleData.bundles)) return;
-            if (requestId !== gameRequestRef.current) return;
+            if (controller.signal.aborted || requestId !== gameRequestRef.current) return;
             setGame((current) => String(current?.appid) === String(id)
               ? { ...current, bundles: bundleData.bundles, franchise: bundleData.franchise || null }
               : current);
@@ -88,15 +104,18 @@ export function useGameData({
       setQuery(data.name);
       setActiveTab("overview");
     } catch (error) {
-      if (requestId === gameRequestRef.current) setError(error.message || "Something went wrong.");
+      if (!controller.signal.aborted && requestId === gameRequestRef.current) setError(error.message || "Something went wrong.");
     } finally {
-      if (requestId === gameRequestRef.current) setLoading(false);
+      if (!controller.signal.aborted && requestId === gameRequestRef.current) setLoading(false);
     }
   }
 
   async function loadMoreDlc() {
     if (!game || loadingMoreDlc || !(game.dlc_has_more ?? ((game.dlc || []).length < game.dlc_total))) return;
 
+    dlcControllerRef.current?.abort();
+    const controller = new AbortController();
+    dlcControllerRef.current = controller;
     const requestId = gameRequestRef.current;
     const targetAppId = String(game.appid);
     setLoadingMoreDlc(true);
@@ -106,8 +125,8 @@ export function useGameData({
       const offset = Number.isSafeInteger(Number(game.dlc_next_offset))
         ? Number(game.dlc_next_offset)
         : (game.dlc || []).length;
-      const data = await getGameDlc(targetAppId, region, offset, 24);
-      if (requestId !== gameRequestRef.current) return;
+      const data = await getGameDlc(targetAppId, region, offset, 24, controller.signal);
+      if (controller.signal.aborted || requestId !== gameRequestRef.current) return;
 
       setGame((current) => {
         if (!current || String(current.appid) !== targetAppId) return current;
@@ -122,9 +141,9 @@ export function useGameData({
         };
       });
     } catch (error) {
-      if (requestId === gameRequestRef.current) setError(error.message || "Could not load more DLC.");
+      if (!controller.signal.aborted && requestId === gameRequestRef.current) setError(error.message || "Could not load more DLC.");
     } finally {
-      if (requestId === gameRequestRef.current) setLoadingMoreDlc(false);
+      if (!controller.signal.aborted && requestId === gameRequestRef.current) setLoadingMoreDlc(false);
     }
   }
 
