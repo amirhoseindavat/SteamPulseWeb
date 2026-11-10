@@ -2642,11 +2642,10 @@
 .home-top-sellers-heading>div{display:flex;flex-direction:column;gap:5px}
 .home-top-sellers-heading>div>strong{color:var(--text);font-size:17px}
 .home-top-sellers-heading>span{color:var(--muted);font:9px "DM Mono",monospace;letter-spacing:1px}
-.home-top-sellers-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
-.home-top-seller-name{display:block;min-width:0;padding:10px 2px;border-bottom:1px solid var(--line);color:var(--text);font-size:13px;line-height:1.45;text-decoration:none;transition:color .18s}
-.home-top-seller-name:hover{color:var(--accent,#a18aff)}
+.home-top-sellers-list{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:0}
+.home-top-seller-name{display:inline-flex;align-items:center;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:#ffffff05;color:#a1acc6;font-size:10px;line-height:1.4;text-decoration:none;transition:border-color .18s,color .18s}
+.home-top-seller-name:hover{border-color:#8b6cff77;color:#c4b7ff}
 .home-top-sellers-empty{display:block;padding:8px 0;color:var(--muted);font-size:11px}
-@media(max-width:620px){.home-top-sellers-list{grid-template-columns:1fr}.home-top-seller-name{padding:9px 2px}}
 
 /* Native anchors keep navigation and search results compatible with open-in-new-tab. */
 .main-nav>a{
