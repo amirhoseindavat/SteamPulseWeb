@@ -158,6 +158,7 @@ export default function App() {
 		setSearchOpen,
 		searching,
 		searchGames,
+		submitSearch,
 		onSearchChange,
 		chooseGame,
 	} = useGameSearch({ region, loadGame, setQuery, setInputId, setError });
@@ -408,6 +409,7 @@ export default function App() {
 						loadGame={loadGame}
 						chooseGame={chooseGame}
 						searchGames={searchGames}
+						submitSearch={submitSearch}
 						inputId={inputId}
 						setInputId={setInputId}
 						discovery={discovery}
