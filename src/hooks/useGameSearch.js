@@ -3,12 +3,12 @@ import { searchGames as fetchGameSearch } from "../services/steamPulseApi";
 
 function extractSteamAppId(value) {
 	const input = String(value || "").trim();
-	if (/^\\d+$/.test(input)) return input;
+	if (/^\d+$/.test(input)) return input;
 
 	const match = input.match(
-		/(?:store\\.steampowered\\.com|steamdb\\.info)\\/(?:agecheck\\/)?app\\/(\\d+)(?:\\/|[?#]|$)|steam:\\/\\/(?:run|store)\\/(\\d+)/i,
+		/(?:store\.steampowered\.com|steamdb\.info)\/(?:agecheck\/)?app\/(\d+)(?:\/|[?#]|$)|steam:\/\/(?:run|store)\/(\d+)/i,
 	);
-	return match?.[1] || match?.[2] || "";
+	return match ? match[1] || match[2] || "" : "";
 }
 
 export function useGameSearch({
@@ -27,7 +27,7 @@ export function useGameSearch({
 
 	function cancelSearch() {
 		clearTimeout(debounceRef.current);
-		requestRef.current?.abort();
+		if (requestRef.current) requestRef.current.abort();
 		requestRef.current = null;
 		requestIdRef.current += 1;
 	}
@@ -40,7 +40,7 @@ export function useGameSearch({
 			return;
 		}
 
-		requestRef.current?.abort();
+		if (requestRef.current) requestRef.current.abort();
 		const controller = new AbortController();
 		requestRef.current = controller;
 		const requestId = ++requestIdRef.current;
