@@ -89,6 +89,8 @@ export default function GamePage({
     game.metacritic.score !== "" && Number.isFinite(Number(game.metacritic.score));
   const isDlcOrHardware = gameType === "dlc" || gameType === "hardware";
   const isHardware = gameType === "hardware";
+  const showDeckCompatibility = !isDlcOrHardware && !game?.pre_purchase;
+  const hasSteamCategories = gameType !== "dlc" && (game?.categories || []).length > 0;
   const typeLabel = gameType === "dlc" ? "DLC" : gameType === "hardware" ? "Hardware" : gameType === "game" ? "Game" : gameType.charAt(0).toUpperCase() + gameType.slice(1);
 
   return (
@@ -129,7 +131,7 @@ export default function GamePage({
                     {platform.toLowerCase() === "windows" ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.2 10.5 4v7.7H2V5.2Zm10-1.4L22 2v9.7H12V3.8ZM2 12.9h8.5v7.7L2 19.4v-6.5Zm10 0h10V22l-10-1.4v-7.7Z" fill="currentColor"/></svg> : platform.toLowerCase() === "mac" || platform.toLowerCase() === "macos" ? <img className="platform-logo platform-macos" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/apple/apple-original.svg" alt="" /> : platform.toLowerCase() === "linux" ? <img className="platform-logo platform-linux" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg" alt="" /> : <Monitor size={15} />}
                   </span>) : <span className="platform-unavailable">Platform data unavailable</span>}
                 </div>
-{!isDlcOrHardware && <span className={`hero-deck-status deck-status-${game.steam_deck?.status || "unknown"}`} title={game.steam_deck?.summary || "Steam Deck compatibility unknown"}>
+{showDeckCompatibility && <span className={`hero-deck-status deck-status-${game.steam_deck?.status || "unknown"}`} title={game.steam_deck?.summary || "Steam Deck compatibility unknown"}>
                   <SteamDeckMark size={17} /><span className="steam-deck-label">Steam Deck</span><DeckCompatibilityIcon status={game.steam_deck?.status} size={18} />
                   <strong>{game.steam_deck?.label || "Deck compatibility unknown"}</strong>
                 </span>}
@@ -207,8 +209,8 @@ export default function GamePage({
           />
 
 
-          {( !isDlcOrHardware || (gameType !== "dlc" && (game.categories || []).length > 0)) && <div className={`game-info-pair ${!isDlcOrHardware && (game.categories || []).length > 0 ? "has-two-cards" : "has-one-card"}`}>
-          {!isDlcOrHardware && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
+          {(showDeckCompatibility || hasSteamCategories) && <div className={`game-info-pair ${showDeckCompatibility && hasSteamCategories ? "has-two-cards" : "has-one-card"}`}>
+          {showDeckCompatibility && <section className={`deck-compatibility deck-status-${game.steam_deck?.status || "unknown"}`}>
             <div className="deck-main">
               <div className="deck-icon"><SteamDeckMark size={37} /></div>
               <div className="deck-title"><span className="section-kicker">STEAM DECK COMPATIBILITY</span><h2>{game.steam_deck?.label || "Compatibility unknown"}</h2><p>{game.steam_deck?.summary || "Steam has not published a compatibility rating for this game."}</p></div>
@@ -217,7 +219,7 @@ export default function GamePage({
             {(game.steam_deck?.criteria || []).length > 0 && <div className="deck-criteria">{game.steam_deck.criteria.map((item, i) => <div className={`deck-criterion deck-criterion-${item.result}`} key={`${item.name}-${i}`}><span className="criterion-icon">{item.result === "pass" ? <CheckCircle2 size={15} /> : item.result === "fail" ? <CircleX size={15} /> : <CircleHelp size={15} />}</span><span>{item.name}</span><small>{item.result === "pass" ? "PASS" : item.result === "fail" ? "ISSUE" : "INFO"}</small></div>)}</div>}
             <a className="deck-report-link" href={`https://store.steampowered.com/app/${game.appid}/`} target="_blank" rel="noreferrer">View Steam Deck details on Steam <ExternalLink size={13} /></a>
           </section>}
-          {gameType !== "dlc" && (game.categories || []).length > 0 && <section className="steam-categories" aria-label="Steam features">
+          {hasSteamCategories && <section className="steam-categories" aria-label="Steam features">
             <div className="steam-categories-heading"><div><span className="section-kicker">STEAM FEATURES</span><h2>Available features</h2></div><span>{game.categories.length} features</span></div>
             <div className="steam-categories-list">{game.categories.filter((category, index, all) => category?.description && all.findIndex((item) => item.description === category.description) === index).map((category) => {
               const CategoryIcon = CATEGORY_ICONS[Number(category.id)] || CheckCircle2;
