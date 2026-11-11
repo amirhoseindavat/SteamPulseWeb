@@ -11941,3 +11941,15 @@ a {
     width: 190px;
   }
 }
+
+
+/* Center the game header artwork on mobile and give it more top breathing room. */
+@media (max-width: 620px) {
+	.hero-header-image {
+		left: 50%;
+		right: auto;
+		top: 24px;
+		transform: translateX(-50%);
+		width: min(70%, 320px);
+	}
+}
