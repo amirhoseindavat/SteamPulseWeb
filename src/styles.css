@@ -11486,6 +11486,13 @@ a {
 		inset 0 1px rgba(255, 255, 255, 0.2);
 	animation: game-sync-core 2.8s ease-in-out infinite;
 }
+.game-sync-logo {
+	display: block;
+	width: 48px;
+	height: 48px;
+	object-fit: contain;
+	filter: drop-shadow(0 0 12px rgba(185, 154, 255, 0.42));
+}
 .game-sync-core > span {
 	position: absolute;
 	right: 9px;
