@@ -75,17 +75,17 @@
             margin: 0 0 16px !important;
             padding: 1px !important;
             overflow: hidden !important;
-            border: 1px solid rgba(145, 105, 255, .42) !important;
+            border: 1px solid rgba(165, 180, 215, .24) !important;
             border-radius: 12px !important;
-            background: linear-gradient(115deg, rgba(101, 31, 255, .38), rgba(35, 25, 57, .92) 48%, rgba(20, 25, 37, .96)) !important;
-            box-shadow: 0 5px 18px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+            background: linear-gradient(125deg, rgba(20, 29, 49, .88), rgba(13, 21, 37, .82) 58%, rgba(37, 29, 67, .76)) !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 12px 30px rgba(0, 0, 0, .18) !important;
           }
           .steampulse-store-banner::before {
             content: "" !important;
             position: absolute !important;
             inset: 0 auto 0 0 !important;
             width: 3px !important;
-            background: linear-gradient(180deg, #b99aff, #651fff) !important;
+            background: linear-gradient(180deg, rgba(165, 180, 215, .55), rgba(129, 145, 177, .18)) !important;
             pointer-events: none !important;
           }
           .steampulse-store-main {
@@ -102,7 +102,7 @@
           .steampulse-store-main:hover {
             color: #fff !important;
             text-decoration: none !important;
-            background: rgba(132, 87, 255, .13) !important;
+            background: rgba(255, 255, 255, .045) !important;
           }
           .steampulse-store-logo-wrap {
             display: grid !important;
@@ -111,9 +111,9 @@
             width: 42px !important;
             height: 42px !important;
             box-sizing: border-box !important;
-            border: 1px solid rgba(255, 255, 255, .18) !important;
+            border: 1px solid rgba(165, 180, 215, .22) !important;
             border-radius: 10px !important;
-            background: linear-gradient(145deg, rgba(101, 31, 255, .95), rgba(65, 29, 145, .95)) !important;
+            background: linear-gradient(145deg, rgba(50, 65, 91, .82), rgba(24, 35, 56, .9)) !important;
             box-shadow: 0 3px 10px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .2) !important;
           }
           .steampulse-store-logo {
@@ -133,7 +133,7 @@
             min-width: 0 !important;
           }
           .steampulse-store-eyebrow {
-            color: #b99aff !important;
+            color: #aebbd3 !important;
             font: 800 9px/1.2 Arial, sans-serif !important;
             letter-spacing: 1.5px !important;
           }
@@ -157,16 +157,16 @@
             flex: 0 0 30px !important;
             width: 30px !important;
             height: 30px !important;
-            border: 1px solid rgba(185, 154, 255, .28) !important;
+            border: 1px solid rgba(165, 180, 215, .22) !important;
             border-radius: 8px !important;
-            background: rgba(101, 31, 255, .2) !important;
-            color: #d9caff !important;
+            background: rgba(255, 255, 255, .055) !important;
+            color: #c3cde2 !important;
             font: 700 17px/1 Arial, sans-serif !important;
             transition: transform .18s ease, background .18s ease !important;
           }
           .steampulse-store-main:hover .steampulse-store-arrow {
             transform: translate(2px, -2px) !important;
-            background: rgba(101, 31, 255, .42) !important;
+            background: rgba(255, 255, 255, .11) !important;
           }
           @media (max-width: 480px) {
             .steampulse-store-main { gap: 10px !important; padding: 11px 10px 11px 13px !important; }
