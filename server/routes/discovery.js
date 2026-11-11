@@ -5,10 +5,28 @@ import {
 	fetchSteamTopSellers,
 } from "../services/discoverySteam.js";
 
+import {
+	DISCOVERY_CACHE_TTL,
+	registerBackgroundRefresh,
+	refreshInBackground,
+	staleCached,
+} from "../utils/cache.js";
+
 export function registerDiscoveryRoutes(
 	app,
 	{ fetchJson, fetchJsonWithOptions, cached, saveCache, coalesce, mapWithConcurrency },
 ) {
+	const registerRefresh = (key, path, cc) => {
+		registerBackgroundRefresh(key, async () => {
+			const port = Number(process.env.PORT) || 3001;
+			const response = await fetch(
+				`http://127.0.0.1:${port}${path}?cc=${encodeURIComponent(cc)}&refresh=1`,
+				{ signal: AbortSignal.timeout(120000) },
+			);
+			if (!response.ok) throw new Error(`Refresh endpoint returned ${response.status}`);
+			await response.arrayBuffer();
+		}, DISCOVERY_CACHE_TTL);
+	};
 	app.get("/api/search", async (req, res) => {
 		const term = String(req.query.term || "").trim();
 		const cc = String(req.query.cc || "US")
@@ -39,7 +57,7 @@ export function registerDiscoveryRoutes(
 				}))
 				.filter((item) => Number.isFinite(item.id) && item.name);
 
-			res.json(saveCache(key, { items }));
+			res.json(saveCache(key, { items }, DISCOVERY_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam search failed:", error);
 			res.status(502).json({
@@ -54,13 +72,20 @@ export function registerDiscoveryRoutes(
 			.slice(0, 2)
 			.toUpperCase();
 		const key = "store-takeover:v1:" + cc;
+		registerRefresh(key, "/api/store-takeover", cc);
 		if (req.query.refresh !== "1") {
 			const hit = cached(key);
 			if (hit) return res.json(hit);
+			const stale = staleCached(key);
+			if (stale) {
+				res.json(stale);
+				refreshInBackground(key);
+				return;
+			}
 		}
 		try {
 			const takeover = await fetchSteamTakeover(cc);
-			res.json(saveCache(key, { takeover }));
+			res.json(saveCache(key, { takeover }, DISCOVERY_CACHE_TTL));
 		} catch (error) {
 			console.warn("Could not load Steam Store Takeover:", error.message);
 			res
@@ -77,9 +102,16 @@ export function registerDiscoveryRoutes(
 			.slice(0, 2)
 			.toUpperCase();
 		const key = `top-sellers:v1:${cc}`;
+		registerRefresh(key, "/api/top-sellers", cc);
 		if (req.query.refresh !== "1") {
 			const hit = cached(key);
 			if (hit) return res.json(hit);
+			const stale = staleCached(key);
+			if (stale) {
+				res.json(stale);
+				refreshInBackground(key);
+				return;
+			}
 		}
 
 		try {
@@ -163,9 +195,16 @@ export function registerDiscoveryRoutes(
 			.slice(0, 2)
 			.toUpperCase();
 		const key = `discover:v26:${cc}`;
+		registerRefresh(key, "/api/discover", cc);
 		if (req.query.refresh !== "1") {
 			const hit = cached(key);
 			if (hit) return res.json(hit);
+			const stale = staleCached(key);
+			if (stale) {
+				res.json(stale);
+				refreshInBackground(key);
+				return;
+			}
 		}
 
 		try {
@@ -336,7 +375,7 @@ export function registerDiscoveryRoutes(
 							"Steam returned no discovery categories. Please try again shortly.",
 					});
 			}
-			res.json(saveCache(key, result));
+			res.json(saveCache(key, result, DISCOVERY_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam discovery failed:", error);
 			res
