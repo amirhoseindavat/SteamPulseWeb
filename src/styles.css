@@ -11989,3 +11989,10 @@ a {
 		width: 100%;
 	}
 }
+
+/* Keep the game title clear of the centered header artwork on mobile. */
+@media (max-width: 620px) {
+	.game-hero .hero-content {
+		margin-top: 34px;
+	}
+}
