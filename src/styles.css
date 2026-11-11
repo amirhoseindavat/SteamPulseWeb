@@ -12030,3 +12030,17 @@ a {
 	margin-top: 0;
 	margin-bottom: 0;
 }
+
+/* Keep Currently Playing in its own full-width section above the profile details grid. */
+.steam-profile-page .profile-current-game-section {
+	width: 100%;
+	min-width: 0;
+	margin: 0 0 18px;
+}
+.steam-profile-page .profile-current-game-section .profile-current-game {
+	width: 100%;
+	margin: 0;
+}
+.steam-profile-page .profile-content-grid {
+	margin-top: 0;
+}
