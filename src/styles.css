@@ -11791,3 +11791,31 @@ a {
 	padding: 5px 2px;
 	margin-top: 13px;
 }
+
+
+/* Home hero brand mirrors the footer brand group. */
+.intro .home-brand-group {
+	gap: 9px;
+	color: #f0edff;
+	font-family: Manrope, Inter, system-ui, sans-serif;
+	font-size: 15px;
+	font-weight: 850;
+	letter-spacing: 1.2px;
+	line-height: 1;
+	text-transform: uppercase;
+}
+.intro .home-brand-group .site-footer-logo {
+	display: block;
+	width: 30px;
+	height: 30px;
+	flex: 0 0 30px;
+	object-fit: contain;
+	border-radius: 8px;
+}
+.intro .home-brand-group .site-footer-brand {
+	color: #fff;
+	font-size: 15px;
+	font-weight: 850;
+	letter-spacing: 1.2px;
+	text-shadow: 0 1px 12px rgba(161, 138, 255, 0.3);
+}
