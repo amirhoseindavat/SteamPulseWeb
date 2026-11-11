@@ -11953,3 +11953,39 @@ a {
 		width: min(70%, 320px);
 	}
 }
+
+/* Normalize every game-page card to the same mobile content width. */
+@media (max-width: 620px) {
+	.app-shell .main-content .game-hero,
+	.app-shell .main-content .stats-strip,
+	.app-shell .main-content .purchase-layout,
+	.app-shell .main-content .purchase-panel,
+	.app-shell .main-content .purchase-options-column,
+	.app-shell .main-content .key-calculator,
+	.app-shell .main-content .dlc-section-card,
+	.app-shell .main-content .extra-content-section,
+	.app-shell .main-content .game-info-pair,
+	.app-shell .main-content .deck-compatibility,
+	.app-shell .main-content .steam-categories,
+	.app-shell .main-content .detail-section,
+	.app-shell .main-content .game-intel-card,
+	.app-shell .main-content .release-countdown,
+	.app-shell .main-content .steam-franchise-notice,
+	.app-shell .main-content .dlc-parent-notice,
+	.app-shell .main-content .detail-card {
+		box-sizing: border-box;
+		width: 100%;
+		max-width: 100%;
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.app-shell .main-content .overview-grid,
+	.app-shell .main-content .game-info-pair {
+		min-width: 0;
+	}
+	.app-shell .main-content .overview-grid > *,
+	.app-shell .main-content .game-info-pair > * {
+		min-width: 0;
+		width: 100%;
+	}
+}
