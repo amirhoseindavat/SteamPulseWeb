@@ -1,20 +1,23 @@
 import { useEffect, useRef } from "react";
 
 export function useAppInteractions({ setSearchOpen }) {
-  const calculatorRef = useRef(null);
-  const searchRef = useRef(null);
-  const headerSearchRef = useRef(null);
+	const calculatorRef = useRef(null);
+	const searchRef = useRef(null);
+	const headerSearchRef = useRef(null);
 
-  useEffect(() => {
-    const close = (event) => {
-      if (!searchRef.current?.contains(event.target) && !headerSearchRef.current?.contains(event.target)) {
-        setSearchOpen(false);
-      }
-    };
+	useEffect(() => {
+		const close = (event) => {
+			if (
+				!searchRef.current?.contains(event.target) &&
+				!headerSearchRef.current?.contains(event.target)
+			) {
+				setSearchOpen(false);
+			}
+		};
 
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [setSearchOpen]);
+		document.addEventListener("mousedown", close);
+		return () => document.removeEventListener("mousedown", close);
+	}, [setSearchOpen]);
 
-  return { calculatorRef, searchRef, headerSearchRef };
+	return { calculatorRef, searchRef, headerSearchRef };
 }

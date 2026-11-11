@@ -1,7 +1,12 @@
 import dns from "node:dns";
 import express from "express";
 import cors from "cors";
-import { fetchJson, fetchJsonWithOptions, fetchSteamHeaderImage, mapWithConcurrency } from "./server/services/steamClient.js";
+import {
+	fetchJson,
+	fetchJsonWithOptions,
+	fetchSteamHeaderImage,
+	mapWithConcurrency,
+} from "./server/services/steamClient.js";
 import { CACHE_TTL, cached, saveCache } from "./server/utils/cache.js";
 
 import { registerMarketRoutes } from "./server/routes/market.js";
@@ -20,19 +25,45 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
+	res.json({ ok: true });
 });
 
-registerMarketRoutes(app, { fetchJson, mapWithConcurrency, previousRegionalSellPrices });
+registerMarketRoutes(app, {
+	fetchJson,
+	mapWithConcurrency,
+	previousRegionalSellPrices,
+});
 
-registerProfileRoutes(app, { fetchJson, fetchSteamHeaderImage, mapWithConcurrency });
+registerProfileRoutes(app, {
+	fetchJson,
+	fetchSteamHeaderImage,
+	mapWithConcurrency,
+});
 
-const { fetchSteamBundles } = registerDiscoveryRoutes(app, { fetchJson, fetchJsonWithOptions, cached, saveCache, mapWithConcurrency });
+const { fetchSteamBundles } = registerDiscoveryRoutes(app, {
+	fetchJson,
+	fetchJsonWithOptions,
+	cached,
+	saveCache,
+	mapWithConcurrency,
+});
 
-registerFreeGameRoutes(app, { fetchJson, cached, saveCache, mapWithConcurrency });
+registerFreeGameRoutes(app, {
+	fetchJson,
+	cached,
+	saveCache,
+	mapWithConcurrency,
+});
 
-registerGameRoutes(app, { fetchJson, cached, saveCache, CACHE_TTL, mapWithConcurrency, fetchSteamBundles });
+registerGameRoutes(app, {
+	fetchJson,
+	cached,
+	saveCache,
+	CACHE_TTL,
+	mapWithConcurrency,
+	fetchSteamBundles,
+});
 
 app.listen(PORT, () => {
-  console.log(`SteamPulse API listening on http://localhost:${PORT}`);
+	console.log(`SteamPulse API listening on http://localhost:${PORT}`);
 });
