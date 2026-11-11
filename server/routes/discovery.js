@@ -57,7 +57,7 @@ export function registerDiscoveryRoutes(
 				}))
 				.filter((item) => Number.isFinite(item.id) && item.name);
 
-			res.json(saveCache(key, { items }, DISCOVERY_CACHE_TTL));
+			res.json(saveCache(key, { items }));
 		} catch (error) {
 			console.error("Steam search failed:", error);
 			res.status(502).json({
@@ -178,7 +178,7 @@ export function registerDiscoveryRoutes(
 			const items = [...unique.values()].slice(0, 50);
 			if (!items.length)
 				throw new Error("Steam did not return any priced Top Sellers.");
-			res.json(saveCache(key, { items }));
+			res.json(saveCache(key, { items }, DISCOVERY_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam Top Sellers request failed:", error);
 			res
