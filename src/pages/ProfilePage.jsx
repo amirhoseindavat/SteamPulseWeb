@@ -397,8 +397,8 @@ export default function ProfilePage({
 							</>
 						)}
 					</section>
-					<section className="profile-content-grid">
-						{steamProfileData.profile.currentGame && (
+					{steamProfileData.profile.currentGame && (
+						<section className="profile-current-game-section">
 							<div className="detail-card profile-current-game">
 								<div className="card-title">
 									<Gamepad2 size={17} />
@@ -477,7 +477,9 @@ export default function ProfilePage({
 									</div>
 								) : null}
 							</div>
-						)}
+						</section>
+					)}
+					<section className="profile-content-grid">
 						<div className="detail-card profile-recent">
 							<div className="card-title">
 								<Clock3 size={17} />
