@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { searchGames as fetchGameSearch } from "../services/steamPulseApi";
 
+function extractSteamAppId(value) {
+	const input = String(value || "").trim();
+	if (/^\\d+$/.test(input)) return input;
+
+	const match = input.match(
+		/(?:store\\.steampowered\\.com|steamdb\\.info)\\/(?:agecheck\\/)?app\\/(\\d+)(?:\\/|[?#]|$)|steam:\\/\\/(?:run|store)\\/(\\d+)/i,
+	);
+	return match?.[1] || match?.[2] || "";
+}
+
 export function useGameSearch({
 	region,
 	loadGame,
@@ -61,6 +71,11 @@ export function useGameSearch({
 		setQuery(value);
 		setSearchOpen(true);
 		cancelSearch();
+		if (extractSteamAppId(value)) {
+			setResults([]);
+			setSearching(false);
+			return;
+		}
 		if (/^\d+$/.test(value.trim())) {
 			setResults([]);
 			setSearching(false);
@@ -72,6 +87,20 @@ export function useGameSearch({
 			return;
 		}
 		debounceRef.current = setTimeout(() => searchGames(value), 300);
+	}
+
+	function submitSearch(value) {
+		const appId = extractSteamAppId(value);
+		if (appId) {
+			cancelSearch();
+			setResults([]);
+			setSearchOpen(false);
+			setSearching(false);
+			loadGame(appId, region);
+			return;
+		}
+		if (results[0]) chooseGame(results[0]);
+		else searchGames(value);
 	}
 
 	function chooseGame(item) {
@@ -96,6 +125,7 @@ export function useGameSearch({
 		setSearchOpen,
 		searching,
 		searchGames,
+		submitSearch,
 		onSearchChange,
 		chooseGame,
 	};
