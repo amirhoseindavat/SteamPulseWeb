@@ -25,6 +25,8 @@ export function useDiscoveryData(region) {
 	useEffect(() => {
 		const controller = new AbortController();
 		setDiscoveryLoading(true);
+		setTopSellersLoading(true);
+		setDiscovery((current) => ({ ...current, topSellers: [] }));
 		setDiscoveryError("");
 		getDiscovery(region, false, controller.signal)
 			.then((data) =>
