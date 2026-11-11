@@ -131,3 +131,433 @@ These are asset URLs, not JSON API endpoints. They are included because the appl
 - SteamCMD metadata and Steam static asset URLs are separate services: SteamCMD supplies metadata/asset paths, while the Steam CDN serves the actual image files.
 - SteamDB game-size retrieval is experimental and should not be treated as a reliable source until anti-bot access is resolved.
 - This document describes endpoints found in the current backend implementation. If a new upstream request or Express route is added, update this file in the same change.
+
+
+## 7. Request examples
+
+The examples below use the local backend address. Replace AppIDs, profile identifiers, and country codes with the values you need. The Steam API key is deliberately shown as a placeholder; never put a real key in a public document or frontend code.
+
+### 7.1 Internal SteamPulse API examples
+
+#### Health check
+
+```bash
+curl "http://localhost:3001/api/health"
+```
+
+#### Market regions
+
+```bash
+curl "http://localhost:3001/api/market-regions"
+```
+
+#### Key price for a region
+
+```bash
+curl "http://localhost:3001/api/key-price?region=US"
+```
+
+For another supported region, change `US` to its country code, for example `UA` or `TR`.
+
+#### Shop data
+
+```bash
+curl "http://localhost:3001/api/shop-data"
+```
+
+#### Steam profile
+
+Using a Steam vanity URL:
+
+```bash
+curl "http://localhost:3001/api/steam-profile?profile=https%3A%2F%2Fsteamcommunity.com%2Fid%2Fexample"
+```
+
+Using a SteamID64:
+
+```bash
+curl "http://localhost:3001/api/steam-profile?profile=76561198000000000"
+```
+
+If the server does not have `STEAM_API_KEY` configured, send the key as a request header:
+
+```bash
+curl "http://localhost:3001/api/steam-profile?profile=76561198000000000" \
+  -H "X-Steam-API-Key: YOUR_STEAM_API_KEY"
+```
+
+#### Ownership check
+
+The body accepts a profile URL/vanity URL/SteamID64 and up to 100 AppIDs:
+
+```bash
+curl -X POST "http://localhost:3001/api/ownership-check" \
+  -H "Content-Type: application/json" \
+  -H "X-Steam-API-Key: YOUR_STEAM_API_KEY" \
+  -d '{
+    "profile": "76561198000000000",
+    "appids": [1091500, 227300, 570]
+  }'
+```
+
+#### Steam Store search
+
+```bash
+curl "http://localhost:3001/api/search?term=Cyberpunk%202077&cc=US&l=english"
+```
+
+#### Store takeover
+
+```bash
+curl "http://localhost:3001/api/store-takeover?cc=US"
+```
+
+Internal refresh example (normally called by the server's refresh flow):
+
+```bash
+curl "http://localhost:3001/api/store-takeover?cc=US&refresh=1"
+```
+
+#### Top sellers
+
+```bash
+curl "http://localhost:3001/api/top-sellers?cc=US"
+```
+
+#### Discovery feed
+
+```bash
+curl "http://localhost:3001/api/discover?cc=US"
+```
+
+#### Limited-time free games
+
+```bash
+curl "http://localhost:3001/api/free-games?cc=US"
+```
+
+#### Cart details
+
+```bash
+curl "http://localhost:3001/api/cart-details?apps=1091500,227300,570&cc=US"
+```
+
+#### Game details
+
+Cyberpunk 2077 (AppID `1091500`), localized for the United States:
+
+```bash
+curl "http://localhost:3001/api/game/1091500?cc=US"
+```
+
+#### Game bundles
+
+```bash
+curl "http://localhost:3001/api/game/1091500/bundles?cc=US"
+```
+
+#### Game DLC
+
+The DLC endpoint supports pagination through `offset` and `limit`:
+
+```bash
+curl "http://localhost:3001/api/game/1091500/dlc?cc=US&offset=0&limit=24"
+```
+
+#### Experimental game-size endpoint
+
+```bash
+curl "http://localhost:3001/api/game-size/1091500"
+```
+
+This route depends on SteamDB page access and may fail if SteamDB presents an anti-bot challenge.
+
+### 7.2 Steam Store upstream examples
+
+#### App details
+
+```text
+https://store.steampowered.com/api/appdetails?appids=1091500&cc=US&l=english
+```
+
+#### Store search
+
+```text
+https://store.steampowered.com/api/storesearch/?term=Cyberpunk%202077&cc=US&l=english
+```
+
+#### Featured categories
+
+```text
+https://store.steampowered.com/api/featuredcategories/?cc=US&l=english
+```
+
+#### Free promotions search page
+
+This is an HTML page; SteamPulse parses its search results rather than expecting a JSON response:
+
+```text
+https://store.steampowered.com/search/?category1=998&specials=1&cc=US&l=english
+```
+
+#### Top Sellers search results
+
+```text
+https://store.steampowered.com/search/results/?query=&start=0&count=50&dynamic_data=&sort_by=_ASC&snr=1_7_7_7000_7&filter=topsellers&category1=998&os=win&cc=us&l=english&infinite=1
+```
+
+#### Popular Upcoming / Pre-orders
+
+```text
+https://store.steampowered.com/search/results?sort_by=Price_DESC&force_infinite=1&hwtype=0&category1=998&filter=popularcomingsoon&ndl=1&snr=1_7_7_popularcomingsoon_7&cc=US&l=english
+```
+
+#### Store homepage
+
+```text
+https://store.steampowered.com/?cc=US&l=english
+```
+
+#### Game page and bundle listing
+
+```text
+https://store.steampowered.com/app/1091500/?cc=US&l=english
+https://store.steampowered.com/app/1091500/bundles/?cc=US&l=english
+```
+
+#### Resolve bundle IDs
+
+Use the bundle IDs discovered from the game's bundle listing:
+
+```text
+https://store.steampowered.com/actions/ajaxresolvebundles?bundleids=BUNDLE_ID&cc=US&l=english
+```
+
+#### Package / subscription page
+
+```text
+https://store.steampowered.com/sub/PACKAGE_ID/
+```
+
+### 7.3 Steam Web API examples
+
+For endpoints requiring authentication, replace `YOUR_STEAM_API_KEY` with a valid key. These examples are for direct inspection; SteamPulse normally calls them server-side.
+
+#### Current players
+
+```text
+https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=1091500
+```
+
+#### Store library assets
+
+The `input_json` value is JSON URL-encoded. Example payload:
+
+```json
+{
+  "ids": [
+    {
+      "appid": 1091500,
+      " измен": 0
+    }
+  ],
+  "context": {
+    "language": "english",
+    "country_code": "US"
+  },
+  "data_request": {
+    "include_assets": true
+  }
+}
+```
+
+Request shape (URL-encode the JSON payload before placing it in the query string):
+
+```text
+https://api.steampowered.com/IStoreBrowseService/GetItems/v1/?input_json=URL_ENCODED_JSON
+```
+
+#### Steam news / community announcements
+
+```text
+https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=1091500&count=8&feeds=steam_community_announcements&maxlength=4294967295&format=json
+```
+
+#### Additional game news
+
+```text
+https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=1091500&count=12&maxlength=600&format=json
+```
+
+#### Resolve a vanity profile
+
+```text
+https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=YOUR_STEAM_API_KEY&vanityurl=example
+```
+
+#### Player summary
+
+```text
+https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=YOUR_STEAM_API_KEY&steamids=76561198000000000
+```
+
+#### Owned games
+
+```text
+https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000&include_appinfo=true&include_played_free_games=true
+```
+
+#### Steam level
+
+```text
+https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Badges
+
+```text
+https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Favorite badge
+
+```text
+https://api.steampowered.com/IPlayerService/GetFavoriteBadge/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Friends list
+
+```text
+https://api.steampowered.com/ISteamUser/GetFriendList/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000&relationship=friend
+```
+
+#### Recently played games
+
+```text
+https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000&count=0
+```
+
+#### Profile background
+
+```text
+https://api.steampowered.com/IPlayerService/GetProfileBackground/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Profile customization
+
+```text
+https://api.steampowered.com/IPlayerService/GetProfileCustomization/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Equipped profile items
+
+```text
+https://api.steampowered.com/IPlayerService/GetProfileItemsEquipped/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Animated avatar
+
+```text
+https://api.steampowered.com/IPlayerService/GetAnimatedAvatar/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Avatar frame
+
+```text
+https://api.steampowered.com/IPlayerService/GetAvatarFrame/v1/?key=YOUR_STEAM_API_KEY&steamid=76561198000000000
+```
+
+#### Player bans
+
+```text
+https://api.steampowered.com/ISteamUser/GetPlayerBans/v1/?key=YOUR_STEAM_API_KEY&steamids=76561198000000000
+```
+
+### 7.4 Other external service examples
+
+#### SteamCMD app metadata
+
+```text
+https://api.steamcmd.net/v1/info/1091500
+```
+
+The response contains app metadata. The game logo asset path used by SteamPulse is read from:
+
+```text
+data.1091500.common.library_assets_full.library_logo.image2x.english
+```
+
+#### Steam Market item order histogram
+
+The exact `item_nameid` is resolved from the Market listing context by the implementation. The example below shows the request shape; use the real item name ID and region-specific currency/country values:
+
+```text
+https://steamcommunity.com/market/itemordershistogram?country=US&language=english&currency=CURRENCY_ID&item_nameid=ITEM_NAME_ID&two_factor=0&norender=1
+```
+
+Listing page used as the request referer:
+
+```text
+https://steamcommunity.com/market/listings/440/Mann-Co.-Supply-Crate-Key/
+```
+
+#### CodeMage / AresGame shop data
+
+```text
+https://api.codemage.ir/Projects/SteamPulse/ShopData/
+```
+
+#### SteamDB depots page (experimental)
+
+```text
+https://steamdb.info/app/1091500/depots/
+```
+
+#### Public Steam profile HTML
+
+```text
+https://steamcommunity.com/profiles/76561198000000000/
+```
+
+### 7.5 Static asset URL examples
+
+These URLs return image/media assets, not structured API data.
+
+#### Game header
+
+```text
+https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg
+```
+
+#### Game library logo / StoreBrowse asset
+
+The asset filename/path is app-specific and comes from SteamCMD or StoreBrowse metadata:
+
+```text
+https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1091500/ASSET_PATH_FROM_API
+```
+
+#### Library hero artwork
+
+```text
+https://shared.steamstatic.com/store_item_assets/steam/apps/1091500/library_hero.jpg
+```
+
+#### Fastly Steam asset CDN
+
+```text
+https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/1091500/ASSET_PATH_FROM_API
+```
+
+#### Community profile asset
+
+```text
+https://shared.fastly.steamstatic.com/community_assets/images/ASSET_PATH_FROM_PROFILE
+```
+
+#### Badge artwork
+
+```text
+https://community.fastly.steamstatic.com/public/images/badges/BADGE_ASSET_PATH
+```
+
