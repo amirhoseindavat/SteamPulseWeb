@@ -357,8 +357,8 @@ The `input_json` value is JSON URL-encoded. Example payload:
 {
   "ids": [
     {
-      "appid": 1091500,
-          }
+      "appid": 1091500
+    }
   ],
   "context": {
     "language": "english",
