@@ -9,6 +9,21 @@ import {
 } from "lucide-react";
 import { getDiscovery, getFreeGames } from "../services/steamPulseApi";
 
+function GameCardTitle({ name }) {
+	const title = String(name || "");
+	const separatorIndex = title.indexOf(" - ");
+
+	if (title.length < 28 || separatorIndex === -1) return title;
+
+	return (
+		<>
+			{title.slice(0, separatorIndex)}
+			<br />
+			{title.slice(separatorIndex + 3)}
+		</>
+	);
+}
+
 export default function TrendingPage({
 	discovery,
 	discoveryLoading,
@@ -248,7 +263,7 @@ export default function TrendingPage({
 											</span>
 										</span>
 										<span className="discovery-card-copy">
-											<strong>{item.name}</strong>
+											<strong><GameCardTitle name={item.name} /></strong>
 											<span className="discovery-card-meta">
 												{item.originalPrice ? (
 													<>
@@ -330,7 +345,7 @@ export default function TrendingPage({
 												)}
 											</span>
 											<span className="discovery-card-copy">
-												<strong>{item.name}</strong>
+												<strong><GameCardTitle name={item.name} /></strong>
 												{item.releaseDate && (
 													<span className="discovery-card-meta preorder-release-meta">
 														{item.releaseDate}
@@ -388,7 +403,7 @@ export default function TrendingPage({
 												)}
 											</span>
 											<span className="discovery-card-copy">
-												<strong>{item.name}</strong>
+												<strong><GameCardTitle name={item.name} /></strong>
 												<span className="discovery-card-meta">
 													{item.releaseDate || item.subtitle || "Steam game"}
 													{activeSection === "upcoming" ||
