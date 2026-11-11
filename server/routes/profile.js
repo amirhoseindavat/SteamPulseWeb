@@ -179,9 +179,9 @@ app.get("/api/steam-profile", async (req, res) => {
         }
       }
     } catch (profilePageError) {
-      console.warn("Could not read Steam Game Collector showcase count:", profilePageError.message || profilePageError);
+      console.warn("Could not read Steam profile games count:", profilePageError.message || profilePageError);
     }
-null);
+    const displayedGamesCount = gameCollectorGamesCount ?? (games ? games.length : null);
     const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
     const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
     const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
