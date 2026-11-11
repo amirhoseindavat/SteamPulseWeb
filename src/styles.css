@@ -204,7 +204,7 @@
 .main-nav button:hover{color:#e9edff;background:#ffffff08}
 .main-nav button.active{color:#d6ccff;background:linear-gradient(135deg,#8b6cff22,#8b6cff0c);border-color:#8b6cff4d;box-shadow:inset 0 1px #ffffff08}
 .main-nav button.active svg{color:#ad98ff}
-.main-content{}
+
 .intro{padding-top:54px;padding-bottom:24px}
 .search-panel{margin-top:8px}
 .welcome-panel{margin-top:24px}
@@ -243,7 +243,7 @@
 .browse-game-arrow{flex-shrink:0;color:#7892a5;opacity:.65;transition:transform .16s,color .16s}
 .browse-game-card:hover .browse-game-arrow{transform:translateX(3px);color:#c7e8fa;opacity:1}
 @media(max-width:1100px){.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr) auto;gap:10px}.browse-game-card>img{width:112px}}
-@media(max-width:760px){.browse-games-section{padding:18px 13px}.browse-games-list{grid-template-columns:1fr}.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr);gap:10px;min-height:72px;padding:8px}.browse-game-card>img{}.browse-game-price-area{grid-column:3;justify-content:flex-start;min-width:0;margin-top:-2px}.browse-game-info{gap:4px}.browse-game-info>strong{font-size:12px}.browse-game-release{font-size:10px}.browse-game-price{font-size:12px}.browse-game-discount{padding:4px 6px;font-size:10px}.browse-game-arrow{display:none}}
+@media(max-width:760px){.browse-games-section{padding:18px 13px}.browse-games-list{grid-template-columns:1fr}.browse-game-card{grid-template-columns:22px 112px minmax(0,1fr);gap:10px;min-height:72px;padding:8px}.browse-game-price-area{grid-column:3;justify-content:flex-start;min-width:0;margin-top:-2px}.browse-game-info{gap:4px}.browse-game-info>strong{font-size:12px}.browse-game-release{font-size:10px}.browse-game-price{font-size:12px}.browse-game-discount{padding:4px 6px;font-size:10px}.browse-game-arrow{display:none}}
 @media(max-width:420px){.browse-game-card{grid-template-columns:18px 96px minmax(0,1fr);gap:8px}.browse-game-card>img{width:96px}.browse-game-price-area{gap:7px}}
 
 /* Give About this game more room and show its full description */
@@ -448,7 +448,7 @@
  .overview-grid:has(.about-card){grid-template-columns:minmax(0,1fr)}
  .about-card{width:auto}
  .edition-image{height:clamp(120px,38vw,190px)}
- .hero-content h2{}
+ 
  .hero-description{color:#e9eefb}
 }
 
@@ -517,7 +517,7 @@
  .purchase-options-column{grid-row:2}
  .purchase-layout .calculator-content{grid-template-columns:repeat(2,minmax(0,1fr))}
  .purchase-layout .calculator-result{min-height:100px}
- .purchase-layout .cost-result{}
+ 
 }
 
 
@@ -2224,7 +2224,7 @@
  .profile-stats-grid.profile-stats-grid-own{grid-template-columns:repeat(5,minmax(0,1fr))}
  .profile-stats-grid.profile-stats-grid-other{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-@media(max-width:760px){}
+
 
 
 /* Steam sales and event calendar */
