@@ -341,7 +341,7 @@ export default function ProfilePage({
 											flagged: steamProfileData.bans.communityBanned,
 										},
 										{
-											label: "Economy",
+											label: "Trade",
 											value:
 												steamProfileData.bans.economyBan === "none"
 													? "No ban"

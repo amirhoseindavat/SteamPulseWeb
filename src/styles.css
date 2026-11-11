@@ -11831,117 +11831,134 @@ a {
 	text-shadow: 0 1px 12px rgba(161, 138, 255, 0.3);
 }
 
-
 /* Compact profile dropdown for secondary header destinations. */
 .header-profile-menu {
-  position: relative;
-  display: flex;
-  align-items: center;
+	position: relative;
+	display: flex;
+	align-items: center;
 }
 .header-profile-trigger-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
 }
 .profile-menu-toggle {
-  width: 25px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: #9aa8c2;
-  background: transparent;
-  cursor: pointer;
-  transition: color .18s ease, background .18s ease, transform .18s ease;
+	width: 25px;
+	height: 30px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	color: #9aa8c2;
+	background: transparent;
+	cursor: pointer;
+	transition:
+		color 0.18s ease,
+		background 0.18s ease,
+		transform 0.18s ease;
 }
 .profile-menu-toggle:hover,
 .profile-menu-toggle.is-open {
-  color: #eef2ff;
-  background: rgba(255,255,255,.07);
+	color: #eef2ff;
+	background: rgba(255, 255, 255, 0.07);
 }
 .profile-menu-toggle.is-open svg {
-  transform: rotate(180deg);
+	transform: rotate(180deg);
 }
 .profile-menu-toggle svg {
-  transition: transform .18s ease;
+	transition: transform 0.18s ease;
 }
 .profile-dropdown {
-  position: absolute;
-  z-index: 500;
-  top: calc(100% + 13px);
-  right: 0;
-  width: 206px;
-  padding: 8px;
-  border: 1px solid rgba(174, 190, 220, .17);
-  border-radius: 14px;
-  background: linear-gradient(125deg, rgba(20, 29, 49, .96), rgba(13, 21, 37, .96) 58%, rgba(37, 29, 67, .94));
-  box-shadow: 0 16px 42px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  animation: profileDropdownIn .16s ease-out;
+	position: absolute;
+	z-index: 500;
+	top: calc(100% + 13px);
+	right: 0;
+	width: 206px;
+	padding: 8px;
+	border: 1px solid rgba(174, 190, 220, 0.17);
+	border-radius: 14px;
+	background: linear-gradient(
+		125deg,
+		rgba(20, 29, 49, 0.96),
+		rgba(13, 21, 37, 0.96) 58%,
+		rgba(37, 29, 67, 0.94)
+	);
+	box-shadow:
+		0 16px 42px rgba(0, 0, 0, 0.38),
+		inset 0 1px rgba(255, 255, 255, 0.06);
+	backdrop-filter: blur(22px);
+	-webkit-backdrop-filter: blur(22px);
+	animation: profileDropdownIn 0.16s ease-out;
 }
 .profile-dropdown-heading {
-  padding: 8px 10px 9px;
-  color: #74839f;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
+	padding: 8px 10px 9px;
+	color: #74839f;
+	font-size: 9px;
+	font-weight: 800;
+	letter-spacing: 1.1px;
+	text-transform: uppercase;
 }
 .profile-dropdown-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  color: #b5c0d5;
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-  transition: color .16s ease, background .16s ease, border-color .16s ease;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px;
+	border: 1px solid transparent;
+	border-radius: 9px;
+	color: #b5c0d5;
+	background: transparent;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 700;
+	text-align: left;
+	cursor: pointer;
+	transition:
+		color 0.16s ease,
+		background 0.16s ease,
+		border-color 0.16s ease;
 }
 .profile-dropdown-item:hover,
 .profile-dropdown-item.active {
-  color: #f2f4ff;
-  background: rgba(255,255,255,.075);
-  border-color: rgba(174,190,220,.1);
+	color: #f2f4ff;
+	background: rgba(255, 255, 255, 0.075);
+	border-color: rgba(174, 190, 220, 0.1);
 }
 .profile-dropdown-item > svg {
-  color: #9caac4;
+	color: #9caac4;
 }
 .profile-dropdown-count {
-  min-width: 19px;
-  height: 19px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  padding: 0 5px;
-  border-radius: 20px;
-  color: #dce5f7;
-  background: rgba(255,255,255,.11);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
+	min-width: 19px;
+	height: 19px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: auto;
+	padding: 0 5px;
+	border-radius: 20px;
+	color: #dce5f7;
+	background: rgba(255, 255, 255, 0.11);
+	font-size: 10px;
+	font-variant-numeric: tabular-nums;
 }
 @keyframes profileDropdownIn {
-  from { opacity: 0; transform: translateY(-5px) scale(.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+	from {
+		opacity: 0;
+		transform: translateY(-5px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
 }
 @media (max-width: 600px) {
-  .profile-dropdown {
-    right: -2px;
-    top: calc(100% + 11px);
-    width: 190px;
-  }
+	.profile-dropdown {
+		right: -2px;
+		top: calc(100% + 11px);
+		width: 190px;
+	}
 }
-
 
 /* Center the game header artwork on mobile and give it more top breathing room. */
 @media (max-width: 620px) {
@@ -12035,7 +12052,6 @@ a {
 .steam-profile-page .profile-current-game-section {
 	width: 100%;
 	min-width: 0;
-	margin: 0 0 18px;
 }
 .steam-profile-page .profile-current-game-section .profile-current-game {
 	width: 100%;
