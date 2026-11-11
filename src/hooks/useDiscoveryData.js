@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
 	getDiscovery,
 	getFreeGames,
-	getTopSellers,
 	getStoreTakeover,
 } from "../services/steamPulseApi";
 
@@ -35,6 +34,7 @@ export function useDiscoveryData(region) {
 					upcoming: data.upcoming || [],
 					preorders: data.preorders || [],
 					preordersError: data.preordersError || "",
+					topSellers: data.topSellers || [],
 				})),
 			)
 			.catch((e) => {
@@ -44,30 +44,8 @@ export function useDiscoveryData(region) {
 					);
 			})
 			.finally(() => {
-				if (!controller.signal.aborted) setDiscoveryLoading(false);
-			});
-		return () => controller.abort();
-	}, [region]);
-
-	useEffect(() => {
-		const controller = new AbortController();
-		setTopSellersLoading(true);
-		setDiscovery((current) => ({ ...current, topSellers: [] }));
-		getTopSellers(region, false, controller.signal)
-			.then((data) => {
 				if (!controller.signal.aborted) {
-					setDiscovery((current) => ({
-						...current,
-						topSellers: data.items || [],
-					}));
-					setTopSellersLoading(false);
-				}
-			})
-			.catch((error) => {
-				if (!controller.signal.aborted) {
-					setDiscoveryError(
-						error.message || "Steam Top Sellers are temporarily unavailable.",
-					);
+					setDiscoveryLoading(false);
 					setTopSellersLoading(false);
 				}
 			});
