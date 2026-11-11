@@ -22,6 +22,7 @@ export default function HomePage({
 	loadGame,
 	chooseGame,
 	searchGames,
+	submitSearch,
 	inputId,
 	setInputId,
 	discovery,
@@ -102,9 +103,7 @@ export default function HomePage({
 							onFocus={() => query.trim().length >= 2 && setSearchOpen(true)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter") {
-									if (/^\\d+$/.test(query.trim())) loadGame(query.trim());
-									else if (results[0]) chooseGame(results[0]);
-									else searchGames(query);
+									submitSearch(query);
 								}
 								if (e.key === "Escape") setSearchOpen(false);
 							}}
@@ -168,13 +167,7 @@ export default function HomePage({
 					</div>
 					<button
 						className="primary-button"
-						onClick={() =>
-							/^\\d+$/.test(query.trim())
-								? loadGame(query.trim())
-								: results[0]
-									? chooseGame(results[0])
-									: searchGames(query)
-						}>
+						onClick={() => submitSearch(query)}>
 						<Search size={17} /> Search
 					</button>
 					<div className="game-region-box">
