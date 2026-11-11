@@ -3685,6 +3685,11 @@ a {
 	.detail-section {
 		padding-top: 8px;
 	}
+	/* Keep the Game Intel card's own 12px gutters from stacking with its wrapper. */
+	.detail-section {
+		margin-left: 0;
+		margin-right: 0;
+	}
 	.detail-card {
 		padding: 16px;
 	}
