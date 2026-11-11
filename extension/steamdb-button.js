@@ -2,76 +2,102 @@
   if (window.__steamPulseSteamDbButtonLoaded) return;
   window.__steamPulseSteamDbButtonLoaded = true;
 
-  const STEAMPULSE_URL = "http://localhost:5173/#/game/";
-  const STEAMPULSE_LOGO = "https://steampulse.ir/favicon.png";
-  const BUTTON_CLASS = "steampulse-steamdb-store-link";
+  const APP_URL = "http://localhost:5173/#/game/";
+  const LOGO_URL = "https://steampulse.ir/favicon.png";
+  const BUTTON_CLASS = "steampulse-steamdb-link";
 
   function getAppId() {
-    const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
-    return match ? match[1] : null;
+    const match = location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
+    return match ? match[1] : "";
   }
 
-  function getGameName() {
-    return document.querySelector("h1")?.textContent?.trim()
-      || document.title.replace(/\s*[·|].*$/, "").trim()
-      || "this game";
+  function findStoreLink(appId) {
+    const links = Array.from(document.querySelectorAll('a[href*="store.steampowered.com/app/"]'));
+    return links.find((link) => {
+      try {
+        const url = new URL(link.href);
+        return url.pathname.startsWith("/app/" + appId);
+      } catch (_) {
+        return false;
+      }
+    }) || null;
+  }
+
+  function createButton(appId) {
+    const link = document.createElement("a");
+    link.className = BUTTON_CLASS + " btn btn-default";
+    link.href = APP_URL + appId;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.title = "Open this game in SteamPulse";
+    link.setAttribute("aria-label", "Open this game in SteamPulse");
+
+    const logo = document.createElement("img");
+    logo.src = LOGO_URL;
+    logo.alt = "";
+    logo.width = 16;
+    logo.height = 16;
+
+    const label = document.createElement("span");
+    label.textContent = "SteamPulse";
+
+    link.append(logo, label);
+    link.style.cssText = [
+      "display:inline-flex",
+      "align-items:center",
+      "gap:6px",
+      "white-space:nowrap",
+      "vertical-align:middle",
+      "margin-right:6px",
+      "text-decoration:none"
+    ].join(";");
+
+    logo.style.cssText = "width:16px;height:16px;object-fit:contain;display:block";
+    label.style.cssText = "font-weight:700";
+    return link;
   }
 
   function addButton() {
     const appId = getAppId();
     if (!appId) return;
 
-    // SteamDB renders the Store / Hub / PCGW links together near the app header.
-    const storeLink = Array.from(document.querySelectorAll('a[href*="store.steampowered.com/app/"]'))
-      .find((link) => link.closest("header") === null || link.closest("main"));
+    const storeLink = findStoreLink(appId);
     if (!storeLink || !storeLink.parentElement) return;
 
     let button = document.querySelector("." + BUTTON_CLASS);
-    if (!button) {
-      // Reuse the Store link's classes so the new item fits SteamDB's native link row.
-      button = storeLink.cloneNode(false);
-      button.classList.add(BUTTON_CLASS);
-      button.href = STEAMPULSE_URL + appId;
-      button.target = "_blank";
-      button.rel = "noopener noreferrer";
-      button.title = "Open this game in SteamPulse";
-      button.setAttribute("aria-label", "Open this game in SteamPulse");
+    if (!button) button = createButton(appId);
 
-      const logo = document.createElement("img");
-      logo.src = STEAMPULSE_LOGO;
-      logo.alt = "";
-      logo.width = 16;
-      logo.height = 16;
-      logo.style.cssText = "width:16px;height:16px;object-fit:contain;vertical-align:middle;margin-right:5px;";
+    const targetUrl = APP_URL + appId;
+    if (button.href !== targetUrl) button.href = targetUrl;
 
-      const label = document.createElement("span");
-      label.textContent = "SteamPulse";
-      label.style.cssText = "font-weight:700;";
-
-      button.append(logo, label);
-      button.style.cssText += ";display:inline-flex;align-items:center;white-space:nowrap;";
-    }
-
-    const expectedUrl = STEAMPULSE_URL + appId;
-    if (button.href !== expectedUrl) button.href = expectedUrl;
-    button.title = "Open " + getGameName() + " in SteamPulse";
-
-    // Keep it immediately before Store, even if SteamDB rebuilds its link row.
+    // Insert next to the existing Steam Store link, without cloning SteamDB nodes.
     if (button.parentElement !== storeLink.parentElement || button.nextElementSibling !== storeLink) {
       storeLink.parentElement.insertBefore(button, storeLink);
     }
   }
 
-  addButton();
+  let scheduled = false;
+  function scheduleUpdate() {
+    if (scheduled) return;
+    scheduled = true;
+    window.setTimeout(() => {
+      scheduled = false;
+      try { addButton(); } catch (error) {
+        console.warn("[SteamPulse] SteamDB button could not be added:", error);
+      }
+    }, 120);
+  }
 
-  const observer = new MutationObserver(addButton);
+  scheduleUpdate();
+
+  const observer = new MutationObserver(scheduleUpdate);
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
-  let lastUrl = location.href;
+  let previousUrl = location.href;
   window.setInterval(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      addButton();
+    if (location.href !== previousUrl) {
+      previousUrl = location.href;
+      scheduleUpdate();
     }
-  }, 800);
+  }, 700);
 })();
