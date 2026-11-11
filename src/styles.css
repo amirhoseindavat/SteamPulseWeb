@@ -2206,6 +2206,10 @@ a {
 	padding: 12px;
 }
 .discovery-card-copy > strong {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
 	font-size: 12px;
 	line-height: 1.5;
 	color: #e8edff;
@@ -2643,13 +2647,16 @@ a {
 	gap: 6px;
 }
 .browse-game-info > strong {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
 	overflow: hidden;
 	color: #dce7f2;
 	font-size: 14px;
 	font-weight: 600;
 	line-height: 1.4;
 	text-overflow: ellipsis;
-	white-space: nowrap;
+	white-space: normal;
 }
 .browse-game-release {
 	overflow: hidden;
