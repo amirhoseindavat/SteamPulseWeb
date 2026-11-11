@@ -83,7 +83,12 @@ export default function AppHeader({
           {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
-        <div className="header-profile-menu" ref={profileMenuRef}>
+        <div
+          className="header-profile-menu"
+          ref={profileMenuRef}
+          onMouseEnter={() => setProfileMenuOpen(true)}
+          onMouseLeave={() => setProfileMenuOpen(false)}
+        >
           <div className="header-profile-trigger-row">
             <a
               className={`avatar-button ${personalSteamProfileData?.profile ? (personalSteamProfileData.profile.currentGame ? "has-steam-game" : personalSteamProfileData.profile.online ? "is-steam-online" : "is-steam-offline") : ""}`}
