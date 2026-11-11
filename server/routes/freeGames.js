@@ -3,6 +3,7 @@ import {
 	registerBackgroundRefresh,
 	refreshInBackground,
 	staleCached,
+	STALE_CACHE_TTL,
 } from "../utils/cache.js";
 
 export function registerFreeGameRoutes(
@@ -188,7 +189,7 @@ export function registerFreeGameRoutes(
 				source: "Steam Store",
 				sourceUrl: searchUrl.toString(),
 			};
-			res.json(saveCache(key, result, DISCOVERY_CACHE_TTL));
+			res.json(saveCache(key, result, DISCOVERY_CACHE_TTL, STALE_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam free promotions failed:", error);
 			res.status(502).json({
