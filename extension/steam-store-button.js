@@ -3,15 +3,16 @@
   window.__steamPulseStoreButtonLoaded = true;
 
   const STEAMPULSE_URL = "http://localhost:5173/#/game/";
+  const STEAMPULSE_LOGO = "https://steampulse.ir/favicon.png";
 
   function getAppId() {
-    const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
+    const match = window.location.pathname.match(/^\\/app\\/(\\d+)(?:\\/|$)/);
     return match ? match[1] : null;
   }
 
   function getGameName() {
     const title = document.querySelector("#appHubAppName, .apphub_AppName, .apphub_AppNameTitle");
-    return title?.textContent?.trim() || document.querySelector("#game_area_purchase h2.title")?.textContent?.replace(/^Buy\s+/i, "").trim() || "this game";
+    return title?.textContent?.trim() || document.querySelector("#game_area_purchase h2.title")?.textContent?.replace(/^Buy\\s+/i, "").trim() || "this game";
   }
 
   function findPackageAnchor() {
@@ -48,50 +49,132 @@
       main.className = "steampulse-store-main";
       main.target = "_blank";
       main.rel = "noopener noreferrer";
-      main.innerHTML = '<span class="steampulse-store-icon" aria-hidden="true"><svg viewBox="0 0 32 32" width="25" height="25" fill="none"><path d="M4 17h5l3-8 5 15 3-9 2 2h6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="steampulse-store-label"></span>';
+      main.innerHTML = `
+        <span class="steampulse-store-logo-wrap" aria-hidden="true">
+          <img class="steampulse-store-logo" src="${STEAMPULSE_LOGO}" alt="">
+        </span>
+        <span class="steampulse-store-copy">
+          <span class="steampulse-store-eyebrow">STEAMPULSE</span>
+          <span class="steampulse-store-label"></span>
+          <span class="steampulse-store-description">Explore this game on SteamPulse</span>
+        </span>
+        <span class="steampulse-store-arrow" aria-hidden="true">↗</span>
+      `;
 
-      const open = document.createElement("a");
-      open.className = "steampulse-store-open";
-      open.target = "_blank";
-      open.rel = "noopener noreferrer";
-      open.textContent = "Open";
-      open.setAttribute("aria-label", "Open this game in SteamPulse");
-
-      banner.append(main, open);
+      banner.appendChild(main);
 
       if (!document.querySelector("#steampulse-store-button-style")) {
         const style = document.createElement("style");
         style.id = "steampulse-store-button-style";
         style.textContent = `
           .steampulse-store-banner {
-            display: flex; align-items: stretch; gap: 9px; width: 100%;
-            box-sizing: border-box; margin: 0 0 14px; padding: 9px;
-            border: 1px solid rgba(145, 105, 255, .38); border-radius: 9px;
-            background: linear-gradient(110deg, rgba(83, 42, 164, .22), rgba(27, 22, 42, .9));
+            position: relative !important;
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 0 16px !important;
+            padding: 1px !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(145, 105, 255, .42) !important;
+            border-radius: 12px !important;
+            background: linear-gradient(115deg, rgba(101, 31, 255, .38), rgba(35, 25, 57, .92) 48%, rgba(20, 25, 37, .96)) !important;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+          }
+          .steampulse-store-banner::before {
+            content: "" !important;
+            position: absolute !important;
+            inset: 0 auto 0 0 !important;
+            width: 3px !important;
+            background: linear-gradient(180deg, #b99aff, #651fff) !important;
+            pointer-events: none !important;
           }
           .steampulse-store-main {
-            display: flex; align-items: center; flex: 1; min-width: 0; gap: 11px;
-            padding: 11px 13px; border-radius: 6px; color: #fff !important;
-            font: 600 14px/1.35 Arial, sans-serif; text-decoration: none !important;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 13px !important;
+            min-width: 0 !important;
+            padding: 13px 15px 13px 17px !important;
+            color: #fff !important;
+            text-decoration: none !important;
+            transition: background .18s ease, transform .18s ease !important;
           }
-          .steampulse-store-main:hover { background: rgba(128, 83, 255, .2); color: #fff !important; }
-          .steampulse-store-icon {
-            display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px;
-            border-radius: 8px; background: linear-gradient(135deg, #8957ff, #5726c7); color: #fff;
+          .steampulse-store-main:hover {
+            color: #fff !important;
+            text-decoration: none !important;
+            background: rgba(132, 87, 255, .13) !important;
           }
-          .steampulse-store-label { overflow: hidden; text-overflow: ellipsis; }
-          .steampulse-store-open {
-            display: inline-flex; align-items: center; justify-content: center; min-width: 74px;
-            padding: 0 18px; border: 1px solid rgba(169, 140, 255, .55); border-radius: 6px;
-            background: rgba(112, 68, 219, .3); color: #fff !important;
-            font: 600 13px Arial, sans-serif; text-decoration: none !important;
+          .steampulse-store-logo-wrap {
+            display: grid !important;
+            place-items: center !important;
+            flex: 0 0 42px !important;
+            width: 42px !important;
+            height: 42px !important;
+            box-sizing: border-box !important;
+            border: 1px solid rgba(255, 255, 255, .18) !important;
+            border-radius: 10px !important;
+            background: linear-gradient(145deg, rgba(101, 31, 255, .95), rgba(65, 29, 145, .95)) !important;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .2) !important;
           }
-          .steampulse-store-open:hover { background: rgba(128, 83, 255, .55); color: #fff !important; }
+          .steampulse-store-logo {
+            display: block !important;
+            width: 27px !important;
+            height: 27px !important;
+            object-fit: contain !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+          }
+          .steampulse-store-copy {
+            display: flex !important;
+            flex: 1 1 auto !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 2px !important;
+            min-width: 0 !important;
+          }
+          .steampulse-store-eyebrow {
+            color: #b99aff !important;
+            font: 800 9px/1.2 Arial, sans-serif !important;
+            letter-spacing: 1.5px !important;
+          }
+          .steampulse-store-label {
+            display: block !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            color: #fff !important;
+            font: 700 14px/1.4 Arial, sans-serif !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+          }
+          .steampulse-store-description {
+            display: block !important;
+            color: #a8a5b5 !important;
+            font: 400 11px/1.35 Arial, sans-serif !important;
+          }
+          .steampulse-store-arrow {
+            display: grid !important;
+            place-items: center !important;
+            flex: 0 0 30px !important;
+            width: 30px !important;
+            height: 30px !important;
+            border: 1px solid rgba(185, 154, 255, .28) !important;
+            border-radius: 8px !important;
+            background: rgba(101, 31, 255, .2) !important;
+            color: #d9caff !important;
+            font: 700 17px/1 Arial, sans-serif !important;
+            transition: transform .18s ease, background .18s ease !important;
+          }
+          .steampulse-store-main:hover .steampulse-store-arrow {
+            transform: translate(2px, -2px) !important;
+            background: rgba(101, 31, 255, .42) !important;
+          }
           @media (max-width: 480px) {
-            .steampulse-store-banner { gap: 5px; padding: 6px; }
-            .steampulse-store-main { gap: 8px; padding: 9px 6px; font-size: 12px; }
-            .steampulse-store-icon { flex-basis: 30px; width: 30px; height: 30px; }
-            .steampulse-store-open { min-width: 54px; padding: 0 10px; }
+            .steampulse-store-main { gap: 10px !important; padding: 11px 10px 11px 13px !important; }
+            .steampulse-store-logo-wrap { flex-basis: 36px !important; width: 36px !important; height: 36px !important; }
+            .steampulse-store-logo { width: 23px !important; height: 23px !important; }
+            .steampulse-store-label { font-size: 12px !important; }
+            .steampulse-store-description { font-size: 10px !important; }
+            .steampulse-store-arrow { flex-basis: 27px !important; width: 27px !important; height: 27px !important; }
           }
         `;
         document.head.appendChild(style);
@@ -99,14 +182,14 @@
     }
 
     const mainLink = banner.querySelector(".steampulse-store-main");
-    const openLink = banner.querySelector(".steampulse-store-open");
     const label = banner.querySelector(".steampulse-store-label");
+    const logo = banner.querySelector(".steampulse-store-logo");
     const gameLabel = "View " + getGameName() + " in SteamPulse";
 
     // Avoid generating mutations when the observer calls addButton again.
     if (mainLink.href !== gameUrl) mainLink.href = gameUrl;
-    if (openLink.href !== gameUrl) openLink.href = gameUrl;
     if (label.textContent !== gameLabel) label.textContent = gameLabel;
+    if (logo.src !== STEAMPULSE_LOGO) logo.src = STEAMPULSE_LOGO;
 
     if (target.firstPackage) {
       // Steam can replace purchase nodes while the page is being updated.
