@@ -14,6 +14,7 @@ import { registerGameRoutes } from "./server/routes/games.js";
 import { registerDiscoveryRoutes } from "./server/routes/discovery.js";
 import { registerFreeGameRoutes } from "./server/routes/freeGames.js";
 import { registerProfileRoutes } from "./server/routes/profile.js";
+import { registerGameSizeRoutes } from "./server/routes/gameSize.js";
 
 // Steam Store IPv6 connectivity is unreliable on some networks; prefer IPv4 for Node fetch.
 dns.setDefaultResultOrder("ipv4first");
@@ -55,6 +56,8 @@ registerFreeGameRoutes(app, {
 	saveCache,
 	mapWithConcurrency,
 });
+
+registerGameSizeRoutes(app, { cached, saveCache, coalesce });
 
 registerGameRoutes(app, {
 	fetchJson,
