@@ -158,7 +158,7 @@ export default function GamePage({
 						<div className="game-sync-orbit game-sync-orbit-one" />
 						<div className="game-sync-orbit game-sync-orbit-two" />
 						<div className="game-sync-core">
-							<Gamepad2 size={34} strokeWidth={1.7} />
+							<img className="game-sync-logo" src="https://steampulse.ir/favicon.png" alt="SteamPulse" />
 							<span />
 						</div>
 						<i className="game-sync-particle game-sync-particle-one" />
