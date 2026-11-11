@@ -6,13 +6,13 @@
   const STEAMPULSE_LOGO = "https://steampulse.ir/favicon.png";
 
   function getAppId() {
-    const match = window.location.pathname.match(/^\\/app\\/(\\d+)(?:\\/|$)/);
+    const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
     return match ? match[1] : null;
   }
 
   function getGameName() {
     const title = document.querySelector("#appHubAppName, .apphub_AppName, .apphub_AppNameTitle");
-    return title?.textContent?.trim() || document.querySelector("#game_area_purchase h2.title")?.textContent?.replace(/^Buy\\s+/i, "").trim() || "this game";
+    return title?.textContent?.trim() || document.querySelector("#game_area_purchase h2.title")?.textContent?.replace(/^Buy\s+/i, "").trim() || "this game";
   }
 
   function findPackageAnchor() {
