@@ -1,6 +1,6 @@
 export const CACHE_TTL = 15 * 60 * 1000;
 export const DISCOVERY_CACHE_TTL = 60 * 60 * 1000;
-const MAX_STALE_TTL = 6 * 60 * 60 * 1000;
+export const STALE_CACHE_TTL = 6 * 60 * 60 * 1000;
 
 const cache = new Map();
 const inFlight = new Map();
@@ -13,7 +13,7 @@ export function cached(key) {
 	const ttl = entry.ttl ?? CACHE_TTL;
 	const age = Date.now() - entry.at;
 	if (age < ttl) return entry.value;
-	if (age >= ttl + MAX_STALE_TTL) cache.delete(key);
+	if (age >= ttl + (entry.staleTtl ?? 0)) cache.delete(key);
 	return null;
 }
 
@@ -21,12 +21,13 @@ export function staleCached(key) {
 	const entry = cache.get(key);
 	if (!entry) return null;
 	const ttl = entry.ttl ?? CACHE_TTL;
+	const staleTtl = entry.staleTtl ?? 0;
 	const age = Date.now() - entry.at;
-	return age < ttl + MAX_STALE_TTL ? entry.value : null;
+	return age >= ttl && age < ttl + staleTtl ? entry.value : null;
 }
 
-export function saveCache(key, value, ttl = CACHE_TTL) {
-	cache.set(key, { at: Date.now(), value, ttl });
+export function saveCache(key, value, ttl = CACHE_TTL, staleTtl = 0) {
+	cache.set(key, { at: Date.now(), value, ttl, staleTtl });
 	return value;
 }
 
