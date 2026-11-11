@@ -7,7 +7,7 @@ import {
 	fetchSteamHeaderImage,
 	mapWithConcurrency,
 } from "./server/services/steamClient.js";
-import { CACHE_TTL, cached, saveCache } from "./server/utils/cache.js";
+import { CACHE_TTL, cached, saveCache, coalesce } from "./server/utils/cache.js";
 
 import { registerMarketRoutes } from "./server/routes/market.js";
 import { registerGameRoutes } from "./server/routes/games.js";
@@ -45,6 +45,7 @@ const { fetchSteamBundles } = registerDiscoveryRoutes(app, {
 	fetchJsonWithOptions,
 	cached,
 	saveCache,
+	coalesce,
 	mapWithConcurrency,
 });
 
