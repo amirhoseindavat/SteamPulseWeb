@@ -167,10 +167,10 @@ export default function GamePage({
 					</div>
 					<div className="game-sync-copy">
 						<span className="game-sync-eyebrow">
-							<span /> STEAMPULSE SYSTEM
+							<span /> STEAMPULSE
 						</span>
 						<h2>
-							SYNCING <strong>GAME DATA</strong>
+							Loading <strong>Game Data</strong>
 						</h2>
 						<p>Connecting to Steam and retrieving game details</p>
 						<div className="game-sync-progress">
