@@ -195,7 +195,9 @@ export default function ProfilePage({
 									return (
 										<span className={statusClass}>
 											<i aria-hidden="true" />
-											{steamProfileData.profile.status || "Offline"}
+											{steamProfileData.profile.currentGame
+												? "In-game"
+												: steamProfileData.profile.status || "Offline"}
 										</span>
 									);
 								})()}
