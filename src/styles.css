@@ -11996,3 +11996,28 @@ a {
 		margin-top: 34px;
 	}
 }
+
+/* Keep the footer fully inside the viewport on narrow screens. */
+@media (max-width: 620px) {
+	.app-shell .site-footer {
+		box-sizing: border-box;
+		width: calc(100% - 30px);
+		max-width: calc(100% - 30px);
+		margin: 18px auto 20px;
+		padding: 18px 14px;
+		align-items: center;
+	}
+	.app-shell .site-footer > *,
+	.app-shell .site-footer-brand-group,
+	.app-shell .site-footer-credit {
+		box-sizing: border-box;
+		max-width: 100%;
+		min-width: 0;
+		flex-wrap: wrap;
+		justify-content: center;
+		text-align: center;
+	}
+	.app-shell .site-footer .site-footer-copyright {
+		white-space: normal;
+	}
+}
