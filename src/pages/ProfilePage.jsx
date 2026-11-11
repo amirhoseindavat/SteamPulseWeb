@@ -292,9 +292,7 @@ export default function ProfilePage({
 							</strong>
 						</div>
 					</section>
-					<section
-						className="detail-card profile-bans-card"
-						style={{ marginBottom: 18 }}>
+					<section className="detail-card profile-bans-card">
 						<div className="card-title">
 							<ShieldCheck size={18} />
 							<h3>Account ban status</h3>
