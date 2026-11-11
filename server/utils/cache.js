@@ -47,6 +47,7 @@ export function coalesce(key, loader) {
 export function refreshInBackground(key) {
 	const refresh = backgroundRefreshers.get(key);
 	if (!refresh) return;
+	refresh.lastAttempt = Date.now();
 
 	coalesce(`background-refresh:${key}`, refresh.loader).catch((error) => {
 		console.warn(`Background cache refresh failed for ${key}:`, error.message);
@@ -54,10 +55,11 @@ export function refreshInBackground(key) {
 }
 
 export function registerBackgroundRefresh(key, loader, ttl = DISCOVERY_CACHE_TTL) {
+	const existing = backgroundRefreshers.get(key);
 	backgroundRefreshers.set(key, {
 		loader,
 		ttl,
-		lastAttempt: 0,
+		lastAttempt: existing?.lastAttempt || 0,
 	});
 
 	if (refreshTimer) return;
