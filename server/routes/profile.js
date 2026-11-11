@@ -79,8 +79,11 @@ app.get("/api/steam-profile", async (req, res) => {
     const countryNames = { US: "United States", GB: "United Kingdom", DE: "Germany", UA: "Ukraine", TR: "Türkiye", CA: "Canada", AU: "Australia", FR: "France", PL: "Poland", BR: "Brazil", IN: "India", JP: "Japan" };
     const currentGameAppId = /^\d+$/.test(String(player.gameid || "")) ? Number(player.gameid) : null;
     const currentGameImage = currentGameAppId ? await fetchSteamHeaderImage(currentGameAppId) : "";
+    const steamId64 = String(player.steamid);
+    const accountId = (BigInt(steamId64) - 76561197960265728n).toString();
     const profile = {
-      steamId: String(player.steamid),
+      steamId: steamId64,
+      accountId,
       name: player.personaname || "Steam user",
       avatar: player.avatarfull || player.avatarmedium || player.avatar || "",
       avatarAnimated: avatarAnimated || "",
@@ -133,52 +136,52 @@ app.get("/api/steam-profile", async (req, res) => {
         console.warn("Could not load Game Collector badge artwork:", badgeImageError.message || badgeImageError);
       }
       if (!gameCollectorImage) gameCollectorImage = "https://community.fastly.steamstatic.com/public/images/badges/13_gamecollector/40000_80.png";
+    }
 
-      // Get the count from the actual Game Collector showcase on the public
-      // profile. GetOwnedGames also includes played free games and other
-      // licenses that Steam does not count toward this showcase.
-      try {
-        const profilePage = await fetch("https://steamcommunity.com/profiles/" + encodeURIComponent(steamId) + "/?l=english", {
-          headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "text/html,application/xhtml+xml" },
-          signal: AbortSignal.timeout(7000)
-        });
-        if (profilePage.ok) {
-          const profileHtml = await profilePage.text();
-          const plainText = profileHtml
-            .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-            .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-            .replace(/<[^>]*>/g, " ")
-            .replace(/&nbsp;|&#160;/gi, " ")
-            .replace(/&#44;|&comma;/gi, ",")
-            .replace(/&amp;/gi, "&")
-            .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
-            .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
-            .replace(/\s+/g, " ");
+    // Get the count from the actual Game Collector showcase on the public
+    // profile. GetOwnedGames also includes played free games and other
+    // licenses that Steam does not count toward this showcase.
+    try {
+      const profilePage = await fetch("https://steamcommunity.com/profiles/" + encodeURIComponent(steamId) + "/?l=english", {
+        headers: { "User-Agent": "Mozilla/5.0 SteamPulseWeb/1.0", "Accept": "text/html,application/xhtml+xml" },
+        signal: AbortSignal.timeout(7000)
+      });
+      if (profilePage.ok) {
+        const profileHtml = await profilePage.text();
+        const plainText = profileHtml
+          .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+          .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+          .replace(/<[^>]*>/g, " ")
+          .replace(/&nbsp;|&#160;/gi, " ")
+          .replace(/&#44;|&comma;/gi, ",")
+          .replace(/&amp;/gi, "&")
+          .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+          .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+          .replace(/\s+/g, " ");
 
-          // Steam's current profile header exposes the library total in the
-          // Games navigation link (profile_count_link_total). Read that exact
-          // element rather than relying on the optional "Games Owned" showcase.
-          const gamesLink = profileHtml.match(
-            /<a\b(?=[^>]*href=["'][^"']*\/games\/?(?:\?[^"']*)?["'])[^>]*>([\s\S]*?)<\/a>/i
-          );
-          const gamesLinkCount = gamesLink?.[1]?.match(
-            /<span\b(?=[^>]*class=["'][^"']*\bprofile_count_link_total\b[^"']*["'])[^>]*>\s*([\d,]+)\s*<\/span>/i
-          );
-          const countMatch = gamesLinkCount ||
-            plainText.match(/\b([\d,]+)\s+Games\s+Owned\b/i) ||
-            plainText.match(/\bGames\s+Owned\s*[:\-]?\s*([\d,]+)\b/i);
-          if (countMatch) {
-            const parsedCount = Number(countMatch[1].replace(/,/g, ""));
-            if (Number.isSafeInteger(parsedCount) && parsedCount >= 0) {
-              gameCollectorGamesCount = parsedCount;
-            }
+        // Steam's current profile header exposes the library total in the
+        // Games navigation link (profile_count_link_total). Read that exact
+        // element rather than relying on the optional "Games Owned" showcase.
+        const gamesLink = profileHtml.match(
+          /<a\b(?=[^>]*href=["'][^"']*\/games\/?(?:\?[^"']*)?["'])[^>]*>([\s\S]*?)<\/a>/i
+        );
+        const gamesLinkCount = gamesLink?.[1]?.match(
+          /<span\b(?=[^>]*class=["'][^"']*\bprofile_count_link_total\b[^"']*["'])[^>]*>\s*([\d,]+)\s*<\/span>/i
+        );
+        const countMatch = gamesLinkCount ||
+          plainText.match(/\b([\d,]+)\s+Games\s+Owned\b/i) ||
+          plainText.match(/\bGames\s+Owned\s*[:\-]?\s*([\d,]+)\b/i);
+        if (countMatch) {
+          const parsedCount = Number(countMatch[1].replace(/,/g, ""));
+          if (Number.isSafeInteger(parsedCount) && parsedCount >= 0) {
+            gameCollectorGamesCount = parsedCount;
           }
         }
-      } catch (profilePageError) {
-        console.warn("Could not read Steam Game Collector showcase count:", profilePageError.message || profilePageError);
       }
+    } catch (profilePageError) {
+      console.warn("Could not read Steam Game Collector showcase count:", profilePageError.message || profilePageError);
     }
-    const displayedGamesCount = gameCollectorGamesCount ?? (games ? games.length : null);
+null);
     const favoriteBadgeResponse = favoriteBadgeResult.status === "fulfilled" ? favoriteBadgeResult.value?.response : null;
     const favoriteBadgeId = Number(favoriteBadgeResponse?.badgeid);
     const favoriteBadgeAppId = Number(favoriteBadgeResponse?.appid) || 0;
