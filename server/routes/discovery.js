@@ -10,6 +10,7 @@ import {
 	registerBackgroundRefresh,
 	refreshInBackground,
 	staleCached,
+	STALE_CACHE_TTL,
 } from "../utils/cache.js";
 
 export function registerDiscoveryRoutes(
@@ -85,7 +86,7 @@ export function registerDiscoveryRoutes(
 		}
 		try {
 			const takeover = await fetchSteamTakeover(cc);
-			res.json(saveCache(key, { takeover }, DISCOVERY_CACHE_TTL));
+			res.json(saveCache(key, { takeover }, DISCOVERY_CACHE_TTL, STALE_CACHE_TTL));
 		} catch (error) {
 			console.warn("Could not load Steam Store Takeover:", error.message);
 			res
@@ -178,7 +179,7 @@ export function registerDiscoveryRoutes(
 			const items = [...unique.values()].slice(0, 50);
 			if (!items.length)
 				throw new Error("Steam did not return any priced Top Sellers.");
-			res.json(saveCache(key, { items }, DISCOVERY_CACHE_TTL));
+			res.json(saveCache(key, { items }, DISCOVERY_CACHE_TTL, STALE_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam Top Sellers request failed:", error);
 			res
@@ -375,7 +376,7 @@ export function registerDiscoveryRoutes(
 							"Steam returned no discovery categories. Please try again shortly.",
 					});
 			}
-			res.json(saveCache(key, result, DISCOVERY_CACHE_TTL));
+			res.json(saveCache(key, result, DISCOVERY_CACHE_TTL, STALE_CACHE_TTL));
 		} catch (error) {
 			console.error("Steam discovery failed:", error);
 			res
