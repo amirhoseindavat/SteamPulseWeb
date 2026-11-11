@@ -2,7 +2,6 @@ import {
 	ChevronRight,
 	LoaderCircle,
 	Search,
-	Sparkles,
 	X,
 	TrendingUp,
 	ArrowUpRight,
@@ -68,8 +67,13 @@ export default function HomePage({
 		<>
 			{currentPage === "home" && (
 				<section className="intro">
-					<div className="eyebrow">
-						<Sparkles size={14} /> SteamPulse
+					<div className="eyebrow site-footer-brand-group home-brand-group">
+						<img
+							className="site-footer-logo"
+							src="https://steampulse.ir/favicon.png"
+							alt=""
+						/>
+						<span className="site-footer-brand">SteamPulse</span>
 					</div>
 					<h1>
 						Pay Less.
