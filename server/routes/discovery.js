@@ -7,7 +7,7 @@ import {
 
 export function registerDiscoveryRoutes(
 	app,
-	{ fetchJson, fetchJsonWithOptions, cached, saveCache, mapWithConcurrency },
+	{ fetchJson, fetchJsonWithOptions, cached, saveCache, coalesce, mapWithConcurrency },
 ) {
 	app.get("/api/search", async (req, res) => {
 		const term = String(req.query.term || "").trim();
@@ -84,7 +84,7 @@ export function registerDiscoveryRoutes(
 
 		try {
 			const [fullList, featuredData] = await Promise.all([
-				fetchSteamTopSellers(cc).catch((error) => {
+				coalesce(`steam-top-sellers:v1:${cc}`, () => fetchSteamTopSellers(cc)).catch((error) => {
 					console.warn(
 						"Could not load Steam Top Sellers search:",
 						error.message,
@@ -262,7 +262,7 @@ export function registerDiscoveryRoutes(
 				normalize(data?.new_releases?.items, "NEW"),
 				normalize(data?.coming_soon?.items, "UPCOMING"),
 				normalize(data?.top_sellers?.items, "TOP SELLER"),
-				fetchSteamTopSellers(cc).catch((error) => {
+				coalesce(`steam-top-sellers:v1:${cc}`, () => fetchSteamTopSellers(cc)).catch((error) => {
 					console.warn(
 						"Could not load the full Steam Top Sellers list:",
 						error.message,
