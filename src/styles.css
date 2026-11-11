@@ -12021,3 +12021,12 @@ a {
 		white-space: normal;
 	}
 }
+
+/* Normalize Currently Playing card spacing with the surrounding profile sections. */
+.steam-profile-page .profile-content-grid {
+	row-gap: 16px;
+}
+.steam-profile-page .profile-current-game {
+	margin-top: 0;
+	margin-bottom: 0;
+}
