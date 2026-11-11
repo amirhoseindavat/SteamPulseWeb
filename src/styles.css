@@ -3992,6 +3992,11 @@ a {
 	box-shadow: 0 16px 42px #0008;
 	pointer-events: none;
 }
+.hero-header-image.has-game-logo {
+	border: 0;
+	box-shadow: none;
+}
+
 .hero-header-image img {
 	display: block;
 	width: 100%;
