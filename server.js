@@ -11,6 +11,7 @@ import { CACHE_TTL, cached, saveCache, coalesce } from "./server/utils/cache.js"
 
 import { registerMarketRoutes } from "./server/routes/market.js";
 import { registerGameRoutes } from "./server/routes/games.js";
+import { registerGameSizeRoutes } from "./server/routes/gameSize.js";
 import { registerDiscoveryRoutes } from "./server/routes/discovery.js";
 import { registerFreeGameRoutes } from "./server/routes/freeGames.js";
 import { registerProfileRoutes } from "./server/routes/profile.js";
@@ -64,6 +65,8 @@ registerGameRoutes(app, {
 	mapWithConcurrency,
 	fetchSteamBundles,
 });
+
+registerGameSizeRoutes(app, { cached, saveCache, coalesce });
 
 app.listen(PORT, () => {
 	console.log(`SteamPulse API listening on http://localhost:${PORT}`);
