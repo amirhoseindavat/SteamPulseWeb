@@ -2506,7 +2506,7 @@
 .steam-franchise-notice{margin-bottom:var(--game-card-gap)}
 .dlc-parent-notice{margin:var(--game-card-gap) 0}
 .hero-content{max-width:min(100%,1100px);width:100%;padding-right:170px}
-.hero-content h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:clamp(22px,3.4vw,47px);letter-spacing:-1.2px}
+.hero-content h2{white-space:nowrap;text-overflow:ellipsis;max-width:100%;font-size:clamp(22px,3.4vw,47px);letter-spacing:-1.2px}
 .hero-live-stats{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:15px}
 .hero-player-count,.hero-metacritic{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(7,13,28,.42);color:#f1f4ff;backdrop-filter:blur(10px)}
 .hero-player-count>svg{color:#b6a2ff}
