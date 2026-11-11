@@ -281,65 +281,59 @@ export function registerGameRoutes(
 			let libraryHero = "";
 			let gameLogo = "";
 
-			try {
-				const assetUrl = new URL(
-					"https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
-				);
-				assetUrl.searchParams.set(
-					"input_json",
-					JSON.stringify({
-						ids: [{ appid: Number(appid) }],
-						context: { language: "english", country_code: cc },
-						data_request: { include_assets: true },
-					}),
-				);
+			const assetUrl = new URL(
+				"https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
+			);
+			assetUrl.searchParams.set(
+				"input_json",
+				JSON.stringify({
+					ids: [{ appid: Number(appid) }],
+					context: { language: "english", country_code: cc },
+					data_request: { include_assets: true },
+				}),
+			);
 
-				const assets = await fetchJson(assetUrl);
+			// StoreBrowse is still used for the library background. The game logo
+			// comes from SteamCMD's appinfo metadata, including its English 2x asset.
+			const [assetsResult, steamCmdResult] = await Promise.allSettled([
+				fetchJson(assetUrl),
+				fetchJson(`https://api.steamcmd.net/v1/info/${appid}`),
+			]);
+
+			if (assetsResult.status === "fulfilled") {
 				const item =
-					assets?.response?.store_items?.[0] || assets?.store_items?.[0];
+					assetsResult.value?.response?.store_items?.[0] ||
+					assetsResult.value?.store_items?.[0];
 				const itemAssets = item?.assets || {};
 				const assetUrlFormat = String(itemAssets.asset_url_format || "");
 
-				// Newer Steam titles use hash-based asset paths; the old AppID-only
-				// URLs return 404 for many games. Prefer the exact URLs from StoreBrowse.
-				const resolveAssetUrl = (assetPath, fallbackPath) => {
-					if (!assetPath) return fallbackPath;
+				if (itemAssets.library_hero) {
 					if (assetUrlFormat.includes("${FILENAME}")) {
-						// Steam may return either a complete URL template or a path template.
-						// Avoid prefixing a complete URL with another store_item_assets path.
-						const resolved = assetUrlFormat.replace("${FILENAME}", assetPath);
-						if (/^https?:\/\//i.test(resolved)) return resolved;
-						return `https://shared.akamai.steamstatic.com/store_item_assets/${resolved.replace(/^\/+/, "")}`;
+						const resolved = assetUrlFormat.replace(
+							"${FILENAME}",
+							itemAssets.library_hero,
+						);
+						libraryHero = /^https?:\/\//i.test(resolved)
+							? resolved
+							: `https://shared.akamai.steamstatic.com/store_item_assets/${resolved.replace(/^\/+/, "")}`;
+					} else {
+						libraryHero = `https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`;
 					}
-					return fallbackPath;
-				};
-
-				libraryHero = resolveAssetUrl(
-					itemAssets.library_hero,
-					`https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/library_hero.jpg`,
-				);
-
-				const logoAsset =
-					itemAssets.logo ||
-					itemAssets.logo_2x ||
-					itemAssets.library_logo ||
-					itemAssets.library_logo_2x;
-				if (logoAsset) {
-					gameLogo = resolveAssetUrl(
-						logoAsset,
-						`https://shared.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`,
-					);
-				} else {
-					// StoreBrowse often omits logos for newer games. Ask SteamDB for the
-					// hashed logo path before falling back to the legacy AppID-only URL.
-					gameLogo =
-						(await fetchSteamDbLogo(appid)) ||
-						(appid === "2483190"
-							? "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/2483190/b494309a99c0631f1be4b211c2c80bcaaa13d06a/logo.png"
-							: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/logo.png`);
 				}
-			} catch {
-				// This undocumented endpoint may not return data for every title.
+			}
+
+			if (steamCmdResult.status === "fulfilled") {
+				const appInfo = steamCmdResult.value?.data?.[appid];
+				const logoAsset =
+					appInfo?.common?.library_assets_full?.library_logo?.image2x
+						?.english;
+				if (
+					typeof logoAsset === "string" &&
+					logoAsset.trim() &&
+					!/^https?:\/\//i.test(logoAsset)
+				) {
+					gameLogo = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/${logoAsset.replace(/^\/+/, "")}`;
+				}
 			}
 
 			const packageGroups = Array.isArray(d.package_groups)

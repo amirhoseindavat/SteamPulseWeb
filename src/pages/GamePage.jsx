@@ -209,10 +209,18 @@ export default function GamePage({
 						/>
 						<div className="hero-header-image">
 							<img
-								src={game.header_image || hero || ""}
-								alt={`${game.name} header`}
+								src={game.game_logo || game.header_image || hero || ""}
+								alt={`${game.name} logo`}
 								onError={(event) => {
-									event.currentTarget.style.visibility = "hidden";
+									const image = event.currentTarget;
+									const fallbackImage = game.header_image || hero;
+									if (!image.dataset.fallback && fallbackImage) {
+										image.dataset.fallback = "true";
+										image.src = fallbackImage;
+										image.style.objectFit = "cover";
+									} else {
+										image.style.visibility = "hidden";
+									}
 								}}
 							/>
 						</div>
