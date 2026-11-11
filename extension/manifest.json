@@ -24,6 +24,15 @@
     },
     {
       "matches": [
+        "https://steamdb.info/app/*"
+      ],
+      "js": [
+        "steamdb-button.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
         "https://store.steampowered.com/*"
       ],
       "js": [
