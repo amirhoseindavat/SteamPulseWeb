@@ -207,7 +207,7 @@ export default function GamePage({
 												: "linear-gradient(120deg,#172541,#111827)",
 							}}
 						/>
-						<div className="hero-header-image">
+						<div className={`hero-header-image${game.game_logo ? " has-game-logo" : ""}`}>
 							<img
 								src={game.game_logo || game.header_image || hero || ""}
 								alt={`${game.name} logo`}
