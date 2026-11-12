@@ -38,6 +38,10 @@ Open the local URL printed by Vite (usually `http://localhost:5173`). Vite proxi
 - For production deployment, add request throttling, persistent caching, and suitable server-side cache controls.
 
 
+## Production website
+
+- `https://steampulse.ir/`
+
 ## SteamPulse Connect browser extension
 
 The optional Chrome/Chromium extension reads the signed-in Steam Store account snapshot from Steam's `dynamicstore/userdata` endpoint while a Steam Store tab is open. It shares the snapshot with SteamPulse locally through the extension messaging bridge; it does not collect or transmit Steam passwords or session cookies to the SteamPulse server.
