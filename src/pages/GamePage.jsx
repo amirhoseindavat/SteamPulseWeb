@@ -207,23 +207,35 @@ export default function GamePage({
 												: "linear-gradient(120deg,#172541,#111827)",
 							}}
 						/>
-						<div className={`hero-header-image${game.game_logo ? " has-game-logo" : ""}`}>
-							<img
-								src={game.game_logo || game.header_image || hero || ""}
-								alt={`${game.name} logo`}
-								onError={(event) => {
-									const image = event.currentTarget;
-									const fallbackImage = game.header_image || hero;
-									if (!image.dataset.fallback && fallbackImage) {
-										image.dataset.fallback = "true";
-										image.src = fallbackImage;
-										image.style.objectFit = "cover";
-									} else {
-										image.style.visibility = "hidden";
-									}
-								}}
-							/>
-						</div>
+						{(() => {
+							const logoSources = [
+								game.game_logo_2x,
+								game.game_logo,
+								game.library_logo,
+								game.header_image,
+								hero,
+							].filter((source, index, sources) => source && sources.indexOf(source) === index);
+							const hasLogo = Boolean(game.game_logo_2x || game.game_logo || game.library_logo);
+							return (
+								<div className={`hero-header-image${hasLogo ? " has-game-logo" : ""}`}>
+									<img
+										src={logoSources[0] || ""}
+										alt={`${game.name} logo`}
+										onError={(event) => {
+											const image = event.currentTarget;
+											const nextIndex = Number(image.dataset.fallbackIndex || "1");
+											if (logoSources[nextIndex]) {
+												image.dataset.fallbackIndex = String(nextIndex + 1);
+												image.src = logoSources[nextIndex];
+												image.style.objectFit = nextIndex >= 3 ? "cover" : "contain";
+											} else {
+												image.style.visibility = "hidden";
+											}
+										}}
+									/>
+								</div>
+							);
+						})()}
 						<div className="hero-content">
 							<div className="hero-topline game-hero-topline"></div>
 							{game.pre_purchase && (
