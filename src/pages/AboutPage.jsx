@@ -22,7 +22,7 @@ const links = [
 	{
 		label: "GitHub",
 		value: "OG SteamPulse",
-		href: "https://github.com/amirhoseindavat/SteamPulse---",
+		href: "https://github.com/amirhoseindavat/SteamPulse",
 		Icon: Globe2,
 	},
 ];
