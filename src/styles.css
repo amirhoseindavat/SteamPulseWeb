@@ -3993,6 +3993,7 @@ a {
 	pointer-events: none;
 }
 .hero-header-image.has-game-logo {
+	width: min(37%, 530px);
 	border: 0;
 	box-shadow: none;
 }
@@ -4012,6 +4013,9 @@ a {
 	.hero-header-image {
 		right: 18px;
 		width: 31%;
+	}
+	.hero-header-image.has-game-logo {
+		width: 36%;
 	}
 	.hero-content {
 		max-width: 64%;
@@ -11978,7 +11982,7 @@ a {
 	}
 }
 
-/* Center the game header artwork on mobile and give it more top breathing room. */
+/* Center the game header artwork on mobile and give game logos enough room to render fully. */
 @media (max-width: 620px) {
 	.hero-header-image {
 		left: 50%;
@@ -11986,6 +11990,9 @@ a {
 		top: 24px;
 		transform: translateX(-50%);
 		width: min(70%, 320px);
+	}
+	.hero-header-image.has-game-logo {
+		width: min(82%, 390px);
 	}
 }
 
