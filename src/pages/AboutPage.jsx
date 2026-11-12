@@ -34,13 +34,15 @@ export default function AboutPage({ version = "v4.0.0" }) {
 				<span className="section-kicker">
 					<Info size={14} /> ABOUT
 				</span>
-				<img
-					className=""
-					src="https://steampulse.ir/favicon.png"
-					alt=""
-					loading="lazy"
-				/>
-				<h1>SteamPulse</h1>
+				<div className="about-page-brand">
+					<img
+						className="site-footer-logo"
+						src="https://steampulse.ir/favicon.png"
+						alt=""
+						loading="lazy"
+					/>
+					<span className="site-footer-brand">SteamPulse</span>
+				</div>
 			</div>
 
 			<div className="about-page-copy">
