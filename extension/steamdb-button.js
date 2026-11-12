@@ -2,8 +2,8 @@
   if (window.__steamPulseSteamDbButtonLoaded) return;
   window.__steamPulseSteamDbButtonLoaded = true;
 
-  const APP_URL = "https://steampulseweb.pages.dev/#/game/";
-  const LOGO_URL = "https://steampulseweb.pages.dev/favicon.png";
+  const APP_URL = "https://steampulse.ir/#/game/";
+  const LOGO_URL = "https://steampulse.ir/favicon.png";
   const BUTTON_CLASS = "steampulse-steamdb-link";
 
   function getAppId() {
