@@ -12206,13 +12206,18 @@ a {
 	}
 }
 
-/* Match the About page wordmark to the compact footer brand. */
+/* Keep the About page brand identical to the compact footer wordmark. */
 .about-page-heading .about-page-brand {
 	display: inline-flex;
 	align-items: center;
 	gap: 9px;
 	direction: ltr;
 	margin: 12px 0 10px;
+	font-size: 12px;
+	font-weight: 850;
+	letter-spacing: 1.2px;
+	line-height: 1;
+	text-transform: uppercase;
 }
 .about-page-heading .about-page-brand .site-footer-logo {
 	display: block;
@@ -12223,8 +12228,11 @@ a {
 	border-radius: 7px;
 }
 .about-page-heading .about-page-brand .site-footer-brand {
-	font-size: clamp(27px, 4vw, 36px);
-	letter-spacing: -1px;
+	font-size: 12px;
+	font-weight: 850;
+	letter-spacing: 1.2px;
+	line-height: 1;
+	text-transform: uppercase;
 }
 @media (max-width: 620px) {
 	.about-page-heading .about-page-brand .site-footer-logo {
