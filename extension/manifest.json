@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "SteamPulse Connect",
+  "version": "1.0",
+  "description": "Connects your signed-in Steam Store account to SteamPulse in your browser.",
+  "icons": {
+    "16": "icons/icon48.png",
+    "32": "icons/icon48.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon48.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon48.png",
+      "32": "icons/icon48.png"
+    }
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://store.steampowered.com/*",
+    "https://steamdb.info/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://store.steampowered.com/app/*"
+      ],
+      "js": [
+        "steam-store-button.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://store.steampowered.com/*"
+      ],
+      "js": [
+        "steam-sync.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://steamdb.info/app/*"
+      ],
+      "js": [
+        "steamdb-button.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://steampulse.ir/*",
+        "https://www.steampulse.ir/*",
+        "http://localhost:5173/*",
+        "http://127.0.0.1:5173/*"
+      ],
+      "js": [
+        "steampulse-bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}
