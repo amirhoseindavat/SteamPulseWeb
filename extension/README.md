@@ -12,7 +12,8 @@ A minimal Chromium Manifest V3 extension that syncs the current Steam Store acco
 6. Open or reload SteamPulse.
 
 Supported SteamPulse pages:
-- `https://amirhoseindavat.github.io/SteamPulseWeb/`
+- `https://steampulse.ir/`
+- `https://www.steampulse.ir/`
 - `http://localhost:5173/`
 - `http://127.0.0.1:5173/`
 
