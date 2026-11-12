@@ -12214,39 +12214,42 @@ a {
 	gap: 0;
 }
 
-/* Keep the About page brand identical to the compact footer wordmark. */
+/* Keep the About page brand slightly larger than the footer wordmark. */
 .about-page-heading .about-page-brand {
 	display: inline-flex;
 	align-items: center;
-	gap: 9px;
+	gap: 11px;
 	direction: ltr;
 	margin: 12px 0 10px;
-	font-size: 12px;
+	font-size: 15px;
 	font-weight: 850;
-	letter-spacing: 1.2px;
+	letter-spacing: 1.3px;
 	line-height: 1;
 	text-transform: uppercase;
 }
 .about-page-heading .about-page-brand .site-footer-logo {
 	display: block;
-	width: 27px;
-	height: 27px;
-	flex: 0 0 27px;
+	width: 34px;
+	height: 34px;
+	flex: 0 0 34px;
 	object-fit: contain;
-	border-radius: 7px;
+	border-radius: 8px;
 }
 .about-page-heading .about-page-brand .site-footer-brand {
-	font-size: 12px;
+	font-size: 15px;
 	font-weight: 850;
-	letter-spacing: 1.2px;
+	letter-spacing: 1.3px;
 	line-height: 1;
 	text-transform: uppercase;
 }
 @media (max-width: 620px) {
 	.about-page-heading .about-page-brand .site-footer-logo {
-		width: 25px;
-		height: 25px;
-		flex-basis: 25px;
+		width: 31px;
+		height: 31px;
+		flex-basis: 31px;
+	}
+	.about-page-heading .about-page-brand .site-footer-brand {
+		font-size: 14px;
 	}
 }
 
