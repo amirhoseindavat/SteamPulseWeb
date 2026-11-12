@@ -2,8 +2,8 @@
   if (window.__steamPulseStoreButtonLoaded) return;
   window.__steamPulseStoreButtonLoaded = true;
 
-  const STEAMPULSE_URL = "https://steampulse.ir/#/game/";
-  const STEAMPULSE_LOGO = "https://steampulse.ir/favicon.png";
+  const STEAMPULSE_URL = "https://steampulseweb.pages.dev/#/game/";
+  const STEAMPULSE_LOGO = "https://steampulseweb.pages.dev/favicon.png";
 
   function getAppId() {
     const match = window.location.pathname.match(/^\/app\/(\d+)(?:\/|$)/);
