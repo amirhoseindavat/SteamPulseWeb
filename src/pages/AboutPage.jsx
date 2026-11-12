@@ -31,9 +31,6 @@ export default function AboutPage({ version = "v4.0.0" }) {
 	return (
 		<section className="about-page detail-card">
 			<div className="about-page-heading">
-				<span className="section-kicker">
-					<Info size={14} /> ABOUT
-				</span>
 				<div className="about-page-brand">
 					<img
 						className="site-footer-logo"
@@ -41,7 +38,7 @@ export default function AboutPage({ version = "v4.0.0" }) {
 						alt=""
 						loading="lazy"
 					/>
-					<span className="site-footer-brand">SteamPulse</span>
+					<span className="site-footer-brand">About SteamPulse</span>
 				</div>
 			</div>
 
@@ -83,7 +80,7 @@ export default function AboutPage({ version = "v4.0.0" }) {
 					SteamPulse <strong>{version}</strong>
 				</span>
 				<span>
-					Developed with care by{" "}
+					Developed with ❤️ by{" "}
 					<a href="https://codemage.ir/" target="_blank" rel="noreferrer">
 						CodeMage
 					</a>
