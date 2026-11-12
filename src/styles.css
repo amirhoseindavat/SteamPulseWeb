@@ -12088,80 +12088,122 @@ a {
 
 /* SteamPulse About page */
 .about-page {
-  max-width: 880px;
-  margin: 30px auto 12px;
-  padding: clamp(22px, 4vw, 38px);
+	max-width: 880px;
+	margin: 30px auto 12px;
+	padding: clamp(22px, 4vw, 38px);
 }
 .about-page-heading h1 {
-  margin: 12px 0 10px;
-  font-size: clamp(27px, 4vw, 36px);
-  letter-spacing: -1px;
+	margin: 12px 0 10px;
+	font-size: clamp(27px, 4vw, 36px);
+	letter-spacing: -1px;
 }
 .about-page-lead,
 .about-page-copy p {
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.85;
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.85;
 }
-.about-page-lead { max-width: 680px; margin: 0; }
-.about-page-copy { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
-.about-page-copy p { margin: 0 0 13px; }
+.about-page-lead {
+	max-width: 680px;
+	margin: 0;
+}
+.about-page-copy p {
+	margin: 0 0 13px;
+}
 .about-page-links {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 11px;
-  margin-top: 25px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 11px;
+	margin-top: 25px;
 }
 .about-page-links > a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 15px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255,255,255,.025);
-  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+	padding: 15px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.025);
+	transition:
+		border-color 0.18s ease,
+		background 0.18s ease,
+		transform 0.18s ease;
 }
 .about-page-links > a:hover {
-  border-color: rgba(139,108,255,.48);
-  background: rgba(139,108,255,.07);
-  transform: translateY(-2px);
+	border-color: rgba(139, 108, 255, 0.48);
+	background: rgba(139, 108, 255, 0.07);
+	transform: translateY(-2px);
 }
 .about-page-link-icon {
-  display: grid;
-  place-items: center;
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  border-radius: 11px;
-  color: #ad98ff;
-  background: rgba(139,108,255,.12);
+	display: grid;
+	place-items: center;
+	width: 39px;
+	height: 39px;
+	flex: 0 0 39px;
+	border-radius: 11px;
+	color: #ad98ff;
+	background: rgba(139, 108, 255, 0.12);
 }
-.about-page-link-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.about-page-link-copy small { color: var(--muted); font-size: 11px; }
-.about-page-link-copy strong { overflow-wrap: anywhere; font-size: 13px; }
-.about-page-external { margin-left: auto; flex: 0 0 auto; color: var(--muted); }
+.about-page-link-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+.about-page-link-copy small {
+	color: var(--muted);
+	font-size: 11px;
+}
+.about-page-link-copy strong {
+	overflow-wrap: anywhere;
+	font-size: 13px;
+}
+.about-page-external {
+	margin-left: auto;
+	flex: 0 0 auto;
+	color: var(--muted);
+}
 .about-page-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 27px;
-  padding-top: 17px;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 11px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 27px;
+	padding-top: 17px;
+	border-top: 1px solid var(--line);
+	color: var(--muted);
+	font-size: 11px;
 }
-.about-page-bottom strong, .about-page-bottom a { color: #a995ff; }
-.site-footer .site-footer-about { color: var(--muted); font-size: 11px; transition: color .18s ease; }
-.site-footer .site-footer-about:hover { color: #b9a8ff; }
-.app-shell[data-theme="light"] .about-page-links > a { background: rgba(255,255,255,.42); }
+.about-page-bottom strong,
+.about-page-bottom a {
+	color: #a995ff;
+}
+.site-footer .site-footer-about {
+	color: var(--muted);
+	font-size: 11px;
+	transition: color 0.18s ease;
+}
+.site-footer .site-footer-about:hover {
+	color: #b9a8ff;
+}
+.app-shell[data-theme="light"] .about-page-links > a {
+	background: rgba(255, 255, 255, 0.42);
+}
 @media (max-width: 620px) {
-  .about-page { margin-top: 20px; padding: 21px 16px; }
-  .about-page-links { grid-template-columns: 1fr; gap: 9px; }
-  .about-page-copy p, .about-page-lead { font-size: 13px; }
+	.about-page {
+		margin-top: 20px;
+		padding: 21px 16px;
+	}
+	.about-page-links {
+		grid-template-columns: 1fr;
+		gap: 9px;
+	}
+	.about-page-copy p,
+	.about-page-lead {
+		font-size: 13px;
+	}
 }
 
 /* Make the footer brand itself the About page entry point. */
@@ -12172,17 +12214,16 @@ a {
 	min-width: 0;
 	color: inherit;
 	text-decoration: none;
-	transition: opacity .18s ease;
+	transition: opacity 0.18s ease;
 }
 .site-footer .site-footer-brand-link:hover {
-	opacity: .82;
+	opacity: 0.82;
 }
 .site-footer .site-footer-brand-link:focus-visible {
 	outline: 2px solid var(--purple);
 	outline-offset: 4px;
 	border-radius: 5px;
 }
-
 
 /* Keep the SteamPulse footer mark in logo-then-wordmark order inside the RTL layout. */
 .site-footer .site-footer-brand-link {
