@@ -12206,6 +12206,34 @@ a {
 	}
 }
 
+/* Match the About page wordmark to the compact footer brand. */
+.about-page-heading .about-page-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 9px;
+	direction: ltr;
+	margin: 12px 0 10px;
+}
+.about-page-heading .about-page-brand .site-footer-logo {
+	display: block;
+	width: 27px;
+	height: 27px;
+	flex: 0 0 27px;
+	object-fit: contain;
+	border-radius: 7px;
+}
+.about-page-heading .about-page-brand .site-footer-brand {
+	font-size: clamp(27px, 4vw, 36px);
+	letter-spacing: -1px;
+}
+@media (max-width: 620px) {
+	.about-page-heading .about-page-brand .site-footer-logo {
+		width: 25px;
+		height: 25px;
+		flex-basis: 25px;
+	}
+}
+
 /* Make the footer brand itself the About page entry point. */
 .site-footer .site-footer-brand-link {
 	display: inline-flex;
