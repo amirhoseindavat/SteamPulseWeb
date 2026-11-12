@@ -12206,6 +12206,14 @@ a {
 	}
 }
 
+/* Stack the About label above the compact SteamPulse brand row. */
+.about-page-heading {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0;
+}
+
 /* Keep the About page brand identical to the compact footer wordmark. */
 .about-page-heading .about-page-brand {
 	display: inline-flex;
