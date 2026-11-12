@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local caches and temporary files
+.cache/
+.vite/
+.temp/
+tmp/
+temp/
+
+# Local deployment/tool state
+.wrangler/
+.vercel/
+.netlify/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Test and diagnostic artifacts
+playwright-report/
+test-results/
