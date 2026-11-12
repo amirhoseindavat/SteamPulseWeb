@@ -3,6 +3,7 @@
   window.__steamPulseBridgeLoaded = true;
 
   const allowedHosts = new Set([
+    "steampulseweb.pages.dev",
     "steampulse.ir",
     "www.steampulse.ir",
     "amirhoseindavat.github.io",
