@@ -279,6 +279,7 @@ export function registerGameRoutes(
 			const hero2x = hero.replace(/\/header\.jpg(?=\?|$)/, "/header_2x.jpg");
 			if (hero2x !== hero) hero = hero2x;
 			let libraryHero = "";
+			let gameLogo2x = "";
 			let gameLogo = "";
 
 			const assetUrl = new URL(
@@ -324,16 +325,15 @@ export function registerGameRoutes(
 
 			if (steamCmdResult.status === "fulfilled") {
 				const appInfo = steamCmdResult.value?.data?.[appid];
-				const logoAsset =
-					appInfo?.common?.library_assets_full?.library_logo?.image2x
-						?.english;
-				if (
-					typeof logoAsset === "string" &&
-					logoAsset.trim() &&
-					!/^https?:\/\//i.test(logoAsset)
-				) {
-					gameLogo = `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/${logoAsset.replace(/^\/+/, "")}`;
-				}
+				const logoData =
+					appInfo?.common?.library_assets_full?.library_logo || {};
+				const resolveLogoAsset = (asset) => {
+					if (typeof asset !== "string" || !asset.trim()) return "";
+					if (/^https?:\/\//i.test(asset)) return asset;
+					return `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appid}/${asset.replace(/^\/+/, "")}`;
+				};
+				gameLogo2x = resolveLogoAsset(logoData.image2x?.english);
+				gameLogo = resolveLogoAsset(logoData.image?.english);
 			}
 
 			const packageGroups = Array.isArray(d.package_groups)
@@ -665,6 +665,7 @@ export function registerGameRoutes(
 				header_image: d.header_image || "",
 				header_image_2x: hero,
 				library_hero: libraryHero,
+				game_logo_2x: gameLogo2x,
 				game_logo: gameLogo,
 				background: d.background || "",
 				background_raw: d.background_raw || "",
