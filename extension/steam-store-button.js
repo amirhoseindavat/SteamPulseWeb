@@ -2,7 +2,7 @@
   if (window.__steamPulseStoreButtonLoaded) return;
   window.__steamPulseStoreButtonLoaded = true;
 
-  const STEAMPULSE_URL = "http://localhost:5173/#/game/";
+  const STEAMPULSE_URL = "https://steampulse.ir/#/game/";
   const STEAMPULSE_LOGO = "https://steampulse.ir/favicon.png";
 
   function getAppId() {
