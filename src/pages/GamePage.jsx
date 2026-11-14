@@ -158,7 +158,11 @@ export default function GamePage({
 						<div className="game-sync-orbit game-sync-orbit-one" />
 						<div className="game-sync-orbit game-sync-orbit-two" />
 						<div className="game-sync-core">
-							<img className="game-sync-logo" src="https://steampulse.ir/favicon.png" alt="SteamPulse" />
+							<img
+								className="game-sync-logo"
+								src="https://steampulse.ir/favicon.png"
+								alt="SteamPulse"
+							/>
 							<span />
 						</div>
 						<i className="game-sync-particle game-sync-particle-one" />
@@ -214,20 +218,29 @@ export default function GamePage({
 								game.library_logo,
 								game.header_image,
 								hero,
-							].filter((source, index, sources) => source && sources.indexOf(source) === index);
-							const hasLogo = Boolean(game.game_logo_2x || game.game_logo || game.library_logo);
+							].filter(
+								(source, index, sources) =>
+									source && sources.indexOf(source) === index,
+							);
+							const hasLogo = Boolean(
+								game.game_logo_2x || game.game_logo || game.library_logo,
+							);
 							return (
-								<div className={`hero-header-image${hasLogo ? " has-game-logo" : ""}`}>
+								<div
+									className={`hero-header-image${hasLogo ? " has-game-logo" : ""}`}>
 									<img
 										src={logoSources[0] || ""}
 										alt={`${game.name} logo`}
 										onError={(event) => {
 											const image = event.currentTarget;
-											const nextIndex = Number(image.dataset.fallbackIndex || "1");
+											const nextIndex = Number(
+												image.dataset.fallbackIndex || "1",
+											);
 											if (logoSources[nextIndex]) {
 												image.dataset.fallbackIndex = String(nextIndex + 1);
 												image.src = logoSources[nextIndex];
-												image.style.objectFit = nextIndex >= 3 ? "cover" : "contain";
+												image.style.objectFit =
+													nextIndex >= 3 ? "cover" : "contain";
 											} else {
 												image.style.visibility = "hidden";
 											}
@@ -720,18 +733,39 @@ export default function GamePage({
 						<div className="detail-card game-intel-card">
 							<div className="detail-header">
 								<div>
-									<span className="section-kicker">GAME INTEL</span>
-									<h2>Inside the game</h2>
+									<span className="section-kicker">
+										{gameType === "dlc"
+											? "DLC"
+											: isHardware
+												? "HARDWARE"
+												: "GAME"}
+									</span>
+
+									<h2>
+										{gameType === "dlc"
+											? "DLC Information"
+											: isHardware
+												? "Hardware Information"
+												: "Game Information"}
+									</h2>
 								</div>
 								<div className="tabs">
-									{tabNames.map((tab) => (
-										<button
-											key={tab}
-											className={activeTab === tab ? "active" : ""}
-											onClick={() => setActiveTab(tab)}>
-											{tab}
-										</button>
-									))}
+									{tabNames
+										.filter(
+											(tab) =>
+												gameType === "game" ||
+												!["steam news", "external news"].includes(
+													String(tab).toLowerCase(),
+												),
+										)
+										.map((tab) => (
+											<button
+												key={tab}
+												className={activeTab === tab ? "active" : ""}
+												onClick={() => setActiveTab(tab)}>
+												{tab}
+											</button>
+										))}
 								</div>
 							</div>
 							{activeTab === "overview" && (
@@ -739,7 +773,13 @@ export default function GamePage({
 									<article className="detail-card about-card">
 										<div className="card-title">
 											<Info size={17} />
-											<h3>About this game</h3>
+											<h3>
+												{gameType === "dlc"
+													? "About this DLC"
+													: isHardware
+														? "About this Hardware"
+														: "About this Game"}
+											</h3>
 										</div>
 										<div
 											className="about-copy"
@@ -840,7 +880,13 @@ export default function GamePage({
 									)}
 								</div>
 							)}
-							<GameNewsSection activeTab={activeTab} game={game} hero={hero} />
+							{gameType === "game" && (
+								<GameNewsSection
+									activeTab={activeTab}
+									game={game}
+									hero={hero}
+								/>
+							)}
 							<RequirementsSection activeTab={activeTab} game={game} />
 						</div>
 					</section>
