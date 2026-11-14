@@ -12348,3 +12348,9 @@ a {
 @keyframes pwa-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pwa-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (max-width: 480px) { .pwa-install-dialog { padding: 31px 22px 22px; } }
+
+@media (max-width: 640px) {
+	.title-ownership-status {
+		display: none !important;
+	}
+}
