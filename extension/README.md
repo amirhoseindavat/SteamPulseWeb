@@ -1,26 +1,33 @@
-# SteamPulse Connect
+# SteamPulse Connect — Browser builds
 
-A minimal Chromium Manifest V3 extension that syncs the current Steam Store account snapshot to SteamPulse.
+Choose the folder matching your browser and load that folder as an unpacked extension.
+
+| Folder | Browser |
+|---|---|
+| `chrome/` | Google Chrome |
+| `edge/` | Microsoft Edge |
+| `brave/` | Brave |
+| `firefox/` | Mozilla Firefox |
 
 ## Install
 
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode**.
-3. Click **Load unpacked**.
-4. Select this `extension` folder.
-5. Open a Steam Store tab while signed in and wait a moment.
-6. Open or reload SteamPulse.
+- **Chrome:** open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `chrome`.
+- **Edge:** open `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `edge`.
+- **Brave:** open `brave://extensions`, enable Developer mode, choose **Load unpacked**, and select `brave`.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `firefox/manifest.json`. For permanent installation, the Firefox build must be signed by Mozilla AMO.
 
-Supported SteamPulse pages:
-- `https://steampulse.ir/`
-- `https://www.steampulse.ir/`
-- `http://localhost:5173/`
-- `http://127.0.0.1:5173/`
+After installation, open Steam in a tab while signed in, then reload SteamPulse.
 
-## Data handling
+## Build folders
 
-The extension reads Steam's `/dynamicstore/userdata/` endpoint with the browser's existing Steam session. The response is stored in `chrome.storage.local` and passed to SteamPulse only when the SteamPulse page requests it.
+The root files in this directory are the shared source files. Run:
 
-The extension does not read, export, or transmit Steam passwords or session cookies. Account data is not sent to a SteamPulse backend.
+```bash
+node extension/build.mjs
+```
 
-The first version provides the raw Steam snapshot for wishlist, owned AppIDs, owned PackageIDs, cart IDs, and recommendation metadata.
+This regenerates all four browser folders from the shared source and their browser-specific manifests.
+
+## Privacy
+
+The extension reads Steam's `/dynamicstore/userdata/` endpoint using the browser's existing Steam session. The snapshot is stored locally and is only provided to SteamPulse when the site requests it. Steam passwords and session cookies are not read, exported, or sent to SteamPulse's backend.

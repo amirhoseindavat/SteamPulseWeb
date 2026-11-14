@@ -24,6 +24,7 @@ import { useCalculator } from "./hooks/useCalculator";
 import { useGameViewModel } from "./hooks/useGameViewModel";
 import { useCartSummary } from "./hooks/useCartSummary";
 import { useLatestReleaseVersion } from "./hooks/useLatestReleaseVersion";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 
 import {
 	getGamesSectionFromRoute,
@@ -503,6 +504,7 @@ export default function App() {
 				/>
 			</main>
 			<SiteFooter navigateTo={navigateTo} version={appVersion} />
+			<PwaInstallPrompt />
 		</div>
 	);
 }

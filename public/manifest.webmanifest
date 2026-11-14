@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "SteamPulse",
+  "short_name": "SteamPulse",
+  "description": "A focused dashboard for Steam game details.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080d1b",
+  "theme_color": "#080d1b",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

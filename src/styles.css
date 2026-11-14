@@ -12302,3 +12302,49 @@ a {
 .site-footer .site-footer-brand-group {
 	direction: ltr;
 }
+
+
+/* PWA install prompt */
+.pwa-prompt-backdrop {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center;
+  padding: 20px; background: rgba(3, 7, 17, 0.72); backdrop-filter: blur(9px);
+  animation: pwa-backdrop-in 0.2s ease both;
+}
+.pwa-install-dialog {
+  position: relative; width: min(100%, 390px); padding: 34px 30px 25px;
+  overflow: hidden; text-align: center; border: 1px solid rgba(160, 139, 255, 0.3);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(139,108,255,.2), transparent 58%), linear-gradient(145deg, rgba(22,30,54,.98), rgba(10,16,31,.98));
+  box-shadow: 0 28px 100px rgba(0,0,0,.55), 0 0 55px rgba(111,81,233,.13);
+  animation: pwa-dialog-in 0.25s ease both;
+}
+.pwa-prompt-close {
+  position: absolute; top: 13px; right: 13px; display: grid; place-items: center;
+  width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px;
+  background: rgba(255,255,255,.04); color: #8995b0;
+}
+.pwa-install-icon {
+  display: grid; place-items: center; width: 58px; height: 58px; margin: 0 auto 19px;
+  border: 1px solid rgba(160,139,255,.35); border-radius: 17px;
+  background: linear-gradient(145deg, rgba(155,128,255,.25), rgba(105,77,218,.12));
+  color: #c2b2ff; box-shadow: 0 9px 30px rgba(116,82,237,.18);
+}
+.pwa-install-eyebrow { color: #a18aff; font: 9px "DM Mono", monospace; letter-spacing: 1.5px; }
+.pwa-install-dialog h2 { margin: 10px 0 9px; color: #f0edff; font-size: 25px; letter-spacing: -.8px; }
+.pwa-install-description { max-width: 300px; margin: 0 auto; color: #9aa6c1; font-size: 12px; line-height: 1.8; }
+.pwa-install-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; width: 100%;
+  min-height: 47px; margin-top: 23px; border: 0; border-radius: 10px;
+  background: linear-gradient(135deg, #9c80ff, #6e51e9); color: #fff; font-size: 12px;
+  font-weight: 800; box-shadow: 0 8px 24px rgba(115,85,233,.28);
+}
+.pwa-install-later { margin-top: 14px; padding: 8px 12px; border: 0; background: transparent; color: #8491ad; font-size: 11px; }
+.pwa-ios-instructions {
+  display: grid; gap: 12px; margin-top: 22px; padding: 15px; border: 1px solid var(--line);
+  border-radius: 11px; background: rgba(255,255,255,.035); color: #b9c3da; text-align: left; font-size: 11px;
+}
+.pwa-ios-instructions > div { display: flex; align-items: center; gap: 9px; }
+.pwa-ios-instructions svg { color: #a18aff; }
+@keyframes pwa-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pwa-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 480px) { .pwa-install-dialog { padding: 31px 22px 22px; } }
