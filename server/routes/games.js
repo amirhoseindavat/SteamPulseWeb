@@ -107,12 +107,10 @@ export function registerGameRoutes(
 			res.json(saveCache(cacheKey, result));
 		} catch (error) {
 			console.error("Steam cart details failed:", error);
-			res
-				.status(502)
-				.json({
-					error: "Could not load Steam cart item details.",
-					detail: error.message,
-				});
+			res.status(502).json({
+				error: "Could not load Steam cart item details.",
+				detail: error.message,
+			});
 		}
 	});
 
@@ -443,6 +441,7 @@ export function registerGameRoutes(
 						appid: dlcId,
 						name: item.name || `DLC ${dlcId}`,
 						image: item.header_image || "",
+						discountPercent: Number(item.price_overview?.discount_percent || 0),
 						price:
 							item.price_overview?.final_formatted ||
 							(item.price_overview
@@ -787,6 +786,7 @@ export function registerGameRoutes(
 					appid: dlcId,
 					name: item.name || `DLC ${dlcId}`,
 					image: item.header_image || "",
+					discountPercent: Number(item.price_overview?.discount_percent || 0),
 					price:
 						item.price_overview?.final_formatted ||
 						(item.price_overview
@@ -811,12 +811,10 @@ export function registerGameRoutes(
 			});
 		} catch (error) {
 			console.error(`Failed to load more DLC for AppID ${appid}:`, error);
-			res
-				.status(502)
-				.json({
-					error: "Could not load more DLC from Steam.",
-					detail: error.message,
-				});
+			res.status(502).json({
+				error: "Could not load more DLC from Steam.",
+				detail: error.message,
+			});
 		}
 	});
 }

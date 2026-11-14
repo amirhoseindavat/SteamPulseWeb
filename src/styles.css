@@ -1362,8 +1362,32 @@ a {
 	color: #6f7d9a;
 }
 .dlc-copy > span {
+	font-size: 11px;
+	color: #c4cce0;
+}
+.dlc-price-row {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	flex-wrap: wrap;
+}
+
+.dlc-price-row > span:first-child {
+	font-size: 11px;
+	color: #c4cce0;
+}
+
+.dlc-discount-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 5px;
+	border-radius: 3px;
+	background: #4c6b22;
+	color: #beee11;
 	font-size: 10px;
-	color: #78e3d5;
+	font-weight: 800;
+	line-height: 1.2;
+	white-space: nowrap;
 }
 .dlc-link-icon {
 	color: #7c89a6;

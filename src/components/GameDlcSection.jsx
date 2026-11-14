@@ -49,23 +49,31 @@ export default function GameDlcSection({
 									)}
 							</div>
 							<small>APP ID · {item.appid}</small>
-							<span>{item.price || "Price unavailable"}</span>
+							<div className="dlc-price-row">
+								<span>{item.price || "N/A"}</span>
+
+								{Number(item.discountPercent) > 0 && (
+									<span className="dlc-discount-badge">
+										-{item.discountPercent}%
+									</span>
+								)}
+							</div>
 							<div className="dlc-actions">
 								<a
 									className="dlc-open-button"
 									href={"/game/" + item.appid}
 									onClick={(event) => {
-									if (
-										event.button !== 0 ||
-										event.metaKey ||
-										event.ctrlKey ||
-										event.shiftKey ||
-										event.altKey
-								)
-									return;
-								event.preventDefault();
-								loadGame(item.appid, region);
-							}}>
+										if (
+											event.button !== 0 ||
+											event.metaKey ||
+											event.ctrlKey ||
+											event.shiftKey ||
+											event.altKey
+										)
+											return;
+										event.preventDefault();
+										loadGame(item.appid, region);
+									}}>
 									<Gamepad2 size={13} /> Show details
 								</a>
 								<a
