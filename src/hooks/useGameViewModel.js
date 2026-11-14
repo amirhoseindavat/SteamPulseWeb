@@ -28,6 +28,7 @@ export function useGameViewModel({
 	const gameBundles = game?.bundles || [];
 	const hasEditions = gameEditions.length > 0;
 	const hasBundles = gameBundles.length > 0;
+
 	const missingPackages = gamePackageIds
 		.filter(
 			(packageId) =>
@@ -82,6 +83,13 @@ export function useGameViewModel({
 		game?.price_overview &&
 		(game.price_overview.final != null || game.price_overview.final_formatted),
 	);
+
+	const hasBundlePrice = gameBundles.some(
+		(bundle) => bundle.priceValue != null,
+	);
+
+	const hasPurchasePrice = hasStorePrice || hasBundlePrice;
+
 	const selectedRegion =
 		REGIONS.find((item) => item.code === region) || REGIONS[0];
 	const numericRegionalPrice = Number(regionalPriceInput);
@@ -119,6 +127,7 @@ export function useGameViewModel({
 		gameIsOwned,
 		hero,
 		price,
+		hasPurchasePrice,
 		hasStorePrice,
 		selectedRegion,
 		numericRegionalPrice,

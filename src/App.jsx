@@ -255,6 +255,7 @@ export default function App() {
 		gameIsOwned,
 		hero,
 		price,
+		hasPurchasePrice,
 		hasStorePrice,
 		selectedRegion,
 		numericRegionalPrice,

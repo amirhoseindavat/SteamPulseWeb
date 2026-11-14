@@ -117,6 +117,28 @@ export function useGameData({
 							requestId !== gameRequestRef.current
 						)
 							return;
+
+						const packageEditions = (data.editions || []).filter(
+							(edition) =>
+								String(edition.kind || "").toLowerCase() === "default",
+						);
+
+						const otherItems = (data.editions || []).filter(
+							(edition) =>
+								String(edition.kind || "").toLowerCase() !== "default",
+						);
+
+						const availableTabs = [
+							...(packageEditions.length > 0 ? ["editions"] : []),
+							...(bundleData.bundles.length > 0 ? ["bundles"] : []),
+							...(otherItems.length > 0 ? ["other"] : []),
+						];
+
+						if (availableTabs.length > 0) {
+							setPurchaseTab((current) =>
+								availableTabs.includes(current) ? current : availableTabs[0],
+							);
+						}
 						setGame((current) =>
 							String(current?.appid) === String(id)
 								? {

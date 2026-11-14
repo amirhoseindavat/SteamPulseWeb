@@ -1,6 +1,7 @@
 import { ExternalLink, Save, Tag, ChevronRight, Globe2 } from "lucide-react";
 import RegionSelect from "./RegionSelect";
 import { formatNumber } from "../utils/formatters";
+import { useEffect, useRef } from "react";
 
 export default function GamePurchasePanel({
 	hasStorePrice,
@@ -32,7 +33,11 @@ export default function GamePurchasePanel({
 }) {
 	const showOwnership =
 		game && String(game.type || "").toLowerCase() !== "hardware";
-	if (!hasStorePrice) return null;
+	const hasBundlePrice = (gameBundles || []).some(
+		(bundle) => bundle.priceValue != null,
+	);
+
+	if (!hasStorePrice && !hasBundlePrice) return null;
 
 	const packageEditions = (gameEditions || []).filter(
 		(edition) => String(edition.kind || "").toLowerCase() === "default",
@@ -63,13 +68,8 @@ export default function GamePurchasePanel({
 	const otherTabLabel =
 		otherTabLabels.length > 0 ? otherTabLabels.join(" / ") : "Other";
 
-	const visibleEditions =
-		purchaseTab === "other" ? otherItems : packageEditions;
-
 	const availablePurchaseTabs = [
-		...(packageEditions.length > 0 || missingPackages.length > 0
-			? ["editions"]
-			: []),
+		...(packageEditions.length > 0 ? ["editions"] : []),
 		...(gameBundles.length > 0 ? ["bundles"] : []),
 		...(otherItems.length > 0 ? ["other"] : []),
 	];
@@ -77,6 +77,58 @@ export default function GamePurchasePanel({
 	const activePurchaseTab = availablePurchaseTabs.includes(purchaseTab)
 		? purchaseTab
 		: availablePurchaseTabs[0] || "editions";
+
+	const visibleEditions =
+		activePurchaseTab === "other" ? otherItems : packageEditions;
+
+	const selectFirstPurchaseItem = (tab) => {
+		const items =
+			tab === "editions"
+				? packageEditions
+				: tab === "other"
+					? otherItems
+					: gameBundles || [];
+
+		const firstItem = items.find((item) => item.priceValue != null);
+
+		if (!firstItem) return;
+
+		setRegionalPriceInput(String(firstItem.priceValue));
+
+		setSelectedEditionName((firstItem.name || "").replace(/\s*-\s*\$\s*$/, ""));
+	};
+
+	const autoSelectedBundleRef = useRef("");
+
+	useEffect(() => {
+		if (activePurchaseTab !== "bundles") return;
+
+		const firstValidBundle = (gameBundles || []).find(
+			(bundle) => bundle.priceValue != null,
+		);
+
+		if (!firstValidBundle) return;
+
+		const bundleName = (firstValidBundle.name || "").replace(
+			/\s*-\s*\$?\s*$/,
+			"",
+		);
+
+		const bundleKey = `${game?.appid}-${firstValidBundle.id}`;
+
+		if (autoSelectedBundleRef.current === bundleKey) return;
+
+		autoSelectedBundleRef.current = bundleKey;
+
+		setRegionalPriceInput(String(firstValidBundle.priceValue));
+		setSelectedEditionName(bundleName);
+	}, [
+		activePurchaseTab,
+		gameBundles,
+		game?.appid,
+		setRegionalPriceInput,
+		setSelectedEditionName,
+	]);
 
 	return (
 		<div className="purchase-layout">
@@ -95,7 +147,7 @@ export default function GamePurchasePanel({
 									</p>
 								</div>
 							</div>
-							{availablePurchaseTabs.length > 1 && (
+							{availablePurchaseTabs.length > 0 && (
 								<div
 									className="purchase-tabs"
 									role="tablist"
@@ -110,7 +162,10 @@ export default function GamePurchasePanel({
 													? "purchase-tab-active"
 													: ""
 											}
-											onClick={() => setPurchaseTab("editions")}>
+											onClick={() => {
+												setPurchaseTab("editions");
+												selectFirstPurchaseItem("editions");
+											}}>
 											Packages
 											<span>
 												{packageEditions.length + missingPackages.length}
@@ -128,7 +183,10 @@ export default function GamePurchasePanel({
 													? "purchase-tab-active"
 													: ""
 											}
-											onClick={() => setPurchaseTab("bundles")}>
+											onClick={() => {
+												setPurchaseTab("bundles");
+												selectFirstPurchaseItem("bundles");
+											}}>
 											Bundles
 											<span>{gameBundles.length}</span>
 										</button>
@@ -144,14 +202,18 @@ export default function GamePurchasePanel({
 													? "purchase-tab-active"
 													: ""
 											}
-											onClick={() => setPurchaseTab("other")}>
+											onClick={() => {
+												setPurchaseTab("other");
+												selectFirstPurchaseItem("other");
+											}}>
 											{otherTabLabel}
 											<span>{otherItems.length}</span>
 										</button>
 									)}
 								</div>
 							)}
-							{(purchaseTab === "editions" || purchaseTab === "other") && (
+							{(activePurchaseTab === "editions" ||
+								activePurchaseTab === "other") && (
 								<div className="editions-grid purchase-editions-grid">
 									{visibleEditions.map((edition, i) => (
 										<article
@@ -287,10 +349,10 @@ export default function GamePurchasePanel({
 									))}
 								</div>
 							)}
-							{purchaseTab === "bundles" && (
+							{activePurchaseTab === "bundles" && (
 								<div className="bundle-list">
-									{(game.bundles || []).length ? (
-										game.bundles.map((bundle) => (
+									{(gameBundles || []).length ? (
+										gameBundles.map((bundle) => (
 											<article
 												className={`bundle-row ${selectedEditionName === (bundle.name || "").replace(/\s*-\s*\$\s*$/, "") ? "edition-card-selected" : ""}`}
 												key={bundle.id}>
