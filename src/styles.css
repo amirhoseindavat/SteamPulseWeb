@@ -1336,8 +1336,6 @@ a {
 	transform: translateY(-1px);
 }
 .dlc-card > img {
-	width: 112px;
-	aspect-ratio: 16/9;
 	object-fit: cover;
 	border-radius: 6px;
 	background: #202943;
