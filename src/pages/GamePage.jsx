@@ -309,7 +309,7 @@ export default function GamePage({
 										<strong>
 											{steamAccountSnapshot?.loginStatus === "disconnected"
 												? "Open Steam and sign in"
-												: "Install SteamPulse Connect and open Steam"}
+												: "Install SteamPulse Connect and Sign-in to Steam"}
 										</strong>
 									)}
 								</div>

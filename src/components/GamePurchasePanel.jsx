@@ -34,6 +34,50 @@ export default function GamePurchasePanel({
 		game && String(game.type || "").toLowerCase() !== "hardware";
 	if (!hasStorePrice) return null;
 
+	const packageEditions = (gameEditions || []).filter(
+		(edition) => String(edition.kind || "").toLowerCase() === "default",
+	);
+
+	const otherItems = (gameEditions || []).filter(
+		(edition) => String(edition.kind || "").toLowerCase() !== "default",
+	);
+
+	const getOtherItemLabel = (kind) => {
+		const value = String(kind || "").toLowerCase();
+
+		if (value.includes("subscription")) return "Subscriptions";
+		if (value.includes("fc point")) return "FC Points";
+		if (value.includes("call of duty") || value.includes("cod point")) {
+			return "COD Points";
+		}
+
+		return String(kind || "Other")
+			.replace(/[_-]+/g, " ")
+			.replace(/\b\w/g, (char) => char.toUpperCase());
+	};
+
+	const otherTabLabels = [
+		...new Set(otherItems.map((item) => getOtherItemLabel(item.kind))),
+	];
+
+	const otherTabLabel =
+		otherTabLabels.length > 0 ? otherTabLabels.join(" / ") : "Other";
+
+	const visibleEditions =
+		purchaseTab === "other" ? otherItems : packageEditions;
+
+	const availablePurchaseTabs = [
+		...(packageEditions.length > 0 || missingPackages.length > 0
+			? ["editions"]
+			: []),
+		...(gameBundles.length > 0 ? ["bundles"] : []),
+		...(otherItems.length > 0 ? ["other"] : []),
+	];
+
+	const activePurchaseTab = availablePurchaseTabs.includes(purchaseTab)
+		? purchaseTab
+		: availablePurchaseTabs[0] || "editions";
+
 	return (
 		<div className="purchase-layout">
 			<div className="purchase-options-column">
@@ -44,44 +88,72 @@ export default function GamePurchasePanel({
 							<div className="detail-header">
 								<div>
 									<span className="section-kicker">PURCHASE OPTIONS</span>
-									<h2>Choose your version</h2>
+									<h2>Choose your Edition</h2>
 									<p className="purchase-hint">
 										Select an edition or bundle to calculate its required keys
 										and estimated cost.
 									</p>
 								</div>
 							</div>
-							{hasEditions && hasBundles && (
+							{availablePurchaseTabs.length > 1 && (
 								<div
 									className="purchase-tabs"
 									role="tablist"
 									aria-label="Purchase options">
-									<button
-										type="button"
-										role="tab"
-										aria-selected={purchaseTab === "editions"}
-										className={
-											purchaseTab === "editions" ? "purchase-tab-active" : ""
-										}
-										onClick={() => setPurchaseTab("editions")}>
-										Packages{" "}
-										<span>{gameEditions.length + missingPackages.length}</span>
-									</button>
-									<button
-										type="button"
-										role="tab"
-										aria-selected={purchaseTab === "bundles"}
-										className={
-											purchaseTab === "bundles" ? "purchase-tab-active" : ""
-										}
-										onClick={() => setPurchaseTab("bundles")}>
-										Bundles <span>{gameBundles.length}</span>
-									</button>
+									{availablePurchaseTabs.includes("editions") && (
+										<button
+											type="button"
+											role="tab"
+											aria-selected={activePurchaseTab === "editions"}
+											className={
+												activePurchaseTab === "editions"
+													? "purchase-tab-active"
+													: ""
+											}
+											onClick={() => setPurchaseTab("editions")}>
+											Packages
+											<span>
+												{packageEditions.length + missingPackages.length}
+											</span>
+										</button>
+									)}
+
+									{availablePurchaseTabs.includes("bundles") && (
+										<button
+											type="button"
+											role="tab"
+											aria-selected={activePurchaseTab === "bundles"}
+											className={
+												activePurchaseTab === "bundles"
+													? "purchase-tab-active"
+													: ""
+											}
+											onClick={() => setPurchaseTab("bundles")}>
+											Bundles
+											<span>{gameBundles.length}</span>
+										</button>
+									)}
+
+									{availablePurchaseTabs.includes("other") && (
+										<button
+											type="button"
+											role="tab"
+											aria-selected={activePurchaseTab === "other"}
+											className={
+												activePurchaseTab === "other"
+													? "purchase-tab-active"
+													: ""
+											}
+											onClick={() => setPurchaseTab("other")}>
+											{otherTabLabel}
+											<span>{otherItems.length}</span>
+										</button>
+									)}
 								</div>
 							)}
-							{hasEditions && (!hasBundles || purchaseTab === "editions") && (
+							{(purchaseTab === "editions" || purchaseTab === "other") && (
 								<div className="editions-grid purchase-editions-grid">
-									{gameEditions.map((edition, i) => (
+									{visibleEditions.map((edition, i) => (
 										<article
 											className={`edition-card ${showOwnership && steamAccountConnected && edition.packageId != null && steamOwnedPackages.has(Number(edition.packageId)) ? "edition-card-owned" : ""} ${selectedEditionName === (edition.name || "").replace(/\s*-\s*\$\s*$/, "") ? "edition-card-selected" : ""}`}
 											key={`${edition.packageId || edition.name}-${i}`}>
@@ -107,19 +179,22 @@ export default function GamePurchasePanel({
 												}>
 												<div className="edition-top">
 													<span className="edition-tag">
-														{edition.kind || "STEAM EDITION"}
+														{String(edition.kind || "").toLowerCase() ===
+														"default"
+															? "EDITION"
+															: edition.kind || "STEAM EDITION"}
 													</span>
 													<span className="edition-top-status">
 														{showOwnership
 															? steamAccountConnected
 																? edition.packageId == null
-																	? "Ownership unavailable"
+																	? ""
 																	: steamOwnedPackages.has(
 																				Number(edition.packageId),
 																		  )
 																		? "✓ Owned"
 																		: ""
-																: "Ownership unavailable"
+																: ""
 															: ""}
 													</span>
 													{edition.savings && Number(edition.savings) > 0 && (
@@ -212,7 +287,7 @@ export default function GamePurchasePanel({
 									))}
 								</div>
 							)}
-							{hasBundles && (!hasEditions || purchaseTab === "bundles") && (
+							{purchaseTab === "bundles" && (
 								<div className="bundle-list">
 									{(game.bundles || []).length ? (
 										game.bundles.map((bundle) => (
@@ -275,7 +350,11 @@ export default function GamePurchasePanel({
 																	<del>{bundle.originalPrice}</del>
 																)}
 															<b>{bundle.price || "Price unavailable"}</b>
-															{bundle.savings && <em>{bundle.savings}% OFF</em>}
+															{Number(bundle.savings) > 0 && (
+																<span className="dlc-discount-badge">
+																	-{bundle.savings}%
+																</span>
+															)}
 														</span>
 													</span>
 													<span className="bundle-calculate">
