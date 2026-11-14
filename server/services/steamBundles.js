@@ -62,7 +62,7 @@ export async function fetchSteamBundles(appid, cc, fetchJsonWithOptions) {
 			: cc === "DE"
 				? "EUR"
 				: cc === "TR"
-					? "TRY"
+					? "USD"
 					: cc === "PL"
 						? "PLN"
 						: cc === "BR"
@@ -72,7 +72,7 @@ export async function fetchSteamBundles(appid, cc, fetchJsonWithOptions) {
 								: cc === "UA"
 									? "UAH"
 									: cc === "AR"
-										? "ARS"
+										? "USD"
 										: "USD";
 	const headers = {
 		"User-Agent":
