@@ -20,7 +20,7 @@ export function getGamesSectionFromRoute(route) {
 			comingsoon: "upcoming",
 			newreleases: "newReleases",
 			preorders: "preorders",
-		}[section] || "freeGames"
+		}[section] || "topSellers"
 	);
 }
 
@@ -90,7 +90,7 @@ export function useNavigation({
 				: page === "profile" && state.personalSteamProfileData?.profile?.steamId
 					? `/profile/${state.personalSteamProfileData.profile.steamId}`
 					: page === "games" || page === "trending"
-						? `/games/${GAME_SECTION_SLUGS.freeGames}`
+						? `/games/${GAME_SECTION_SLUGS.topSellers}`
 						: `/${page}`;
 
 		if (getRoutePath() !== nextPath) {
@@ -100,7 +100,7 @@ export function useNavigation({
 		state.setSearchOpen(false);
 		state.setCurrentPage(page === "trending" ? "games" : page);
 		if (page === "games" || page === "trending")
-			state.setGamesSection("freeGames");
+			state.setGamesSection("topSellers");
 		state.setProfileRouteId("");
 
 		if (page !== "game") {
@@ -169,7 +169,7 @@ export function useNavigation({
 				window.history.replaceState(
 					null,
 					"",
-					`${BASE_PATH}/games/${GAME_SECTION_SLUGS.freeGames}`,
+					`${BASE_PATH}/games/${GAME_SECTION_SLUGS.topSellers}`,
 				);
 			}
 

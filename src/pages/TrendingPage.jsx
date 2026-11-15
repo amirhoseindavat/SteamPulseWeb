@@ -45,11 +45,11 @@ export default function TrendingPage({
 	setFreeGames,
 }) {
 	const sections = [
-		["freeGames", "Free Games", "FreeGames"],
 		["topSellers", "Top Sellers", "TopSellers"],
 		["upcoming", "Coming Soon", "ComingSoon"],
 		["newReleases", "New Releases", "NewReleases"],
 		["preorders", "Preorders", "Preorders"],
+		["freeGames", "Free Games", "FreeGames"],
 	];
 	const items =
 		activeSection === "freeGames"
@@ -270,7 +270,9 @@ export default function TrendingPage({
 											</span>
 										</span>
 										<span className="discovery-card-copy">
-											<strong><GameCardTitle name={item.name} /></strong>
+											<strong>
+												<GameCardTitle name={item.name} />
+											</strong>
 											<span className="discovery-card-meta">
 												{item.originalPrice ? (
 													<>
@@ -352,7 +354,9 @@ export default function TrendingPage({
 												)}
 											</span>
 											<span className="discovery-card-copy">
-												<strong><GameCardTitle name={item.name} /></strong>
+												<strong>
+													<GameCardTitle name={item.name} />
+												</strong>
 												{item.releaseDate && (
 													<span className="discovery-card-meta preorder-release-meta">
 														{item.releaseDate}
@@ -410,7 +414,9 @@ export default function TrendingPage({
 												)}
 											</span>
 											<span className="discovery-card-copy">
-												<strong><GameCardTitle name={item.name} /></strong>
+												<strong>
+													<GameCardTitle name={item.name} />
+												</strong>
 												<span className="discovery-card-meta">
 													{item.releaseDate || item.subtitle || "Steam game"}
 													{activeSection === "upcoming" ||
