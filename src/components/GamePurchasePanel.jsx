@@ -283,11 +283,6 @@ export default function GamePurchasePanel({
 															{edition.price || "Price unavailable"}
 														</strong>
 													</div>
-													{edition.savings && Number(edition.savings) > 0 && (
-														<span className="edition-save-label">
-															Save {edition.savings}%
-														</span>
-													)}
 												</div>
 												<span className="edition-calculate">
 													{edition.priceValue != null
