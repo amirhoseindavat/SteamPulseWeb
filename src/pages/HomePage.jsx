@@ -30,6 +30,7 @@ export default function HomePage({
 	discoveryError,
 	topSellersLoading,
 	storeTakeover,
+	storeTakeunder,
 	region,
 	setRegion,
 	loading,
@@ -254,6 +255,35 @@ export default function HomePage({
 							<img
 								src={storeTakeover.image}
 								alt={storeTakeover.title || "Steam Store Takeover"}
+								loading="eager"
+								referrerPolicy="no-referrer"
+							/>
+						)}
+					</a>
+				)}
+
+			{currentPage === "home" &&
+				storeTakeunder?.image &&
+				storeTakeunder?.link && (
+					<a
+						className="steam-store-takeunder"
+						href={storeTakeunder.link}
+						target="_blank"
+						rel="noreferrer"
+						aria-label={storeTakeunder.title || "Steam Store Takeunder"}>
+						{storeTakeunder.mediaType === "video" ? (
+							<video
+								src={storeTakeunder.image}
+								autoPlay
+								muted
+								loop
+								playsInline
+								aria-label={storeTakeunder.title || "Steam Store Takeunder"}
+							/>
+						) : (
+							<img
+								src={storeTakeunder.image}
+								alt={storeTakeunder.title || "Steam Store Takeunder"}
 								loading="eager"
 								referrerPolicy="no-referrer"
 							/>

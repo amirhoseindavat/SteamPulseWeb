@@ -42,6 +42,14 @@ export const getStoreTakeover = (region, refresh = false, signal) =>
 		{ cacheTtl: 300000 },
 	);
 
+export const getStoreTakeunder = (region, refresh = false, signal) =>
+	requestJson(
+		"/api/store-takeunder?cc=" + encodeURIComponent(region) + (refresh ? "&refresh=1" : ""),
+		withSignal(signal),
+		"Could not load Steam Store Takeunder.",
+		{ cacheTtl: 300000 },
+	);
+
 export const getTopSellers = (region, refresh = false, signal) =>
 	requestJson(
 		`/api/top-sellers?cc=${encodeURIComponent(region)}${refresh ? "&refresh=1" : ""}`,

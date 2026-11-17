@@ -88,6 +88,7 @@ export default function App() {
 		discoveryError,
 		topSellersLoading,
 		storeTakeover,
+		storeTakeunder,
 		setDiscoveryLoading,
 		setDiscoveryError,
 		setDiscovery,
@@ -425,6 +426,7 @@ export default function App() {
 						discoveryError={discoveryError}
 						topSellersLoading={topSellersLoading}
 						storeTakeover={storeTakeover}
+						storeTakeunder={storeTakeunder}
 						region={region}
 						setRegion={setRegion}
 						loading={loading}

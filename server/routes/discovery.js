@@ -2,6 +2,7 @@ import {
 	fetchSteamBundles,
 	fetchSteamPreorders,
 	fetchSteamTakeover,
+	fetchSteamTakeunder,
 	fetchSteamTopSellers,
 } from "../services/discoverySteam.js";
 
@@ -95,6 +96,35 @@ export function registerDiscoveryRoutes(
 					takeover: null,
 					error: "Steam Store Takeover is temporarily unavailable.",
 				});
+		}
+	});
+
+
+	app.get("/api/store-takeunder", async (req, res) => {
+		const cc = String(req.query.cc || "US")
+			.slice(0, 2)
+			.toUpperCase();
+		const key = "store-takeunder:v1:" + cc;
+		registerRefresh(key, "/api/store-takeunder", cc);
+		if (req.query.refresh !== "1") {
+			const hit = cached(key);
+			if (hit) return res.json(hit);
+			const stale = staleCached(key);
+			if (stale) {
+				res.json(stale);
+				refreshInBackground(key);
+				return;
+			}
+		}
+		try {
+			const takeunder = await fetchSteamTakeunder(cc);
+			res.json(saveCache(key, { takeunder }, DISCOVERY_CACHE_TTL, STALE_CACHE_TTL));
+		} catch (error) {
+			console.warn("Could not load Steam Store Takeunder:", error.message);
+			res.status(502).json({
+				takeunder: null,
+				error: "Steam Store Takeunder is temporarily unavailable.",
+			});
 		}
 	});
 

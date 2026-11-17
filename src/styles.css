@@ -11775,6 +11775,37 @@ a {
 	gap: 8px;
 }
 
+/* Steam Store Takeunder keeps its native 1200×190 artwork ratio. */
+.steam-store-takeunder {
+	display: block;
+	width: 100%;
+	max-width: 1200px;
+	aspect-ratio: 1200 / 190;
+	height: auto;
+	margin: 0 auto 22px;
+	overflow: hidden;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: transparent;
+	box-shadow: none;
+	line-height: 0;
+}
+.steam-store-takeunder img,
+.steam-store-takeunder video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-height: none;
+	object-fit: contain;
+	object-position: center;
+}
+@media (max-width: 620px) {
+	.steam-store-takeunder {
+		margin-bottom: 17px;
+		border-radius: 9px;
+	}
+}
+
 /* Steam Store homepage takeover banner: retain a subtle theme-matched frame while cropping the source artwork. */
 .steam-store-takeover {
 	display: block;

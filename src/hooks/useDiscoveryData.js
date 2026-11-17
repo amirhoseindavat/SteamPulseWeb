@@ -3,6 +3,7 @@ import {
 	getDiscovery,
 	getFreeGames,
 	getStoreTakeover,
+	getStoreTakeunder,
 } from "../services/steamPulseApi";
 
 export function useDiscoveryData(region) {
@@ -17,6 +18,7 @@ export function useDiscoveryData(region) {
 	const [discoveryError, setDiscoveryError] = useState("");
 	const [topSellersLoading, setTopSellersLoading] = useState(true);
 	const [storeTakeover, setStoreTakeover] = useState(null);
+	const [storeTakeunder, setStoreTakeunder] = useState(null);
 	const [discoveryTab, setDiscoveryTab] = useState("trending");
 	const [freeGames, setFreeGames] = useState([]);
 	const [freeGamesLoading, setFreeGamesLoading] = useState(true);
@@ -72,6 +74,22 @@ export function useDiscoveryData(region) {
 
 	useEffect(() => {
 		const controller = new AbortController();
+		setStoreTakeunder(null);
+		getStoreTakeunder(region, false, controller.signal)
+			.then((data) => {
+				if (!controller.signal.aborted) setStoreTakeunder(data.takeunder || null);
+			})
+			.catch((error) => {
+				if (!controller.signal.aborted) {
+					console.warn("Steam Store Takeunder unavailable:", error.message);
+					setStoreTakeunder(null);
+				}
+			});
+		return () => controller.abort();
+	}, [region]);
+
+	useEffect(() => {
+		const controller = new AbortController();
 		setFreeGamesLoading(true);
 		setFreeGamesError("");
 		getFreeGames(region, false, controller.signal)
@@ -94,6 +112,7 @@ export function useDiscoveryData(region) {
 		discoveryError,
 		topSellersLoading,
 		storeTakeover,
+		storeTakeunder,
 		discoveryTab,
 		setDiscoveryTab,
 		setDiscoveryLoading,

@@ -357,6 +357,124 @@ export async function fetchSteamTakeover(cc) {
 	return extractSteamTakeover(await response.text());
 }
 
+
+function extractSteamTakeunder(html = "", stylesheets = []) {
+	const source = String(html || "")
+		.replace(/\\u002f/gi, "/")
+		.replace(/\\\//g, "/");
+	const opening = source.match(
+		/<a\b(?=[^>]*\bclass=["'][^"']*\bhome_page_takeunder\b[^"']*["'])[^>]*>/i,
+	)?.[0];
+	if (!opening) return null;
+
+	const attr = (text, name) => {
+		const match = text.match(
+			new RegExp("\\b" + name + "=(?:\\x22([^\\x22]*)\\x22|'([^']*)')", "i"),
+		);
+		return match?.[1] || match?.[2] || "";
+	};
+	const absolute = (value, base = "https://store.steampowered.com/") => {
+		if (!value) return "";
+		const normalized = String(value)
+			.trim()
+			.replace(/^["']|["']$/g, "")
+			.replace(/&amp;/g, "&")
+			.replace(/\\\//g, "/")
+			.replace(/^https?:\/\/store\.steampowered\.com\/(?=https?:\/\/)/i, "");
+		try {
+			const url = new URL(normalized, base);
+			return /^https?:$/.test(url.protocol) ? url.toString() : "";
+		} catch {
+			return "";
+		}
+	};
+
+	const link = absolute(attr(opening, "href"));
+	const title = decodeSteamHtml(attr(opening, "aria-label") || attr(opening, "title") || "");
+	const inlineStyle = attr(opening, "style");
+	const extractCssUrl = (value) => {
+		const quoted = String(value || "").match(/url\(\s*(["'])(.*?)\1\s*\)/i);
+		if (quoted) return quoted[2].trim();
+		const unquoted = String(value || "").match(/url\(\s*([^'")][^)]*?)\s*\)/i);
+		return (unquoted?.[1] || "").trim().replace(/^["']|["']$/g, "");
+	};
+	const inlineImage = extractCssUrl(inlineStyle);
+	const styleSources = [
+		...Array.from(source.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi), (match) => match[1]),
+		...stylesheets,
+	];
+	let image = absolute(inlineImage);
+	for (const css of styleSources) {
+		const rules = String(css || "").match(/[^{}]*\.home_page_takeunder[^{}]*\{[^{}]*\}/gi) || [];
+		for (const rule of rules) {
+			const declaration = rule.slice(rule.indexOf("{") + 1, rule.lastIndexOf("}"));
+			const imageValue = extractCssUrl(declaration);
+			if (imageValue) {
+				image = absolute(imageValue);
+				if (image) break;
+			}
+		}
+		if (image) break;
+	}
+	if (!image || !link) return null;
+	return {
+		title: title || "Steam Store Takeunder",
+		image,
+		link,
+		mediaType: /\.(?:mp4|webm|m4v|mov|ogv)(?:[?#]|$)/i.test(image) ? "video" : "image",
+	};
+}
+
+export async function fetchSteamTakeunder(cc) {
+	const url = new URL("https://store.steampowered.com/");
+	url.searchParams.set("cc", String(cc || "US").slice(0, 2).toLowerCase());
+	url.searchParams.set("l", "english");
+	const userAgent =
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36";
+	const response = await fetch(url, {
+		headers: {
+			"User-Agent": userAgent,
+			Accept: "text/html,application/xhtml+xml",
+		},
+		signal: AbortSignal.timeout(15000),
+	});
+	if (!response.ok)
+		throw new Error("Steam homepage request failed (" + response.status + ")");
+	const html = await response.text();
+
+	// Takeunder has no img/src in its markup; Steam supplies its artwork through
+	// the .home_page_takeunder CSS background-image rule.
+	const stylesheetUrls = [
+		...html.matchAll(/<link\b(?=[^>]*\brel=["'][^"']*stylesheet[^"']*["'])[^>]*>/gi),
+	]
+		.map((match) => {
+			const href = match[0].match(/\bhref=["']([^"']+)["']/i)?.[1] || "";
+			try {
+				return new URL(href.replace(/&amp;/g, "&"), url).toString();
+			} catch {
+				return "";
+			}
+		})
+		.filter((href) => href && /^https?:/.test(href))
+		.filter((href, index, all) => all.indexOf(href) === index)
+		.slice(0, 16);
+
+	const stylesheets = await Promise.all(
+		stylesheetUrls.map(async (href) => {
+			try {
+				const cssResponse = await fetch(href, {
+					headers: { "User-Agent": userAgent },
+					signal: AbortSignal.timeout(8000),
+				});
+				return cssResponse.ok ? await cssResponse.text() : "";
+			} catch {
+				return "";
+			}
+		}),
+	);
+	return extractSteamTakeunder(html, stylesheets);
+}
+
 export async function fetchSteamTopSellers(cc) {
 	const url = new URL("https://store.steampowered.com/search/results/");
 	url.searchParams.set("query", "");
