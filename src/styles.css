@@ -11801,8 +11801,18 @@ a {
 }
 @media (max-width: 620px) {
 	.steam-store-takeunder {
-		margin-bottom: 17px;
+		box-sizing: border-box;
+		width: calc(100% - 22px);
+		max-width: 100%;
+		aspect-ratio: auto;
+		height: 112px;
+		margin: 0 auto 17px;
 		border-radius: 9px;
+	}
+	.steam-store-takeunder img,
+	.steam-store-takeunder video {
+		object-fit: cover;
+		transform: scale(1.12);
 	}
 }
 
