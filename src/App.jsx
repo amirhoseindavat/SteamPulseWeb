@@ -384,7 +384,7 @@ export default function App() {
 					/>
 				)}
 
-				{currentPage === "sales" && <SalesPage />}
+				{currentPage === "sales" && <SalesPage storeTakeunder={storeTakeunder} />}
 
 				{currentPage === "about" && <AboutPage version={appVersion} />}
 

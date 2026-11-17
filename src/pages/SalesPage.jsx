@@ -87,7 +87,7 @@ function CompactSaleCountdown({ event, now }) {
 	);
 }
 
-function ThemedEventCard({ event, now }) {
+function ThemedEventCard({ event, now, eventUrl }) {
 	const isLive = event.isLive;
 
 	return (
@@ -106,7 +106,18 @@ function ThemedEventCard({ event, now }) {
 					{formatSaleDate(event.startAt, event.endAt)}
 				</div>
 				{isLive ? (
-					<span className="sales-themed-live-note">Event is live now</span>
+					<div className="sales-themed-live-actions">
+						<span className="sales-themed-live-note">Event is live now</span>
+						{eventUrl && (
+							<a
+								className="sales-themed-view-event"
+								href={eventUrl}
+								target="_blank"
+								rel="noopener noreferrer">
+								View Event <ExternalLink size={14} />
+							</a>
+						)}
+					</div>
 				) : (
 					<span className="sales-themed-countdown">
 						Starts in {Math.max(0, Math.ceil((event.startAt - now) / 86400000))}{" "}
@@ -118,8 +129,20 @@ function ThemedEventCard({ event, now }) {
 	);
 }
 
-export default function SalesPage() {
+export default function SalesPage({ storeTakeunder }) {
 	const { event, majorEvents, themedEvents, now } = useSalesData();
+	const takeunderUrl = (() => {
+		try {
+			const url = new URL(storeTakeunder?.link || "");
+			return ["store.steampowered.com", "www.store.steampowered.com"].includes(
+				url.hostname.toLowerCase(),
+			)
+				? url.toString()
+				: "";
+		} catch {
+			return "";
+		}
+	})();
 
 	return (
 		<div className="sales-page">
@@ -227,7 +250,7 @@ export default function SalesPage() {
 				{themedEvents.length ? (
 					<div className="sales-themed-grid">
 						{themedEvents.map((fest) => (
-							<ThemedEventCard key={fest.id} event={fest} now={now} />
+							<ThemedEventCard key={fest.id} event={fest} now={now} eventUrl={takeunderUrl} />
 						))}
 					</div>
 				) : (

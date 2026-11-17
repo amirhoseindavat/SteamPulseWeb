@@ -140,3 +140,55 @@
 		gap: 9px;
 	}
 }
+
+
+/* Keep the live note and Steam action aligned on opposite sides. */
+.sales-page .sales-themed-live-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	margin-top: 3px;
+}
+.sales-page .sales-themed-view-event {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-self: flex-start;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin-top: 3px;
+	padding: 7px 11px;
+	border: 1px solid rgba(169, 149, 255, 0.32);
+	border-radius: 8px;
+	background: rgba(139, 108, 255, 0.13);
+	color: #c8b8ff;
+	font: 800 15px/1.35 Manrope, sans-serif;
+	letter-spacing: 0.1px;
+	text-decoration: none;
+	white-space: nowrap;
+	transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.sales-page .sales-themed-view-event:hover {
+	border-color: rgba(169, 149, 255, 0.6);
+	background: rgba(139, 108, 255, 0.2);
+	color: #fff;
+}
+.app-shell[data-theme="light"] .sales-page .sales-themed-view-event {
+	color: #5d45ae;
+	border-color: rgba(113, 86, 201, 0.25);
+	background: rgba(139, 108, 255, 0.1);
+}
+.app-shell[data-theme="light"] .sales-page .sales-themed-view-event:hover {
+	background: rgba(139, 108, 255, 0.18);
+	color: #392477;
+}
+@media (max-width: 480px) {
+	.sales-page .sales-themed-live-actions {
+		gap: 8px;
+	}
+	.sales-page .sales-themed-view-event {
+		font-size: 14px;
+	}
+}
