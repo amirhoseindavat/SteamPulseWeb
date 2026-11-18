@@ -392,11 +392,11 @@ function extractSteamTakeover(html = "") {
 			attr(candidate.opening, "data-image") ||
 			attr(candidate.opening, "data-background");
 
-		if (!image) {
+		if (!isRealImage(absolute(image))) {
 			const srcset = attr(imageTag, "srcset");
 			if (srcset) image = srcset.split(",")[0].trim().split(/\s+/)[0];
 		}
-		if (!image) {
+		if (!isRealImage(absolute(image))) {
 			const styleTags = [
 				candidate.opening,
 				...(block.match(/<[a-z][\w:-]*\b[^>]*\bstyle\s*=\s*["'][^"']*["'][^>]*>/gi) || []),
