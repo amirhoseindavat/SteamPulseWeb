@@ -11797,6 +11797,12 @@ a {
 	height: 100%;
 	max-height: none;
 	object-position: center;
+	transform: scale(1.08);
+	transition: transform 0.35s ease;
+}
+.steam-store-takeunder:hover img,
+.steam-store-takeunder:hover video {
+	transform: scale(1.11);
 }
 @media (max-width: 620px) {
 	.steam-store-takeunder {
@@ -11852,7 +11858,9 @@ a {
 }
 @media (prefers-reduced-motion: reduce) {
 	.steam-store-takeover img,
-	.steam-store-takeover video {
+	.steam-store-takeover video,
+	.steam-store-takeunder img,
+	.steam-store-takeunder video {
 		transition: none;
 	}
 }
