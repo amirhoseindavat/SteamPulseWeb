@@ -12524,3 +12524,15 @@ a {
 		transform: none !important;
 	}
 }
+
+/* Keep the Home page SteamPulse brand aligned to the left on mobile. */
+@media (max-width: 620px) {
+	.intro .home-brand-group {
+		width: fit-content;
+		justify-content: flex-start;
+		direction: ltr;
+		margin-left: 0;
+		margin-right: auto;
+		text-align: left;
+	}
+}
