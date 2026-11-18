@@ -238,42 +238,21 @@ function extractSteamTakeover(html = "") {
 	const source = String(html || "")
 		.replace(/\\u002f/gi, "/")
 		.replace(/\\\//g, "/");
-	const candidates = [];
-	const openingTags =
-		/<([a-z][\w:-]*)\b[^>]*(?:class|id|data-[\w-]+)\s*=\s*["'][^"']*takeover[^"']*["'][^>]*>/gi;
-	for (const match of source.matchAll(openingTags)) {
-		const tag = match[1].toLowerCase();
-		const opening = match[0];
-		const start = match.index;
-		let end = start + opening.length;
-		if (!/\/>$/.test(opening)) {
-			const token = new RegExp("<\\/?" + tag + "\\b[^>]*>", "gi");
-			token.lastIndex = end;
-			let depth = 1;
-			let next;
-			while ((next = token.exec(source))) {
-				if (/^<\//.test(next[0])) depth--;
-				else if (!/\/>$/.test(next[0])) depth++;
-				if (depth === 0) {
-					end = token.lastIndex;
-					break;
-				}
-			}
-			if (depth !== 0) continue;
-		}
-		candidates.push({ tag, html: source.slice(start, end), opening });
-	}
-	const attr = (text, name) => {
-		const match = text.match(
-			new RegExp("\\b" + name + "=[\\x22']([^\\x22']*)[\\x22']", "i"),
+
+	const attr = (tag, name) => {
+		const match = String(tag || "").match(
+			new RegExp("\\b" + name + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))", "i"),
 		);
-		return match?.[1] || "";
+		return (match?.[1] || match?.[2] || match?.[3] || "")
+			.replace(/&amp;/g, "&")
+			.trim();
 	};
+
 	const absolute = (value) => {
 		if (!value) return "";
 		try {
 			const url = new URL(
-				value.replace(/&amp;/g, "&"),
+				String(value).trim().replace(/^[\"']|[\"']$/g, "").replace(/&amp;/g, "&"),
 				"https://store.steampowered.com/",
 			);
 			return /^https?:$/.test(url.protocol) ? url.toString() : "";
@@ -281,6 +260,112 @@ function extractSteamTakeover(html = "") {
 			return "";
 		}
 	};
+
+	const isRealImage = (value) => {
+		if (!value) return false;
+		const normalized = String(value).trim().toLowerCase();
+		return !(
+			!normalized ||
+			normalized.startsWith("data:") ||
+			/(?:^|\/)(?:blank|spacer|transparent|pixel|1x1)(?:[._-][^/?#]*)?\.(?:gif|png|jpe?g|webp)(?:[?#]|$)/i.test(normalized) ||
+			/\/public\/images\/blank\.gif(?:[?#]|$)/i.test(normalized)
+		);
+	};
+
+	const extractCssUrls = (value) => {
+		const urls = [];
+		const pattern = /url\(\s*(?:(["'])(.*?)\1|([^)]*?))\s*\)/gi;
+		for (const match of String(value || "").matchAll(pattern)) {
+			const candidate = (match[2] || match[3] || "").trim();
+			if (candidate) urls.push(candidate);
+		}
+		return urls;
+	};
+
+	const extractBlock = (opening, index) => {
+		const tag = opening.match(/^<([a-z][\w:-]*)\b/i)?.[1]?.toLowerCase();
+		if (!tag) return "";
+		if (/\/\s*>$/.test(opening)) return opening;
+		const token = new RegExp("<\\/?"+ tag + "\\b[^>]*>", "gi");
+		token.lastIndex = index + opening.length;
+		let depth = 1;
+		let match;
+		while ((match = token.exec(source))) {
+			if (/^<\//.test(match[0])) depth--;
+			else if (!/\/\s*>$/.test(match[0])) depth++;
+			if (depth === 0) return source.slice(index, token.lastIndex);
+		}
+		return "";
+	};
+
+	const takeoverOpenings = [
+		...source.matchAll(/<[a-z][\w:-]*\b[^>]*\bclass\s*=\s*(["'])[^"']*\bstatic_takeover_ctn\b[^"']*\1[^>]*>/gi),
+	];
+	let staticBlock = "";
+	for (const match of takeoverOpenings) {
+		staticBlock = extractBlock(match[0], match.index);
+		if (staticBlock) break;
+	}
+
+	const getHolderImage = (block, className) => {
+		const openings = block.match(/<[a-z][\w:-]*\b[^>]*>/gi) || [];
+		const opening = openings.find((tag) =>
+			attr(tag, "class").split(/\s+/).includes(className),
+		);
+		if (!opening) return "";
+		const style = attr(opening, "style");
+		for (const candidate of extractCssUrls(style)) {
+			const url = absolute(candidate);
+			if (isRealImage(url)) return url;
+		}
+		return "";
+	};
+
+	const findLink = (block) => {
+		const anchors = [
+			...(String(block || "").match(/<a\b[^>]*>/gi) || []),
+			...(source.match(/<a\b(?=[^>]*\bclass\s*=\s*["'][^"']*home_page_takeover_link[^"']*["'])[^>]*>/gi) || []),
+		];
+		for (const anchor of anchors) {
+			const link = absolute(attr(anchor, "href"));
+			if (link && /(?:^|\.)steampowered\.com$/i.test(new URL(link).hostname)) return link;
+		}
+		return "";
+	};
+
+	if (staticBlock) {
+		// Steam's current homepage uses a dedicated desktop background holder.
+		// The mobile holder is only a fallback when the desktop image is absent.
+		const image =
+			getHolderImage(staticBlock, "page_background_holder") ||
+			getHolderImage(staticBlock, "page_background_holder_mobile");
+		const link = findLink(staticBlock);
+		if (isRealImage(image) && link) {
+			const title = decodeSteamHtml(
+				attr(staticBlock.match(/<[a-z][\w:-]*\b[^>]*>/i)?.[0], "aria-label") ||
+				attr(staticBlock.match(/<a\b[^>]*>/i)?.[0], "aria-label") ||
+				attr(staticBlock.match(/<a\b[^>]*>/i)?.[0], "title") ||
+				"",
+			);
+			return {
+				title: title || "Steam Store Takeover",
+				image,
+				link,
+				mediaType: "image",
+			};
+		}
+	}
+
+	// Legacy takeover markup remains supported, but placeholder assets such as
+	// Steam's blank.gif are deliberately ignored instead of being shown as banners.
+	const candidates = [];
+	const openingTags =
+		/<([a-z][\w:-]*)\b[^>]*(?:class|id|data-[\w-]+)\s*=\s*["'][^"']*takeover[^"']*["'][^>]*>/gi;
+	for (const match of source.matchAll(openingTags)) {
+		const block = extractBlock(match[0], match.index);
+		if (block) candidates.push({ tag: match[1].toLowerCase(), html: block, opening: match[0] });
+	}
+
 	for (const candidate of candidates) {
 		const block = candidate.html;
 		const anchor =
@@ -289,12 +374,14 @@ function extractSteamTakeover(html = "") {
 				: block.match(/<a\b[^>]*>/i)?.[0] || "";
 		const imageTag = block.match(/<(?:img|source)\b[^>]*>/i)?.[0] || "";
 		const videoTag = block.match(/<video\b[^>]*>/i)?.[0] || "";
-		const link = absolute(
-			attr(anchor, "href") ||
-				attr(candidate.opening, "data-url") ||
-				attr(candidate.opening, "data-href"),
-		);
 		const videoSourceTag = block.match(/<source\b[^>]*>/i)?.[0] || "";
+
+		const link =
+			absolute(attr(anchor, "href")) ||
+			absolute(attr(candidate.opening, "data-url")) ||
+			absolute(attr(candidate.opening, "data-href")) ||
+			findLink("");
+
 		let image =
 			attr(videoTag, "src") ||
 			attr(videoSourceTag, "src") ||
@@ -304,25 +391,36 @@ function extractSteamTakeover(html = "") {
 			attr(videoTag, "poster") ||
 			attr(candidate.opening, "data-image") ||
 			attr(candidate.opening, "data-background");
+
 		if (!image) {
 			const srcset = attr(imageTag, "srcset");
 			if (srcset) image = srcset.split(",")[0].trim().split(/\s+/)[0];
 		}
-		if (!image)
-			image =
-				block.match(
-					/background(?:-image)?\s*:\s*url\(["']?([^"')]+)["']?\)/i,
-				)?.[1] || "";
+		if (!image) {
+			const styleTags = [
+				candidate.opening,
+				...(block.match(/<[a-z][\w:-]*\b[^>]*\bstyle\s*=\s*["'][^"']*["'][^>]*>/gi) || []),
+			];
+			for (const tag of styleTags) {
+				const urls = extractCssUrls(attr(tag, "style"));
+				const found = urls.map(absolute).find(isRealImage);
+				if (found) {
+					image = found;
+					break;
+				}
+			}
+		}
 		image = absolute(image);
+		if (!isRealImage(image) || !link) continue;
+
 		const title = decodeSteamHtml(
 			attr(candidate.opening, "data-title") ||
-				attr(anchor, "aria-label") ||
-				attr(anchor, "title") ||
-				attr(imageTag, "alt") ||
-				block.match(/<(?:h1|h2|h3)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3)>/i)?.[1] ||
-				"",
+			attr(anchor, "aria-label") ||
+			attr(anchor, "title") ||
+			attr(imageTag, "alt") ||
+			block.match(/<(?:h1|h2|h3)\b[^>]*>([\s\S]*?)<\/(?:h1|h2|h3)>/i)?.[1] ||
+			"",
 		);
-		if (!image || !link) continue;
 		return {
 			title: title || "Steam Store Takeover",
 			image,
