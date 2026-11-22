@@ -9588,7 +9588,7 @@ a {
 .app-shell .conversion-card,
 .app-shell .key-calculator,
 .app-shell .edition-card:not(.edition-card-owned):not(.edition-card-selected),
-.app-shell .dlc-card:not(.dlc-card-owned),
+.app-shell .dlc-card:not(.dlc-card-owned):not(.dlc-card-wishlisted),
 .app-shell .bundle-row:not(.edition-card-selected),
 .app-shell .steam-franchise-notice,
 .app-shell .screenshot-card,
@@ -12543,4 +12543,35 @@ a {
 		margin-right: auto;
 		text-align: left;
 	}
+}
+
+
+/* Highlight DLC items saved to the connected Steam account wishlist. */
+.app-shell .dlc-card.dlc-card-wishlisted {
+	border-color: rgba(91, 157, 255, 0.62);
+	background: linear-gradient(
+		110deg,
+		rgba(35, 75, 135, 0.3),
+		rgba(16, 29, 43, 0.88)
+	);
+}
+.app-shell .dlc-card-wishlisted .dlc-ownership.is-wishlisted {
+	color: #a9ccff;
+	border: 1px solid rgba(91, 157, 255, 0.5);
+	background: rgba(58, 119, 207, 0.2);
+	font-weight: 800;
+	padding: 4px 8px;
+	border-radius: 999px;
+}
+.app-shell[data-theme="light"] .dlc-card.dlc-card-wishlisted {
+	background: linear-gradient(110deg, #eaf2ff, #fff);
+	border-color: #a9c8f5;
+}
+.app-shell[data-theme="light"] .dlc-card-wishlisted .dlc-copy strong {
+	color: #244a7b;
+}
+.app-shell[data-theme="light"] .dlc-card-wishlisted .dlc-ownership.is-wishlisted {
+	color: #245da8;
+	border-color: #b4cef4;
+	background: #e4efff;
 }

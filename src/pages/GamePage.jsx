@@ -93,6 +93,7 @@ export default function GamePage({
 	loadMoreDlc,
 	calculatorRef,
 	steamAccountConnected,
+	steamWishlist,
 	steamOwnedApps,
 	steamOwnedPackages,
 	gameEditions,
@@ -618,6 +619,7 @@ export default function GamePage({
 						visibleDlc={visibleDlc}
 						game={game}
 						steamAccountConnected={steamAccountConnected}
+						steamWishlist={steamWishlist}
 						steamOwnedApps={steamOwnedApps}
 						steamOwnedPackages={steamOwnedPackages}
 						showOwnership={!isDlcOrHardware}

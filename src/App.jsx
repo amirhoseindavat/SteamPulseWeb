@@ -481,6 +481,7 @@ export default function App() {
 					loadMoreDlc={loadMoreDlc}
 					calculatorRef={calculatorRef}
 					steamAccountConnected={steamAccountConnected}
+					steamWishlist={steamWishlist}
 					steamOwnedApps={steamOwnedApps}
 					steamOwnedPackages={steamOwnedPackages}
 					gameEditions={gameEditions}

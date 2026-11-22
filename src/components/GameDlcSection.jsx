@@ -10,6 +10,7 @@ export default function GameDlcSection({
 	visibleDlc,
 	game,
 	steamAccountConnected,
+	steamWishlist,
 	steamOwnedApps,
 	steamOwnedPackages,
 	dlcSectionCount,
@@ -34,19 +35,32 @@ export default function GameDlcSection({
 				<span className="section-count">{dlcSectionCount}</span>
 			</div>
 			<div className="dlc-grid">
-				{visibleDlc.map((item) => (
+				{visibleDlc.map((item) => {
+					const isOwned =
+						steamAccountConnected &&
+						(showOwnership ?? true) &&
+						(steamOwnedApps.has(Number(item.appid)) ||
+							steamOwnedPackages.has(Number(item.appid)));
+					const isWishlisted =
+						steamAccountConnected &&
+						(showOwnership ?? true) &&
+						!isOwned &&
+						steamWishlist?.has(Number(item.appid));
+
+					return (
 					<article
-						className={`dlc-card ${showOwnership && showOwnership && steamAccountConnected && (steamOwnedApps.has(Number(item.appid)) || steamOwnedPackages.has(Number(item.appid))) ? "dlc-card-owned" : ""}`}
+						className={`dlc-card${isOwned ? " dlc-card-owned" : ""}${isWishlisted ? " dlc-card-wishlisted" : ""}`}
 						key={item.appid}>
 						<img src={item.image || game.header_image} alt="" loading="lazy" />
 						<div className="dlc-copy">
 							<div className="dlc-title-row">
 								<strong>{item.name}</strong>
-								{steamAccountConnected &&
-									(steamOwnedApps.has(Number(item.appid)) ||
-										steamOwnedPackages.has(Number(item.appid))) && (
-										<span className="dlc-ownership is-owned">✓ OWNED</span>
-									)}
+								{isOwned && (
+									<span className="dlc-ownership is-owned">✓ OWNED</span>
+								)}
+								{isWishlisted && (
+									<span className="dlc-ownership is-wishlisted">♥ WISHLISTED</span>
+								)}
 							</div>
 							<small>APP ID · {item.appid}</small>
 							<div className="dlc-price-row">
@@ -86,7 +100,8 @@ export default function GameDlcSection({
 							</div>
 						</div>
 					</article>
-				))}
+					);
+				})}
 			</div>
 			{(game.dlc_has_more ?? game.dlc.length < game.dlc_total) && (
 				<div className="dlc-load-more">
