@@ -431,6 +431,15 @@ export default function TrendingPage({
 																? item.price
 																: "Price not announced"}
 														</b>
+													) : activeSection === "topSellers" && item.price ? (
+														<span className="top-seller-price">
+															{Number(item.discountPercent) > 0 && (
+																<span className="dlc-discount-badge">
+																	-{item.discountPercent}%
+																</span>
+															)}
+															<b>{item.price}</b>
+														</span>
 													) : item.price ? (
 														<b>{item.price}</b>
 													) : null}

@@ -12575,3 +12575,12 @@ a {
 	border-color: #b4cef4;
 	background: #e4efff;
 }
+
+
+.top-seller-price {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	white-space: nowrap;
+}
